@@ -10,9 +10,9 @@ import { bellPaving } from '../../data/bellcrown.js';
 
 export const STRIDE = 16;
 const palette = values => values.map(value => new THREE.Color(value).toArray());
-const leaves = palette([0x779856, 0x8fab64, 0x74965b, 0xa1a868, 0x709566]);
+const leaves = palette([0x69a04f, 0x92b55a, 0x639451, 0xa5b557, 0x589761]);
 const crowns=Object.fromEntries(Object.entries(crownColors).map(([type,colors])=>[type,palette(colors)]));
-const petals = palette([0xe9d58e, 0xefd5bc, 0xc3a5ce, 0xe3bb71, 0xc5d8eb]);
+const petals = palette([0xf2cc62, 0xf1c3aa, 0xbf8bd8, 0xe9a54e, 0xaaccef]);
 const undergrowth = palette([0x859a56, 0x789d68, 0x93a76c, 0x739b5e]);
 const stone = palette([0xc1bca8, 0xadae9d, 0xc2bcab]);
 const neutral = [1, 1, 1];
@@ -93,12 +93,12 @@ export function scatter(world, density = 1) {
   }
   const lakeGroups=[
     [1817,-60,18,9,'birch',[0x9aba70,0xa4b779]],
-    [1661,-102,14,7,'maple1',[0xc17a54,0xc5915d,0xb5a15d]],
+    [1661,-102,14,7,'maple1',[0xcb7043,0xd38b45,0xc6a849]],
     [1747,25,11,7,'pine2',[0x456b67,0x53786d]],
     [1618,-31,6,3,'willow2',[0x91ab68,0xa6b978]],
     [1688,87,24,11,'birch',[0xa1b479,0x8eab65]],
     [1796,-189,30,13,'pine1',[0x516d6a,0x486260]],
-    [1568,-104,21,11,'maple1',[0xb88659,0xc79958]],
+    [1568,-104,21,11,'maple1',[0xc57a45,0xd4973f]],
     [1888,43,20,10,'willow1',[0x95ae67,0x839e65]]
   ];
   for(const [cx,cz,spread,count,key,pal] of lakeGroups){
@@ -131,7 +131,7 @@ export function scatter(world, density = 1) {
   // and slope. Their roots stay on the same four islands after the collapse.
   const reeds=palette([0x8f9d6d,0xa0a577,0x899d72]);
   const shoreFoliage=palette([0x76905e,0x849764,0x92a16b]);
-  const shoreFlowers=[palette([0xd7c299,0xe8d4a0]),palette([0xe3c3a4,0xc6a5ac]),palette([0xb4aaad,0xd4cbb4]),palette([0xcdd9bb,0xc6ccb3])];
+  const shoreFlowers=[palette([0xe5bc66,0xf1d594]),palette([0xf0b39a,0xcb92ad]),palette([0xb09ec5,0xe5ceb2]),palette([0xc8dfac,0xe0d0a5])];
   const lakeFloor=(x,z)=>trialViewHeight(x,z,floodedTrialHeight(x,z,world.baseHeightAt(x,z)),true);
   for(const [id,island] of TRIAL_LAKE.islands.entries()){
     let made=0;const want=Math.round((id===0?51:id===3?25:41)*(.65+density*.35));

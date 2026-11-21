@@ -73,9 +73,9 @@ void main() {
   vec3 zen = mvPalette(MV_ROW_SKYZEN, vZ);
   vec3 hor = mvPalette(MV_ROW_SKYHOR, vS);
   float highAir=smoothstep(uCloudH+${CLOUD_THICKNESS.toFixed(1)}-5.,uCloudH+${CLOUD_THICKNESS.toFixed(1)}+20.,uCam.y);
-  zen=mix(zen,vec3(.073,.247,.57),highAir*.63);
-  zen = mix(zen, vec3(.28,.34,.42), uWeather.x*.78*(1.-highAir));
-  hor = mix(hor, vec3(.48,.53,.58), uWeather.x*.79*(1.-highAir*.92));
+  zen=mix(zen,vec3(.035,.26,.65),highAir*.63);
+  zen = mix(zen, vec3(.24,.37,.50), uWeather.x*.78*(1.-highAir));
+  hor = mix(hor, vec3(.42,.54,.63), uWeather.x*.79*(1.-highAir*.92));
   hor += vec3(.13,.055,.006)*uWeather.y*(1.-uWeather.x);
   float darkSky=max(uSkyNight,uCover*.96);
   zen=mix(zen,vec3(.018,.036,.068),darkSky*.97);

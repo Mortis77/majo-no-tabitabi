@@ -225,6 +225,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     if (release) {
       fs.rmSync(path.join(outDir, 'assets'), { recursive: true, force: true });
       const n = copyDir(ASSETS, path.join(outDir, 'assets'));
+      fs.copyFileSync(path.join(ROOT, 'docs', 'images', 'preview.webp'), path.join(outDir, 'preview.webp'));
       for (const name of ['LICENSE', 'CREDITS.md']) {
         fs.copyFileSync(path.join(ROOT, name), path.join(outDir, name));
       }
