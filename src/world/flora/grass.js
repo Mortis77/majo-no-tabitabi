@@ -439,6 +439,12 @@ vec3 gPos; vec3 gNrm; float gKill = 0.0;
   vec3 tip = col * mix(vec3(1.04, 1.11, 1.03), vec3(1.31, 1.34, 1.18), clump);
   tip *= mix(vec3(1.0),vec3(.74,1.05,.89),basal);
   tip *= mix(vec3(1.04, 1.0, 0.92), vec3(0.95, 1.0, 1.06), fract(cH * 5.3));
+  // Up close the sunlit tips borrow the local turf's tone. Fade in 3D so a
+  // meadow seen from a high broom keeps the same colour as its distant terrain.
+  float cameraDy = gCam.y - g.h;
+  float nearGrass = (1.0 - smoothstep(25.0, 484.0, dist * dist + cameraDy * cameraDy)) * wSun * (1.0 - g.cropK);
+  vec3 turfTone = mix(col, vec3(dot(col, vec3(.2126, .7152, .0722))), .28);
+  tip = mix(tip, turfTone, .64 * nearGrass);
   float dryPick = fract(hA * 13.7);
   vec3 duskTip = dryPick < 0.45 ? ${lin(0xe0b450)} : dryPick < 0.75 ? ${lin(0xd0784a)} : ${lin(0xe8d08a)};
   tip = mix(tip, duskTip, wDusk * 0.85 * (1.0 - g.cropK));
@@ -449,14 +455,14 @@ vec3 gPos; vec3 gNrm; float gKill = 0.0;
   vGCol = mix(root0, tip, (g.crop > 1.5 && g.crop < 2.5) ? smoothstep(0.5, 0.72, t) : smoothstep(0.0, 1.0, t)) * (0.94 + 0.12 * aBlade.w);
   vGCol = mix(vGCol, mix(${lin(0xcdbb84)}, ${lin(0xb98a5a)}, wDusk), seed * smoothstep(0.55, 0.8, t) * 0.85);   // seed heads
   // the wind's sheen: broad soft waves of lighter, silvered tips travelling across the field
-  vGCol = mix(vGCol, vGCol * 1.2 + vec3(0.022, 0.026, 0.016), gSheen * t * 0.7);
+  vGCol = mix(vGCol, vGCol * 1.2 + vec3(0.022, 0.026, 0.016), gSheen * t * 0.7 * (1.0 - .65 * nearGrass));
   // far: the blade becomes a soft stroke of the ground colour, a little lighter toward its tip (never darker than the soil)
   vGCol = mix(vGCol, col * ${GRASS_TOP} * mix(0.98, 1.12, t) * (1.0 + 0.12 * gSheen), far * 0.9 * (1.0 - g.cropK));
   vGCol = mix(vGCol, ${lin(0xe8f4ff)}, smoothstep(0.0, 0.6, g.sc.b) * 0.8);
   float pulse = 0.65 + 0.35 * sin(gTime * 0.9 + root.x * 0.05 + root.y * 0.04);
   vec3 veinC = mix(${lin(0x3de0c0)}, ${lin(0x9c7cff)}, smoothstep(0.3, 0.7, g.n.x));
   vGGlow = veinC * wNight * tt * (0.06 + 1.1 * step(0.93, aBlade2.z * 0.5 + hA * 0.5)) * pulse * (1.0 - g.cropK);
-  vGTrans = tip * (0.35 + 0.65 * t) * t * (wSun + wDusk * 0.8) * (1.0 - g.cropK * 0.5) * (1.0 - far * 0.7);
+  vGTrans = tip * (0.35 + 0.65 * t) * t * (wSun + wDusk * 0.8) * (1.0 - g.cropK * 0.5) * (1.0 - far * 0.7) * (1.0 - .32 * nearGrass);
   
 }
 `;
