@@ -1,0 +1,126 @@
+{
+ "section": 3,
+ "frames": 1440,
+ "shots": [
+  {
+   "file": ".tmp/trailer/shots/3-elements/takes/s3a1-fire-game/s3a1-fire-game.mov",
+   "in": 0,
+   "length": 180,
+   "what": "(a) 火·风 game camera: three foxfires into the dusk meadow, the grass catches and spreads",
+   "cue": "bar 17 downbeat (elements start, section cut)",
+   "note": "Caption 八象灵诀 万物相生相克 (bar 17): sky at top-left/top-centre is clean. Reviewer: put the label 火·风 up from 38.4 (or the first accent), not 40.8."
+  },
+  {
+   "file": ".tmp/trailer/shots/3-elements/takes/s3a3-fire-front/s3a3-fire-front.mov",
+   "in": 0,
+   "length": 72,
+   "what": "(a) cut-in, close front three-quarter: she charges 龙卷, wind gathering round her",
+   "cue": "bar 18 beat 2 (cell frame 180)",
+   "note": "File frame 0 = cell 180. The wind release flares at file frame 70 (cell 250), two frames before the cut to the whirl. Tail handle 18."
+  },
+  {
+   "file": ".tmp/trailer/shots/3-elements/takes/s3a2-whirl-cut/s3a2-whirl-cut.mov",
+   "in": 0,
+   "length": 36,
+   "what": "(a) cut-in, low behind her right shoulder, tilting up the fire whirl",
+   "cue": "cell (a) accent: bar 18 beat 4 (cell frame 252) - the whirl rises",
+   "note": "Cut ON the accent. Handle: 18 frames at the tail (file is 54)."
+  },
+  {
+   "file": ".tmp/trailer/shots/3-elements/takes/s3b1-water-game/s3b1-water-game.mov",
+   "in": 0,
+   "length": 108,
+   "what": "(b) 水 game camera: a wall of grass fire across the dusk meadow; she throws two water beads into it - steam and smoke where they land; she starts to charge 祈雨",
+   "cue": "bar 19 downbeat",
+   "note": "Splashes land at frames 57 and 88 (steam). Label 水. Tail handle 18."
+  },
+  {
+   "file": ".tmp/trailer/shots/3-elements/takes/s3b2-water-front/s3b2-water-front.mov",
+   "in": 0,
+   "length": 72,
+   "what": "(b) cut-in, close front three-quarter: the charge glyph, the water bead rises from her hand and the cloud gathers",
+   "cue": "bar 19 beat 4 (cell frame 108)",
+   "note": "File frame 0 = cell 108; the bead leaves her hand at file frame 21 (cell 129). Tail handle 18."
+  },
+  {
+   "file": ".tmp/trailer/shots/3-elements/takes/s3b3-water-rain/s3b3-water-rain.mov",
+   "in": 0,
+   "length": 108,
+   "what": "(b) high over the near side of the blaze: a field of flames under the falling rain sinks in a wave, steam and smoke rise, and the last flames go out",
+   "cue": "bar 20 beat 2 (cell frame 180)",
+   "note": "THE ACCENT: the last flames go out ON file frame 72 (cell 252; fire cells 142 -> 7). After it: wet dark grass, rain, drifting smoke. Tail handle 18."
+  },
+  {
+   "file": ".tmp/trailer/shots/3-elements/takes/s3c3-ice-front/s3c3-ice-front.mov",
+   "in": 0,
+   "length": 72,
+   "what": "(c) 冰 close front three-quarter on the river bank: she lifts the gohei and charges 冰镜",
+   "cue": "bar 21 downbeat",
+   "note": "Opens the cell on her face. Label 冰. Tail handle 18."
+  },
+  {
+   "file": ".tmp/trailer/shots/3-elements/takes/s3c1-ice-game/s3c1-ice-game.mov",
+   "in": 72,
+   "length": 108,
+   "what": "(c) game camera on the dusk river: the frost burst flies out and freezes the river into a sheet, ice spikes bloom; the camera lifts",
+   "cue": "bar 21 beat 3 (cell frame 72)",
+   "note": "Cast at file frame 82, freeze lands at 103 (bar 21 beat 3.9)."
+  },
+  {
+   "file": ".tmp/trailer/shots/3-elements/takes/s3c2-ice-cut/s3c2-ice-cut.mov",
+   "in": 36,
+   "length": 108,
+   "what": "(c) cut-in, low on the new ice looking back at the bank: crystals bloom, she runs down and onto the ice toward camera",
+   "cue": "bar 22 beat 2 (cell frame 180)",
+   "note": "Her first step on the ice is file frame 108 = cell 252 (accent); use in=36. Before ~file 100 she is behind the crystals (the crystals are the subject). Tail handle 18."
+  },
+  {
+   "file": ".tmp/trailer/shots/3-elements/takes/s3d1-thunder-game/s3d1-thunder-game.mov",
+   "in": 0,
+   "length": 180,
+   "what": "(d) 雷 game camera, north shore of the night lake, lantern town across the water: she calls rain over a pack of shade blobs on the beach",
+   "cue": "bar 23 downbeat",
+   "note": "Rain cast frame 98, falls on the pack ~140. The pack is small in this view - the payoff is the cut-in. Label 雷. Floating damage numbers off."
+  },
+  {
+   "file": ".tmp/trailer/shots/3-elements/takes/s3d3-thunder-front/s3d3-thunder-front.mov",
+   "in": 0,
+   "length": 72,
+   "what": "(d) cut-in, close front three-quarter in the rain: she picks 落雷 and strikes (cast cell 231)",
+   "cue": "bar 24 beat 2 (cell frame 180)",
+   "note": "File frame 0 = cell 180; the cast is file frame 51. Tail handle 18."
+  },
+  {
+   "file": ".tmp/trailer/shots/3-elements/takes/s3d2-thunder-cut/s3d2-thunder-cut.mov",
+   "in": 0,
+   "length": 36,
+   "what": "(d) cut-in, low on the beach behind the pack: the bolt lands and arcs run through the soaked shades",
+   "cue": "cell (d) accent: bar 24 beat 4 (cell frame 252) - the bolt",
+   "note": "The bolt strikes ON file frame 0 (conduct reaction logged at 0). Bright flash in the first frames. The ground arcs last ~0.45 s in the game; the cell ends 36 frames later, so they cannot run longer here. Tail handle 18."
+  },
+  {
+   "file": ".tmp/trailer/shots/3-elements/takes/s3e1-earth-game/s3e1-earth-game.mov",
+   "in": 0,
+   "length": 108,
+   "what": "(e) 岩 game camera, behind her on the sunlit meadow by day, a pile of rocks far ahead: she thrusts and a stone column heaves up out of the ground (dust ring), then a second one farther on - the line starts to run toward the rocks",
+   "cue": "bar 25 downbeat",
+   "note": "Casts at file frames 24 and 84 (each column rises over ~27 frames, lit brown). Label 岩."
+  },
+  {
+   "file": ".tmp/trailer/shots/3-elements/takes/s3e2-earth-side/s3e2-earth-side.mov",
+   "in": 0,
+   "length": 108,
+   "what": "(e) cut-in, low side angle from the sunlit side across the path: she small at left, the rock pile at right; the third column heaves up between them",
+   "cue": "bar 25 beat 4 (cell frame 108)",
+   "note": "File frame 0 = cell 108. Third column cast at file frame 56 (cell 164). Tail handle 18."
+  },
+  {
+   "file": ".tmp/trailer/shots/3-elements/takes/s3e3-earth-burst/s3e3-earth-burst.mov",
+   "in": 0,
+   "length": 72,
+   "what": "(e) cut-in, low and wide beside the rock pile with the sky behind: the last column heaves up right under the pile and the rocks burst - chunks fly up over the column top into the sky, dust at its foot",
+   "cue": "bar 26 beat 3 (cell frame 216)",
+   "note": "THE ACCENT: every rock is crushed ON file frame 36 (cell 252), the pieces burst again at file 39; the chunk fountain peaks around file 45-60. Section ends on bar 27 downbeat (battle). Tail handle 18."
+  }
+ ]
+}

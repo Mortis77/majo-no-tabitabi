@@ -1,0 +1,59 @@
+{
+ "sculpt_crate_apples": {
+  "file": "models/sculpt/crate_apples.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/crate_apples.mjs (node tools/sculpt/assets/_smallprops.mjs)",
+  "scale": 1,
+  "size": [
+   0.901,
+   0.663,
+   0.693
+  ],
+  "tris": 1800,
+  "lods": [
+   1800,
+   626,
+   380
+  ],
+  "materials": [
+   "wood",
+   "metal",
+   "fruit",
+   "leaf"
+  ],
+  "mats": {
+   "wood": {
+    "surface": "wood",
+    "look": {
+     "rim": 0.3
+    }
+   },
+   "metal": {
+    "surface": "metal",
+    "look": {
+     "spec": 0.55,
+     "specPower": 40,
+     "rim": 0.4
+    }
+   },
+   "fruit": {
+    "surface": "none",
+    "look": {
+     "spec": 0.3,
+     "specPower": 36,
+     "rim": 0.35,
+     "wrap": 0.5
+    }
+   },
+   "leaf": {
+    "surface": "none",
+    "look": {
+     "trans": 0.4
+    }
+   }
+  },
+  "notes": "Sculpted orchard crate (arched end boards with hand holes, three gapped slats a side, apples heaped unevenly, a few leaves). Vertex colours on every LOD, no textures: batched prop. Families wood / metal / fruit / leaf."
+ }
+}

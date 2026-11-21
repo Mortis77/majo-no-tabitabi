@@ -1,0 +1,42 @@
+{
+ "sculpt_shroom_d": {
+  "file": "models/sculpt/shroom_d.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/shroom_d.mjs (node tools/sculpt/assets/_smallprops.mjs)",
+  "scale": 1,
+  "size": [
+   7.475,
+   9.047,
+   7.516
+  ],
+  "tris": 3500,
+  "lods": [
+   3500,
+   1200,
+   356
+  ],
+  "materials": [
+   "cap",
+   "stem"
+  ],
+  "mats": {
+   "cap": {
+    "surface": "none",
+    "look": {
+     "rim": 0.35,
+     "wrap": 0.5
+    }
+   },
+   "stem": {
+    "surface": "none",
+    "look": {
+     "rim": 0.25,
+     "wrap": 0.4
+    }
+   }
+  },
+  "notes": "Sculpted giant mushroom (old, bitten, with young). Vertex colours on every LOD. cap = caps + gills + bite flesh (tint), stem = stems + collar (mul)."
+ }
+}

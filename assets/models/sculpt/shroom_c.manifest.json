@@ -1,0 +1,42 @@
+{
+ "sculpt_shroom_c": {
+  "file": "models/sculpt/shroom_c.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/shroom_c.mjs (node tools/sculpt/assets/_smallprops.mjs)",
+  "scale": 1,
+  "size": [
+   5.905,
+   6.008,
+   4.715
+  ],
+  "tris": 3500,
+  "lods": [
+   3500,
+   1200,
+   350
+  ],
+  "materials": [
+   "cap",
+   "stem"
+  ],
+  "mats": {
+   "cap": {
+    "surface": "none",
+    "look": {
+     "rim": 0.35,
+     "wrap": 0.5
+    }
+   },
+   "stem": {
+    "surface": "none",
+    "look": {
+     "rim": 0.25,
+     "wrap": 0.4
+    }
+   }
+  },
+  "notes": "Sculpted giant mushroom (tiered shelves on a leaning stem). Vertex colours on every LOD. cap = shelves + gills (tint), stem (mul)."
+ }
+}

@@ -1,0 +1,50 @@
+{
+ "sculpt_komainu_a": {
+  "file": "models/sculpt/komainu_a.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/komainu_a.mjs (node tools/sculpt/build.mjs)",
+  "scale": 1,
+  "size": [
+   1.275,
+   2.339,
+   1.413
+  ],
+  "tris": 12000,
+  "lods": [
+   12000,
+   3500,
+   1288
+  ],
+  "materials": [
+   "Granite_stone",
+   "Moss_none",
+   "Bib_cloth"
+  ],
+  "mats": {
+   "Granite_stone": {
+    "surface": "stone",
+    "look": {
+     "detail": 0.25,
+     "bump": 0.3,
+     "fine": 0
+    }
+   },
+   "Moss_none": {
+    "surface": "none",
+    "look": {
+     "rim": 0.4,
+     "trans": 0.25
+    }
+   },
+   "Bib_cloth": {
+    "surface": "cloth",
+    "look": {
+     "detail": 0.5
+    }
+   }
+  },
+  "notes": "Sculpted komainu (open mouth, ball under its right forepaw). Replaces decor.js komainu(true, s): scale by s, origin foot centre, faces +Z. Red cloth bib sculpted in (material Bib_cloth, tintable); anchor \"bib\". LOD0 atlas + object-space normal map; LOD1/2 vertex colours. See .tmp/sculpt/komainu_a/INSTALL.md."
+ }
+}

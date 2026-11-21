@@ -1,0 +1,556 @@
+# Asset catalogue (generated from assets/manifest.json — ids you can pass to G.assets.model / audio)
+
+
+## char_ (18)
+- `char_akari` — size 1.3x1.55x0.44; 27164 tris
+- `char_fox_a` — size 1.31x1.62x0.61; 27975 tris
+- `char_fox_b` — size 1.22x1.53x0.64; 27496 tris
+- `char_granny` — size 1.18x1.46x0.43; 27094 tris
+- `char_himawari` — size 1.38x1.66x0.29; 35963 tris
+- `char_kagami` — size 1.34x1.68x0.42; 30056 tris
+- `char_kokonoe` — size 1.27x1.65x0.76; 27842 tris
+- `char_kuzunoha` — size 1.36x1.8x0.91; 33176 tris
+- `char_naru` — size 1.13x1.31x0.29; 27295 tris
+- `char_oboroyo` — size 1.38x1.73x0.47; 30326 tris
+- `char_rikka` — size 1.29x1.64x0.48; 27534 tris
+- `char_shoku` — size 1.23x1.5x0.46; 34962 tris
+- `char_town_a` — size 1.38x1.61x0.44; 34962 tris
+- `char_town_b` — size 1.22x1.5x0.44; 30356 tris
+- `char_ushio` — size 1.2x1.49x0.43; 27498 tris
+- `char_villager_a` — size 1.48x1.74x0.7; 27435 tris
+- `char_villager_b` — size 1.29x1.53x0.44; 34780 tris
+- `char_villager_c` — size 1.38x1.61x0.53; 27892 tris
+
+## anim_ (1)
+- `anim_ual` — size 0.0x0.0x0.0
+
+## tree_ (27)
+- `tree_bamboo_1` — size 1.75x9.0x1.84; 644 tris; mats stalk — bamboo clump (single material "stalk"; leaf tufts included). Staged in metres, y-up, base on y=0 (trees/willow
+- `tree_bamboo_2` — size 1.31x6.0x1.39; 492 tris; mats stalk — shorter bamboo clump. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbox-cen
+- `tree_birch_1` — size 4.29x9.0x6.25; 1704 tris; mats trunk/leaves_dark/leaves — white birch. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbox-centred). Co
+- `tree_broadleaf_1` — size 5.35x7.0x5.47; 530 tris; mats trunk/leaves — round toon canopy, side puff. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others 
+- `tree_broadleaf_2` — size 6.91x8.5x5.94; 636 tris; mats trunk/leaves — round toon canopy, two puffs. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others 
+- `tree_broadleaf_3` — size 9.42x11.0x8.1; 1364 tris; mats trunk/leaves — big round toon canopy, three puffs. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; o
+- `tree_broadleaf_4` — size 4.54x8.0x5.17; 1351 tris; mats trunk/leaves/leaves_dark — faceted tall broadleaf, smooth normals. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origi
+- `tree_broadleaf_5` — size 3.5x9.5x4.29; 1584 tris; mats trunk/leaves/leaves_dark — faceted tall broadleaf, two leaf tones. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origi
+- `tree_broadleaf_snow_1` — size 3.3x9.0x4.04; 1672 tris; mats trunk/leaves/snow — snow-dusted broadleaf (trunk, leaves, snow). Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z 
+- `tree_cherry_1` — size 9.1x8.0x7.11; 698 tris; mats trunk/blossom — Poly by Google "Cherry tree" (CC-BY), pink low-poly canopy. Staged in metres, y-up, base on y=0 (trees/willows
+- `tree_cherry_2` — size 5.29x6.0x5.29; 978 tris; mats trunk/leaves — flat umbrella crown recoloured pink (sakura / niwaki look). Staged in metres, y-up, base on y=0 (trees/willows
+- `tree_dead_1` — size 4.62x6.5x2.56; 936 tris; mats trunk — bare twisted tree. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbox-centre
+- `tree_dead_2` — size 2.26x7.0x0.84; 448 tris; mats trunk — bare slender snag. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbox-centre
+- `tree_dead_3` — size 2.21x6.0x3.14; 1424 tris; mats trunk — broken dead trunk. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbox-centre
+- `tree_dead_snow_1` — size 2.59x5.49x5.25; 1798 tris; mats trunk/snow — snowy dead tree. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbox-centred)
+- `tree_giant_ancient` — size 21.39x22.0x17.57; 1748 tris; mats trunk/leaves — gnarled multi-tier canopy; place sparingly as the giant ancient tree (22 m). Staged in metres, y-up, base on y
+- `tree_ginkgo_1` — size 4.23x11.0x4.76; 1730 tris; mats trunk/leaves/leaves_dark — birch geometry recoloured to ginkgo gold + grey-brown bark; slender oval crown. Staged in metres, y-up, base o
+- `tree_ginkgo_2` — size 3.08x13.0x5.02; 1734 tris; mats trunk/leaves/leaves_dark — tall birch geometry recoloured to ginkgo gold. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/
+- `tree_maple_1` — size 10.78x9.0x6.6; 1096 tris; mats trunk/leaves — Poly by Google "Maple tree" (CC-BY), red leaves / brown trunk split by hue; rotate / recolour per land. Staged
+- `tree_maple_2` — size 3.32x9.0x4.07; 1584 tris; mats trunk/leaves/leaves_dark — autumn-orange tall tree (leaves + leaves_dark). Staged in metres, y-up, base on y=0 (trees/willows: trunk at x
+- `tree_maple_3` — size 4.25x7.5x4.85; 1351 tris; mats trunk/leaves/leaves_dark — autumn-orange compact tree. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bb
+- `tree_pine_1` — size 3.04x8.0x3.04; 404 tris; mats trunk/leaves — stacked-cone fir. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbox-centred
+- `tree_pine_2` — size 4.08x11.0x3.6; 522 tris; mats trunk/leaves — stacked-cone fir with side tufts. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; oth
+- `tree_pine_3` — size 5.46x10.0x4.98; 1566 tris; mats trunk/leaves — layered pine. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbox-centred). C
+- `tree_pine_snow_1` — size 5.04x10.0x5.49; 1681 tris; mats trunk/leaves/snow — snowy pine (trunk, leaves, snow). Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; oth
+- `tree_willow_1` — size 3.92x7.0x5.91; 1044 tris; mats trunk/leaves_dark — weeping willow, drooping crown. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; other
+- `tree_willow_2` — size 2.93x7.0x7.22; 1624 tris; mats trunk/leaves_dark — narrow weeping willow. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbox-ce
+
+## plant_ (34)
+- `plant_bush_1` — size 1.8x1.14x1.8; 168 tris; mats leaves — low round bush. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbox-centred).
+- `plant_bush_2` — size 2.2x1.25x1.88; 476 tris; mats leaves — lumpy bush. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbox-centred). Col
+- `plant_bush_3` — size 2.4x1.11x2.4; 272 tris; mats leaves — flat shrub mound. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbox-centred
+- `plant_bush_4` — size 2.2x1.06x1.86; 284 tris; mats leaves — pointed topiary-ish bush. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbox
+- `plant_bush_5` — size 1.26x1.18x1.6; 364 tris; mats leaves — faceted bush. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbox-centred). C
+- `plant_bush_berries` — size 1.5x1.27x1.49; 478 tris; mats leaves/berry — bush with berries (leaves + berry). Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; o
+- `plant_bush_snow` — size 1.25x1.16x1.6; 460 tris; mats snow/leaves — snowy bush. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbox-centred). Col
+- `plant_fern_1` — size 1.4x0.42x1.31; 288 tris; mats leaves — painted fern, alpha-cut leaf texture. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin;
+- `plant_fern_2` — size 1.2x0.36x1.13; 288 tris; mats leaves — small fern, alpha-cut leaf texture. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; o
+- `plant_flower_1` — size 0.25x0.5x0.21; 220 tris; mats petal/center/stem — Poly by Google "Daisy" (CC-BY). Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; other
+- `plant_flower_2` — size 0.28x0.79x0.28; 184 tris; mats petal/stem — tall blue flower (petal + stem). Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; othe
+- `plant_flower_4` — size 0.48x0.8x0.6; 200 tris; mats stem/petal/center — flower patch, cyan petals + yellow centres. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z o
+- `plant_grass_1` — size 0.4x0.9x0.39; 132 tris; mats leaves — tall grass tuft. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbox-centred)
+- `plant_grass_2` — size 0.75x0.6x0.7; 200 tris; mats leaves — short grass clump. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbox-centre
+- `plant_grass_3` — size 0.29x1.1x0.4; 192 tris; mats leaves — faceted tall grass blades. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbo
+- `plant_lilypad_1` — size 1.1x0.2x1.09; 198 tris; mats leaves/petal — lily pad with pink flower. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbo
+- `plant_lilypad_2` — size 1.0x0.12x1.0; 68 tris; mats leaves — flat lily pad. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbox-centred). 
+- `plant_lotus_1` — size 0.66x1.01x0.58; 196 tris; mats petal/center/stem — Sean Tarrant "Lotus Flower" (CC-BY). Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; 
+- `plant_mushroom_giant_1` — size 7.71x9.0x7.7; 900 tris; mats stem/cap — GIANT spotted mushroom; cap / stem recolour for glowing east. Staged in metres, y-up, base on y=0 (trees/willo
+- `plant_mushroom_giant_2` — size 6.69x6.0x6.69; 1498 tris; mats stem/cap — GIANT broad flat-capped mushroom. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; oth
+- `plant_mushroom_giant_3` — size 8.5x5.0x8.28; 138 tris; mats stem/cap — GIANT squat fat toadstool (non-uniform scale of source). Staged in metres, y-up, base on y=0 (trees/willows: t
+- `plant_mushroom_giant_4` — size 3.29x12.0x3.29; 598 tris; mats stem/cap — GIANT tall slim mushroom (non-uniform scale of source). Staged in metres, y-up, base on y=0 (trees/willows: tr
+- `plant_mushroom_small_1` — size 0.22x0.34x0.22; 204 tris; mats stem/cap — small spotted mushroom. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbox-c
+- `plant_mushroom_small_3` — size 0.4x0.4x0.39; 138 tris; mats stem/cap — small toadstool. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbox-centred)
+- `plant_pumpkin_1` — size 0.8x0.76x0.79; 396 tris; mats fruit/stem — pumpkin (fruit + stem). Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbox-c
+- `plant_pumpkin_2` — size 0.9x0.63x0.9; 306 tris; mats fruit — yellow pumpkin. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbox-centred).
+- `plant_reed_1` — size 0.99x1.6x0.65; 162 tris; mats leaves — cattail / reed clump. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbox-cen
+- `plant_reed_2` — size 0.94x1.2x1.05; 200 tris; mats leaves — broad reed clump. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbox-centred
+- `plant_rice_1` — size 0.72x0.9x0.28; 196 tris; mats leaves — rice plant clump. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbox-centred
+- `plant_sunflower_1` — size 1.17x1.9x0.87; 199 tris; mats seed/petal/stem — Poly by Google "Sunflower" (CC-BY): petal / seed / stem. Staged in metres, y-up, base on y=0 (trees/willows: t
+- `plant_vine_1` — size 0.68x1.4x0.55; 200 tris; mats leaves — pothos vine (textured, cut-out). Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; othe
+- `plant_vine_2` — size 0.8x1.49x0.94; 200 tris; mats leaves — pothos vine variant. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbox-cent
+- `plant_wheat_1` — size 0.21x0.9x0.32; 200 tris; mats leaves — wheat stalks. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbox-centred). C
+- `plant_wheat_2` — size 0.35x1.1x0.35; 200 tris; mats grain — golden wheat clump. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbox-centr
+
+## rock_ (19)
+- `rock_arch_1` — size 5.12x4.95x1.23; 798 tris; mats rock — stone arch (Quaternius, simplified to ~800 tris; slightly above rock budget, single use landmark). Staged in m
+- `rock_boulder_1` — size 0.5x0.45x0.42; 84 tris; mats rock — pebble-size rock (0.45 m). Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbo
+- `rock_boulder_2` — size 0.8x0.9x0.83; 84 tris; mats rock — small rock (0.9 m). Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbox-centr
+- `rock_boulder_3` — size 1.4x1.5x1.3; 168 tris; mats rock — medium rock (1.5 m). Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbox-cent
+- `rock_boulder_4` — size 2.58x2.2x2.56; 168 tris; mats rock — large rock (2.2 m). Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbox-centr
+- `rock_boulder_5` — size 3.34x3.5x2.73; 320 tris; mats rock — big boulder (3.5 m). Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbox-cent
+- `rock_boulder_6` — size 6.88x5.5x6.63; 320 tris; mats rock — huge boulder (5.5 m). Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbox-cen
+- `rock_cliff_1` — size 6.06x6.0x6.72; 499 tris; mats rock — stepped cliff chunk. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbox-cent
+- `rock_cliff_2` — size 6.11x5.5x4.24; 500 tris; mats rock — wide stepped cliff chunk. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbox
+- `rock_cliff_3` — size 4.98x4.5x5.2; 438 tris; mats rock — block cliff chunk with side blocks. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; o
+- `rock_cliff_4` — size 4.36x4.5x5.25; 488 tris; mats rock — block cliff chunk. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbox-centre
+- `rock_moss_1` — size 1.52x1.6x2.55; 128 tris; mats rock/moss — mossy tall rock (rock + moss). Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others
+- `rock_moss_2` — size 0.56x1.1x0.54; 70 tris; mats rock/moss — mossy rock. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbox-centred). Col
+- `rock_painted_1` — size 2.57x1.8x2.38; 342 tris; mats rock — hand-painted textured boulder (256 px). Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origi
+- `rock_snow_1` — size 1.67x1.8x2.81; 188 tris; mats rock/snow — snow-capped rock (rock + snow). Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; other
+- `rock_snow_2` — size 0.59x1.2x0.57; 102 tris; mats rock/snow — snow-capped small rock. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbox-c
+- `rock_standing_1` — size 2.77x6.0x2.77; 223 tris; mats rock — tall stacked standing stone / spire. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; 
+- `rock_standing_2` — size 3.27x3.5x3.09; 104 tris; mats rock — columnar standing stone. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbox-
+- `rock_standing_3` — size 3.61x3.8x6.06; 128 tris; mats rock — slab standing stone. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbox-cent
+
+## nat_ (18)
+- `nat_crystal_1` — size 0.85x1.4x0.47; 44 tris; mats crystal — single purple crystal. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbox-ce
+- `nat_crystal_2` — size 0.66x1.8x0.58; 116 tris; mats crystal — single pink crystal. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbox-cent
+- `nat_crystal_3` — size 0.84x2.0x0.74; 12 tris; mats crystal — single green spike crystal. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bb
+- `nat_crystal_4` — size 1.46x1.0x1.31; 22 tris; mats crystal — cyan gem crystal. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbox-centred
+- `nat_crystal_cluster_1` — size 2.44x1.8x2.2; 220 tris; mats crystal — purple crystal cluster built from five Crystal1 copies. Staged in metres, y-up, base on y=0 (trees/willows: tr
+- `nat_crystal_cluster_2` — size 2.47x2.2x2.26; 580 tris; mats crystal — pink crystal cluster built from five Crystal2 copies. Staged in metres, y-up, base on y=0 (trees/willows: trun
+- `nat_crystal_cluster_3` — size 3.08x2.6x2.79; 60 tris; mats crystal — green crystal cluster built from five Crystal3 copies. Staged in metres, y-up, base on y=0 (trees/willows: tru
+- `nat_crystal_cluster_4` — size 2.34x2.4x2.59; 378 tris; mats crystal — blue crystal cluster (iPoly3D). Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; other
+- `nat_crystal_cluster_5` — size 1.36x1.6x1.61; 176 tris; mats crystal — small blue crystal cluster (iPoly3D). Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin;
+- `nat_crystal_cluster_6` — size 2.85x3.2x2.87; 590 tris; mats crystal — chunky purple crystal group (Quaternius). Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z ori
+- `nat_crystal_mineral_1` — size 1.34x1.0x1.29; 498 tris; mats rock/crystal — crystal-on-rock mineral (crystal + rock). Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z ori
+- `nat_fallen_trunk_1` — size 8.38x1.74x1.21; 634 tris; mats trunk — fallen bare trunk (source tree laid down, ~8 m). Staged in metres, y-up, base on y=0 (trees/willows: trunk at 
+- `nat_fallen_trunk_2` — size 3.9x0.83x1.06; 944 tris; mats trunk — fallen dead trunk (source tree laid down). Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z or
+- `nat_log_1` — size 0.59x0.7x2.5; 464 tris; mats trunk/cap/stem — fallen log with small mushrooms (trunk, cap, stem). Staged in metres, y-up, base on y=0 (trees/willows: trunk 
+- `nat_log_moss_1` — size 1.04x0.8x3.1; 614 tris; mats trunk/moss/cap/stem — mossy log. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbox-centred). Colo
+- `nat_log_snow_1` — size 0.75x0.7x2.99; 280 tris; mats trunk/snow — snowy log. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbox-centred). Colo
+- `nat_stump_1` — size 1.3x0.59x0.99; 232 tris; mats trunk/cut/moss — tree stump (trunk, cut, moss). Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others
+- `nat_stump_snow_1` — size 1.3x0.59x0.99; 258 tris; mats trunk/snow — snowy stump. Staged in metres, y-up, base on y=0 (trees/willows: trunk at x/z origin; others bbox-centred). Co
+
+## bld_ (27)
+- `bld_bell_frame` — size 2.58x2.4x0.92; 2528 tris; mats Atlas — material: wood; real-world size ~2.58 x 2.40 x 0.92 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `bld_bell_tower` — size 3.66x9.0x4.21; 11799 tris; mats Stone_Light/Stone_Dark/Wood/Wood_Side/Bell — material: wood; real-world size ~3.66 x 9.00 x 4.21 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `bld_boat_rowing` — size 2.33x1.0x4.5; 224 tris; mats DarkWood/Wood — material: wood; real-world size ~2.33 x 1.00 x 4.50 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `bld_bridge_arched` — size 5.0x1.89x1.9; 2880 tris; mats Wood — material: wood; real-world size ~5.00 x 1.89 x 1.90 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `bld_dock` — size 2.9x4.0x3.53; 1912 tris; mats Atlas — material: wood; real-world size ~2.90 x 4.00 x 3.53 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `bld_fence_picket` — size 3.0x0.6x0.08; 324 tris; mats Brown — material: wood; real-world size ~3.00 x 0.60 x 0.08 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `bld_fox_statue` — size 0.79x2.2x0.98; 2150 tris; mats Stone — material: stone; real-world size ~0.79 x 2.20 x 0.98 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `bld_gazebo` — size 2.69x3.5x3.27; 698 tris; mats RoofTiles_Red/Wood — material: wood; real-world size ~2.69 x 3.50 x 3.27 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `bld_guard_tower` — size 2.73x7.0x2.73; 416 tris; mats LightWood/Celing — material: wood; real-world size ~2.73 x 7.00 x 2.73 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `bld_house_fantasy` — size 4.11x6.5x5.1; 5758 tris; mats Wood/Wood_Side/Plaster/Wood_Light/Windows — material: wood; real-world size ~4.11 x 6.50 x 5.10 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `bld_market_stalls` — size 6.0x1.75x5.9; 6064 tris; mats Green/Yellow/Red/Wood/Wood_Light — material: wood; real-world size ~6.00 x 1.75 x 5.90 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `bld_market_stand` — size 2.36x2.6x2.95; 1548 tris; mats RoofTiles_Red/Beige/Wood/Wood_Side — material: wood; real-world size ~2.36 x 2.60 x 2.95 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `bld_mill_house` — size 5.66x8.0x4.55; 8126 tris; mats RoofTiles/Stone_Light/Stone_Dark/Wood/Windows — material: wood; real-world size ~5.66 x 8.00 x 4.55 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `bld_pagoda_grey` — size 10.96x14.0x11.05; 3728 tris; mats 02___Default/_crayfishdiffuse/03___Default — material: stone; real-world size ~10.96 x 14.00 x 11.05 m (x,y,z) after scale; scale is NOT baked, apply `scal
+- `bld_pagoda_red` — size 8.57x18.0x8.57; 2362 tris; mats lambert2SG — material: wood; real-world size ~8.57 x 18.00 x 8.57 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `bld_sawmill` — size 9.0x5.86x6.72; 4335 tris; mats RoofTiles_Red/Wood/Wood_Side/DarkWood/Metal — material: wood; real-world size ~9.00 x 5.86 x 6.72 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `bld_shoji_wall` — size 2.01x2.6x0.4; 418 tris; mats Atlas/Light — material: paper; real-world size ~2.01 x 2.60 x 0.40 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `bld_signpost` — size 0.93x2.0x0.19; 44 tris; mats colormap — material: wood; real-world size ~0.93 x 2.00 x 0.19 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `bld_stone_lantern_white` — size 0.67x2.2x0.65; 432 tris; mats mat21 — material: stone; real-world size ~0.67 x 2.20 x 0.65 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `bld_stone_toro` — size 0.57x1.8x0.57; 734 tris; mats mat17/mat14/mat22/mat23 — material: stone; real-world size ~0.57 x 1.80 x 0.57 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `bld_torii_grand` — size 9.39x8.0x7.26; 10128 tris; mats mat14/mat20/mat16/mat11/mat12 — material: wood; real-world size ~9.39 x 8.00 x 7.26 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `bld_torii_red` — size 4.78x4.6x0.67; 124 tris; mats mat8/mat23/mat12/mat21 — material: wood; real-world size ~4.78 x 4.60 x 0.67 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `bld_torii_wood` — size 4.95x4.6x0.76; 236 tris; mats Atlas — material: wood; real-world size ~4.95 x 4.60 x 0.76 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `bld_watch_tower_stone` — size 5.04x9.0x5.53; 3200 tris; mats Stone_Light/Stone/Wood/Main/Green — material: stone; real-world size ~5.04 x 9.00 x 5.53 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `bld_well_blue` — size 2.05x2.6x2.36; 726 tris; mats hexagons_medieval — material: wood; real-world size ~2.05 x 2.60 x 2.36 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `bld_well_roofed` — size 1.28x2.4x1.93; 1870 tris; mats Wood/Bag/RoofTiles_Red/Stone_Dark/Stone_Light — material: wood; real-world size ~1.28 x 2.40 x 1.93 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `bld_windmill` — size 7.46x9.0x5.26; 1714 tris; mats Walls/Main/Stone/Wood/Fabric — material: stone; real-world size ~7.46 x 9.00 x 5.26 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+
+## prop_ (122)
+- `prop_andon` — size 0.59x0.9x0.58; 304 tris; mats Atlas/Light — material: paper; real-world size ~0.59 x 0.90 x 0.58 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_anvil` — size 0.6x0.3x0.28; 316 tris; mats tools — material: metal; real-world size ~0.60 x 0.30 x 0.28 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_apple_red` — size 0.07x0.08x0.07; 212 tris; mats resource — material: flesh; real-world size ~0.07 x 0.08 x 0.07 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_axe` — size 0.41x0.7x0.15; 508 tris; mats tools — material: metal; real-world size ~0.41 x 0.70 x 0.15 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_barrel_apples` — size 0.74x0.95x0.74; 2480 tris; mats MI_Trim_Furniture/MI_Trim_Metal/MI_Trim_Props_Vertex — material: wood; real-world size ~0.74 x 0.95 x 0.74 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_barrel_explosive` — size 0.69x0.9x0.69; 516 tris; mats Grey/Red/White — material: metal; real-world size ~0.69 x 0.90 x 0.69 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_barrel_fish` — size 0.68x0.9x0.66; 2040 tris; mats resource — material: wood; real-world size ~0.68 x 0.90 x 0.66 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_barrel_large` — size 0.99x1.1x0.99; 561 tris; mats texture — material: wood; real-world size ~0.99 x 1.10 x 0.99 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_barrel_oil` — size 0.67x0.9x0.67; 868 tris; mats resource — material: metal; real-world size ~0.67 x 0.90 x 0.67 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_barrel_small` — size 0.69x0.7x0.69; 207 tris; mats texture — material: wood; real-world size ~0.69 x 0.70 x 0.69 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_basket` — size 0.35x0.4x0.33; 636 tris; mats witch — material: wood; real-world size ~0.35 x 0.40 x 0.33 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_basket_berries` — size 0.66x0.4x0.64; 1114 tris; mats resource — material: wood; real-world size ~0.66 x 0.40 x 0.64 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_basket_mushrooms` — size 0.39x0.45x0.37; 1556 tris; mats witch — material: wood; real-world size ~0.39 x 0.45 x 0.37 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_bench` — size 1.6x0.31x0.31; 404 tris; mats MI_Trim_Furniture/MI_Trim_Metal — material: wood; real-world size ~1.60 x 0.31 x 0.31 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_bench_halloween` — size 1.6x0.4x0.6; 172 tris; mats HalloweenBits — material: wood; real-world size ~1.60 x 0.40 x 0.60 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_bomb` — size 0.23x0.3x0.23; 272 tris; mats clown — material: metal; real-world size ~0.23 x 0.30 x 0.23 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_bonfire` — size 1.22x1.3x1.12; 704 tris; mats Wood/LightWood/Fire — material: wood; real-world size ~1.22 x 1.30 x 1.12 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_book_big` — size 0.18x0.35x0.26; 352 tris; mats paladin — material: paper; real-world size ~0.18 x 0.35 x 0.26 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_book_single` — size 0.13x0.25x0.18; 68 tris; mats furniture_texture — material: paper; real-world size ~0.13 x 0.25 x 0.18 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_book_stack` — size 0.3x0.23x0.24; 208 tris; mats MI_Trim_Props_Vertex — material: paper; real-world size ~0.30 x 0.23 x 0.24 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_bottle_brown` — size 0.12x0.3x0.12; 144 tris; mats texture — material: glass; real-world size ~0.12 x 0.30 x 0.12 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_bottle_green` — size 0.17x0.28x0.17; 144 tris; mats texture — material: glass; real-world size ~0.17 x 0.28 x 0.17 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_bottle_sake` — size 0.1x0.3x0.09; 216 tris; mats Atlas — material: glass; real-world size ~0.10 x 0.30 x 0.09 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_broom` — size 0.31x1.5x0.29; 640 tris; mats witch — material: wood; real-world size ~0.31 x 1.50 x 0.29 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_bucket_metal` — size 0.24x0.3x0.21; 466 tris; mats tools — material: metal; real-world size ~0.24 x 0.30 x 0.21 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_bucket_wood` — size 0.45x0.3x0.39; 976 tris; mats MI_Trim_Furniture/MI_Trim_Metal — material: wood; real-world size ~0.45 x 0.30 x 0.39 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_candle` — size 0.05x0.15x0.05; 120 tris; mats texture — material: wood; real-world size ~0.05 x 0.15 x 0.05 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_candlestick` — size 0.5x0.3x0.35; 730 tris; mats MI_Trim_Metal — material: metal; real-world size ~0.50 x 0.30 x 0.35 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_cart` — size 1.1x1.89x2.2; 2659 tris; mats Wood/Red/Beige/DarkWood/Stone_Dark — material: wood; real-world size ~1.10 x 1.89 x 2.20 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_cauldron` — size 1.17x0.8x1.11; 2168 tris; mats witch — material: metal; real-world size ~1.17 x 0.80 x 1.11 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_cauldron_small` — size 0.61x0.5x0.58; 2020 tris; mats MI_Trim_Metal — material: metal; real-world size ~0.61 x 0.50 x 0.58 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_chair` — size 0.58x0.95x0.58; 294 tris; mats texture — material: wood; real-world size ~0.58 x 0.95 x 0.58 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_cheese` — size 0.2x0.06x0.2; 322 tris; mats resource — material: flesh; real-world size ~0.20 x 0.06 x 0.20 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_chest_gems` — size 0.65x0.63x0.7; 2200 tris; mats resource — material: wood; real-world size ~0.65 x 0.63 x 0.70 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_chest_gold` — size 0.9x0.69x0.77; 1568 tris; mats texture — material: wood; real-world size ~0.90 x 0.69 x 0.77 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_chest_plain` — size 0.9x0.5x0.53; 2546 tris; mats MI_Trim_Furniture/MI_Trim_Metal — material: wood; real-world size ~0.90 x 0.50 x 0.53 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_chochin` — size 0.3x0.7x0.45; 782 tris; mats Atlas — material: paper; real-world size ~0.30 x 0.70 x 0.45 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_coin` — size 0.03x0.01x0.03; 80 tris; mats texture — material: metal; real-world size ~0.03 x 0.01 x 0.03 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_coin_pile` — size 0.3x0.11x0.23; 960 tris; mats MI_Trim_Metal_Vertex — material: metal; real-world size ~0.30 x 0.11 x 0.23 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_coin_stack` — size 0.1x0.06x0.1; 968 tris; mats texture — material: metal; real-world size ~0.10 x 0.06 x 0.10 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_crate_apples` — size 0.9x0.7x0.67; 1852 tris; mats resource — material: wood; real-world size ~0.90 x 0.70 x 0.67 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_crate_big` — size 0.9x0.9x0.9; 132 tris; mats hexagons_medieval — material: wood; real-world size ~0.90 x 0.90 x 0.90 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_crate_carrots` — size 0.7x0.4x0.56; 5262 tris; mats MI_Trim_Props_Vertex/MI_Trim_Furniture/MI_Trim_Metal — material: wood; real-world size ~0.70 x 0.40 x 0.56 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_crate_large` — size 1.0x0.67x0.96; 1670 tris; mats resource — material: wood; real-world size ~1.00 x 0.67 x 0.96 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_crate_medium` — size 0.7x0.18x0.37; 1048 tris; mats resource — material: wood; real-world size ~0.70 x 0.18 x 0.37 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_crate_metal` — size 0.8x0.8x0.8; 2738 tris; mats MI_Trim_Furniture/MI_Trim_Metal — material: metal; real-world size ~0.80 x 0.80 x 0.80 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_crate_small` — size 0.45x0.28x0.39; 1044 tris; mats resource — material: wood; real-world size ~0.45 x 0.28 x 0.39 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_dango` — size 0.15x0.07x0.09; 1956 tris; mats Atlas — material: flesh; real-world size ~0.15 x 0.07 x 0.09 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_fish` — size 0.35x0.18x0.11; 233 tris; mats colormap — material: flesh; real-world size ~0.35 x 0.18 x 0.11 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_fish_large` — size 0.6x0.31x0.19; 233 tris; mats colormap — material: flesh; real-world size ~0.60 x 0.31 x 0.19 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_fish_salmon` — size 0.5x0.42x0.12; 720 tris; mats Atlas — material: flesh; real-world size ~0.50 x 0.42 x 0.12 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_fishing_rod` — size 0.41x2.0x0.98; 3605 tris; mats tools — material: wood; real-world size ~0.41 x 2.00 x 0.98 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_gem_large` — size 0.17x0.25x0.07; 116 tris; mats vampire — material: crystal; real-world size ~0.17 x 0.25 x 0.07 m (x,y,z) after scale; scale is NOT baked, apply `scale
+- `prop_gems_pile` — size 0.3x0.18x0.3; 376 tris; mats resource — material: crystal; real-world size ~0.30 x 0.18 x 0.30 m (x,y,z) after scale; scale is NOT baked, apply `scale
+- `prop_goblet` — size 0.26x0.2x0.13; 1200 tris; mats vampire — material: metal; real-world size ~0.26 x 0.20 x 0.13 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_gohei` — size 0.11x0.51x0.02; 226 tris — Miko wand: 0.5 m wooden stick with brass bands and zig-zag white paper streamers (double-sided material). Orig
+- `prop_hammer` — size 0.23x0.35x0.14; 396 tris; mats tools — material: metal; real-world size ~0.23 x 0.35 x 0.14 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_hay_bale_bundled` — size 1.0x0.63x0.71; 364 tris; mats colormap — material: cloth; real-world size ~1.00 x 0.63 x 0.71 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_hay_sheaf` — size 0.68x1.0x0.7; 488 tris; mats Hay — material: cloth; real-world size ~0.68 x 1.00 x 0.70 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_hoe` — size 0.49x1.4x0.41; 58 tris; mats colormap — material: wood; real-world size ~0.49 x 1.40 x 0.41 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_jar_a` — size 0.3x0.45x0.3; 168 tris; mats restaurant — material: glass; real-world size ~0.30 x 0.45 x 0.30 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_jar_b` — size 0.27x0.35x0.27; 188 tris; mats restaurant — material: glass; real-world size ~0.27 x 0.35 x 0.27 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_jar_c` — size 0.26x0.25x0.26; 192 tris; mats restaurant — material: glass; real-world size ~0.26 x 0.25 x 0.26 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_katana` — size 0.15x1.0x0.09; 283 tris; mats ninja — material: metal; real-world size ~0.15 x 1.00 x 0.09 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_key` — size 0.1x0.04x0.02; 160 tris; mats texture — material: metal; real-world size ~0.10 x 0.04 x 0.02 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_keyring` — size 0.1x0.03x0.12; 728 tris; mats texture — material: metal; real-world size ~0.10 x 0.03 x 0.12 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_ladder` — size 0.82x2.5x0.17; 84 tris; mats hexagons_medieval — material: wood; real-world size ~0.82 x 2.50 x 0.17 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_lantern` — size 0.2x0.3x0.2; 772 tris; mats tools/glass — material: metal; real-world size ~0.20 x 0.30 x 0.20 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_lantern_red` — size 0.29x0.45x0.28; 354 tris; mats mat8/mat23 — material: paper; real-world size ~0.29 x 0.45 x 0.28 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_lantern_standing` — size 0.28x0.4x0.28; 264 tris; mats HalloweenBits — material: metal; real-world size ~0.28 x 0.40 x 0.28 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_log_a` — size 0.64x0.65x1.2; 756 tris; mats resource — material: wood; real-world size ~0.64 x 0.65 x 1.20 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_log_split` — size 0.16x0.8x0.16; 76 tris; mats werewolf — material: wood; real-world size ~0.16 x 0.80 x 0.16 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_log_stack` — size 1.2x1.07x1.07; 3576 tris; mats resource — material: wood; real-world size ~1.20 x 1.07 x 1.07 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_mushroom` — size 0.24x0.25x0.25; 340 tris; mats witch — material: flesh; real-world size ~0.24 x 0.25 x 0.25 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_onigiri` — size 0.1x0.08x0.04; 464 tris; mats Atlas — material: flesh; real-world size ~0.10 x 0.08 x 0.04 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_pan` — size 0.3x0.07x0.45; 310 tris; mats restaurant — material: metal; real-world size ~0.30 x 0.07 x 0.45 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_parchment` — size 0.5x0.49x0.21; 592 tris; mats Beige — material: paper; real-world size ~0.50 x 0.49 x 0.21 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_pickaxe` — size 0.9x0.86x0.13; 508 tris; mats tools — material: metal; real-world size ~0.90 x 0.86 x 0.13 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_plank_a` — size 0.4x0.15x1.5; 28 tris; mats resource — material: wood; real-world size ~0.40 x 0.15 x 1.50 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_planks_stack` — size 0.74x0.28x1.4; 248 tris; mats resource — material: wood; real-world size ~0.74 x 0.28 x 1.40 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_pot_clay` — size 0.49x0.35x0.33; 284 tris; mats colormap — material: stone; real-world size ~0.49 x 0.35 x 0.33 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_pot_iron` — size 0.4x0.14x0.29; 324 tris; mats restaurant — material: metal; real-world size ~0.40 x 0.14 x 0.29 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_pot_large` — size 0.6x0.23x0.36; 388 tris; mats restaurant — material: metal; real-world size ~0.60 x 0.23 x 0.36 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_pot_small` — size 0.72x0.3x0.65; 1068 tris; mats MI_Trim_Metal — material: stone; real-world size ~0.72 x 0.30 x 0.65 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_potion_a` — size 0.15x0.18x0.15; 440 tris; mats MI_Trim_Props_Vertex — material: glass; real-world size ~0.15 x 0.18 x 0.15 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_potion_b` — size 0.09x0.18x0.09; 472 tris; mats MI_Trim_Props_Vertex — material: glass; real-world size ~0.09 x 0.18 x 0.09 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_potion_c` — size 0.15x0.2x0.15; 536 tris; mats MI_Trim_Props_Vertex — material: glass; real-world size ~0.15 x 0.20 x 0.15 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_potion_round` — size 0.12x0.2x0.12; 1584 tris; mats Glass/Brown — material: glass; real-world size ~0.12 x 0.20 x 0.12 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_pumpkin` — size 0.57x0.4x0.57; 306 tris; mats HalloweenBits — material: flesh; real-world size ~0.57 x 0.40 x 0.57 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_pumpkin_jack` — size 0.46x0.4x0.43; 374 tris; mats HalloweenBits — material: flesh; real-world size ~0.46 x 0.40 x 0.43 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_ramen` — size 0.24x0.14x0.25; 5586 tris; mats Atlas — material: flesh; real-world size ~0.24 x 0.14 x 0.25 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_rope` — size 0.4x0.07x0.15; 1248 tris; mats tools — material: cloth; real-world size ~0.40 x 0.07 x 0.15 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_sack_gems` — size 0.59x0.5x0.57; 2484 tris; mats resource — material: cloth; real-world size ~0.59 x 0.50 x 0.57 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_scroll` — size 0.5x0.08x0.09; 956 tris; mats Beige/DarkRed — material: paper; real-world size ~0.50 x 0.08 x 0.09 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_scroll_open` — size 0.5x0.12x0.13; 512 tris; mats MI_Page_Empty/MI_Trim_Props_Vertex — material: paper; real-world size ~0.50 x 0.12 x 0.13 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_shovel` — size 0.48x1.4x0.14; 810 tris; mats tools — material: metal; real-world size ~0.48 x 1.40 x 0.14 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_shuriken` — size 0.12x0.02x0.12; 128 tris; mats ninja — material: metal; real-world size ~0.12 x 0.02 x 0.12 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_skull` — size 0.2x0.2x0.2; 344 tris; mats HalloweenBits — material: flesh; real-world size ~0.20 x 0.20 x 0.20 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_staff_a` — size 0.09x1.6x0.08; 500 tris; mats weapons — material: wood; real-world size ~0.09 x 1.60 x 0.08 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_staff_b` — size 0.43x1.6x0.19; 664 tris; mats weapons — material: wood; real-world size ~0.43 x 1.60 x 0.19 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_staff_c` — size 0.3x1.6x0.3; 1528 tris; mats weapons/weapons_glow — material: wood; real-world size ~0.30 x 1.60 x 0.30 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_staff_d` — size 0.71x1.6x0.14; 1718 tris; mats weapons_glow/weapons — material: wood; real-world size ~0.71 x 1.60 x 0.14 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_staff_gnarled` — size 0.1x1.8x0.43; 220 tris; mats Wood.001 — material: wood; real-world size ~0.10 x 1.80 x 0.43 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_stool` — size 0.68x0.45x0.68; 172 tris; mats texture — material: wood; real-world size ~0.68 x 0.45 x 0.68 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_sushi_maguro` — size 0.04x0.03x0.07; 256 tris; mats Atlas — material: flesh; real-world size ~0.04 x 0.03 x 0.07 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_sushi_tamago` — size 0.04x0.03x0.07; 436 tris; mats Atlas — material: flesh; real-world size ~0.04 x 0.03 x 0.07 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_table_long` — size 1.2x0.6x2.4; 280 tris; mats texture — material: wood; real-world size ~1.20 x 0.60 x 2.40 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_table_low` — size 1.0x0.21x0.62; 276 tris; mats furniture_texture — material: wood; real-world size ~1.00 x 0.21 x 0.62 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_table_medium` — size 1.2x0.6x1.2; 256 tris; mats texture — material: wood; real-world size ~1.20 x 0.60 x 1.20 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_table_small` — size 0.8x0.8x0.8; 192 tris; mats texture — material: wood; real-world size ~0.80 x 0.80 x 0.80 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_tacklebox` — size 0.4x0.21x0.23; 1915 tris; mats tools — material: metal; real-world size ~0.40 x 0.21 x 0.23 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_torch` — size 0.11x0.6x0.12; 474 tris; mats tools — material: wood; real-world size ~0.11 x 0.60 x 0.12 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_torch_wood` — size 0.12x0.7x0.11; 448 tris; mats DarkWood/LightGrey/Yellow — material: wood; real-world size ~0.12 x 0.70 x 0.11 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_tree_log` — size 0.5x0.55x2.0; 88 tris; mats colormap — material: wood; real-world size ~0.50 x 0.55 x 2.00 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_vase_a` — size 0.67x0.5x0.67; 598 tris; mats MI_Trim_Props_Vertex — material: stone; real-world size ~0.67 x 0.50 x 0.67 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_wand_a` — size 0.06x0.35x0.07; 442 tris; mats weapons — material: wood; real-world size ~0.06 x 0.35 x 0.07 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_wand_b` — size 0.19x0.35x0.07; 548 tris; mats weapons/weapons_glow — material: wood; real-world size ~0.19 x 0.35 x 0.07 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_war_drum` — size 0.8x0.5x0.8; 1672 tris; mats orc_texture_A — material: wood; real-world size ~0.80 x 0.50 x 0.80 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_waterbottle` — size 0.11x0.25x0.11; 312 tris; mats hiker — material: cloth; real-world size ~0.11 x 0.25 x 0.11 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+- `prop_wheel` — size 0.44x0.9x0.87; 192 tris; mats colormap — material: wood; real-world size ~0.44 x 0.90 x 0.87 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_wheelbarrow` — size 0.66x0.52x1.4; 396 tris; mats hexagons_medieval — material: wood; real-world size ~0.66 x 0.52 x 1.40 m (x,y,z) after scale; scale is NOT baked, apply `scale` o
+- `prop_witch_hat` — size 0.5x0.26x0.5; 465 tris; mats Gray/purple/gold — material: cloth; real-world size ~0.50 x 0.26 x 0.50 m (x,y,z) after scale; scale is NOT baked, apply `scale` 
+
+## mon_ (23)
+- `mon_bat` — size 1.2x1.2x0.61; 1046 tris; mats Eyes/Main/Belly/Black/Nose; clips Bat_Attack, Bat_Attack2, Bat_Death, Bat_Flying, Bat_Hit — Scale already baked into a wrapper node Root (model is in metres, grounded, centred). Clip names are matched b
+- `mon_bee` — size 1.3x0.83x0.49; 2280 tris; mats Armabee_Main/Armabee_Secondary/Eye_White/Wings; clips Death, Fast_Flying, Flying_Idle, Headbutt, HitReact, No, Punch, Yes — Scale already baked into a wrapper node Root (model is in metres, grounded, centred). Clip names are matched b
+- `mon_birdling` — size 0.9x0.7x0.77; 2184 tris; mats Pigeon_Main/Eye_White/Eye_Black/Pigeon_Secondary; clips Bite_Front, Dance, Death, HitRecieve, Idle, Jump, No, Walk, Yes — Scale already baked into a wrapper node Root (model is in metres, grounded, centred). Clip names are matched b
+- `mon_cthulhu` — size 1.2x0.59x0.56; 1576 tris; mats Texture; clips Bite_Front, Death, Flying, HitRecieve — Scale already baked into a wrapper node Root (model is in metres, grounded, centred). Clip names are matched b
+- `mon_cyclops` — size 1.46x1.5x1.32; 972 tris; mats Texture; clips Bite_Front, Bite_InPlace, Dance, Death, HitRecieve, Idle, Jump, No, Walk — Scale already baked into a wrapper node Root (model is in metres, grounded, centred). Clip names are matched b
+- `mon_dragon_boss` — size 6.0x3.46x3.01; 7438 tris; mats Dragon_Main/Dragon_Secondary/Dragon_Horn/Eye_Black; clips Death, Fast_Flying, Flying_Idle, Headbutt, HitReact, No, Punch, Yes — Scale already baked into a wrapper node Root (model is in metres, grounded, centred). Clip names are matched b
+- `mon_eye` — size 1.18x1.2x0.94; 3296 tris; mats Hywirl_Main/Eye_White/Eye_Black; clips Death, Fast_Flying, Flying_Idle, Headbutt, HitReact, No, Punch, Yes — Scale already baked into a wrapper node Root (model is in metres, grounded, centred). Clip names are matched b
+- `mon_ghost` — size 1.27x1.4x0.84; 3192 tris; mats Eye_White/Eye_Black/Ghost_Main; clips Death, Fast_Flying, Flying_Idle, Headbutt, HitReact, No, Punch, Yes — Scale already baked into a wrapper node Root (model is in metres, grounded, centred). Clip names are matched b
+- `mon_ghost_skull` — size 1.13x1.2x0.81; 3144 tris; mats Ghost_Main/Ghost_Secondary; clips Death, Fast_Flying, Flying_Idle, Headbutt, HitReact, No, Punch, Yes — Scale already baked into a wrapper node Root (model is in metres, grounded, centred). Clip names are matched b
+- `mon_glub` — size 1.0x0.86x0.43; 2528 tris; mats Glub_Main/Eye_Black/Eye_White/Wings; clips Death, Fast_Flying, Flying_Idle, Headbutt, HitReact, No, Punch, Yes — Scale already baked into a wrapper node Root (model is in metres, grounded, centred). Clip names are matched b
+- `mon_golem_big` — size 2.74x3.6x1.89; 3812 tris; mats Atlas.001; clips Attack, Death, HitRecieve, Idle, Jump, Run, Walk — Scale already baked into a wrapper node Root (model is in metres, grounded, centred). Clip names are matched b
+- `mon_hound` — size 0.74x1.19x1.5; 2740 tris; mats AtlasMaterial; clips Death, Headbutt, Idle, Idle_Eating, Jump_Loop, Jump_Start, Run, Walk — Scale already baked into a wrapper node Root (model is in metres, grounded, centred). Clip names are matched b
+- `mon_mushnub` — size 0.82x1.0x0.82; 1248 tris; mats MushroomKing_Secondary/MushroomKing_Main/Eye_White/Eye_Black; clips Bite_Front, Dance, Death, HitRecieve, Idle, Jump, No, Walk, Yes — Scale already baked into a wrapper node Root (model is in metres, grounded, centred). Clip names are matched b
+- `mon_mushroom_king` — size 2.66x2.8x1.67; 6044 tris; mats MushroomKing_Main/Orc_Main/MushroomKing_Secondary/Eye_White/Eye_Black; clips Death, Duck, HitReact, Idle, Jump, Jump_Idle, Jump_Land, No, Punch — Scale already baked into a wrapper node Root (model is in metres, grounded, centred). Clip names are matched b
+- `mon_rat` — size 0.2x0.3x0.9; 4004 tris; mats Grey/Pink; clips Rat_Attack, Rat_Death, Rat_Idle, Rat_Jump, Rat_Run, Rat_Walk — Scale already baked into a wrapper node Root (model is in metres, grounded, centred). Clip names are matched b
+- `mon_serpent` — size 0.99x3.0x2.57; 1618 tris; mats DarkGreen/LightGreen/Red/Teeth/Purple; clips Snake_Attack, Snake_Idle, Snake_Jump, Snake_Walk — Scale already baked into a wrapper node Root (model is in metres, grounded, centred). Clip names are matched b
+- `mon_skull` — size 0.84x0.9x0.85; 1804 tris; mats Main/Main_Light; clips Bite_Front, Bite_InPlace, Dance, Death, HitRecieve, Idle, Jump, No, Walk — Scale already baked into a wrapper node Root (model is in metres, grounded, centred). Clip names are matched b
+- `mon_slime` — size 0.75x0.57x0.9; 1440 tris; mats Body/Eyes; clips Slime_Attack, Slime_Death, Slime_Idle, Slime_Walk — Scale already baked into a wrapper node Root (model is in metres, grounded, centred). Clip names are matched b
+- `mon_slime_spiky` — size 0.83x1.0x0.99; 4888 tris; mats Eye_White/Eye_Black/Green_Main; clips Bite_Front, Dance, Death, HitRecieve, Idle, Jump, No, Walk, Yes — Scale already baked into a wrapper node Root (model is in metres, grounded, centred). Clip names are matched b
+- `mon_spider` — size 1.6x0.54x1.38; 2712 tris; mats Material/Material.001; clips Spider_Attack, Spider_Death, Spider_Idle, Spider_Jump, Spider_Walk — Scale already baked into a wrapper node Root (model is in metres, grounded, centred). Clip names are matched b
+- `mon_squid` — size 1.4x0.69x0.65; 4880 tris; mats Squidle_Horn/Eye_White/Eye_Black/Tongue/Squidle_Main; clips Death, Fast_Flying, Flying_Idle, Headbutt, HitReact, No, Punch, Yes — Scale already baked into a wrapper node Root (model is in metres, grounded, centred). Clip names are matched b
+- `mon_tentacle` — size 0.59x2.5x0.88; 3874 tris; mats AtlasMaterial; clips TentacleArma, TentacleArmat, TentacleArmatur, TentacleArmatur — Scale already baked into a wrapper node Root (model is in metres, grounded, centred). Clip names are matched b
+- `mon_tree` — size 2.16x2.2x1.33; 1368 tris; mats Texture; clips Bite_Front, Bite_InPlace, Dance, HitRecieve, Idle, Jump, No, Walk, Yes — Scale already baked into a wrapper node Root (model is in metres, grounded, centred). Clip names are matched b
+
+## ani_ (15)
+- `ani_cat` — size 0.3x0.43x0.5; 2448 tris; mats AtlasMaterial; clips Death, Headbutt, Idle, Idle_Eating, Jump_Loop, Jump_Start, Run, Walk — Scale already baked into a wrapper node Root (model is in metres, grounded, centred). Clip names are matched b
+- `ani_chicken` — size 0.22x0.45x0.3; 2140 tris; mats AtlasMaterial; clips Attack, Death, Idle, Idle_Peck, Run — Scale already baked into a wrapper node Root (model is in metres, grounded, centred). Clip names are matched b
+- `ani_cow` — size 0.69x1.36x2.4; 2450 tris; mats Main/Main_Light/Muzzle/Hooves/Eye_Black; clips Attack_Headbutt, Attack_Kick, Death, Eating, Gallop, Gallop_Jump, Idle_HitReact_Left, Idle_HitReact_Right, Jump_toIdle — Scale already baked into a wrapper node Root (model is in metres, grounded, centred). Clip names are matched b
+- `ani_deer` — size 0.63x1.87x1.9; 2096 tris; mats Main_Light/Main/Main_Dark/Hooves/Eye_Lighter; clips Attack_Headbutt, Attack_Kick, Death, Eating, Gallop, Gallop_Jump, Idle_HitReact_Left, Idle_HitReact_Right, Jump_toIdle — Scale already baked into a wrapper node Root (model is in metres, grounded, centred). Clip names are matched b
+- `ani_dog` — size 0.23x0.67x0.9; 1950 tris; mats Main/Main_Light/Black/Eyes_White/Eyes_Pupil; clips Attack, Death, Eating, Gallop, Gallop_Jump, Idle_HitReact_Left, Idle_HitReact_Right, Jump_ToIdle, Walk — Scale already baked into a wrapper node Root (model is in metres, grounded, centred). Clip names are matched b
+- `ani_fox` — size 0.18x0.43x0.9; 1848 tris; mats Main/Main_Light/Grey/Black; clips Attack, Death, Eating, Gallop, Gallop_Jump, Idle_HitReact_Left, Idle_HitReact_Right, Jump_ToIdle, Walk — Scale already baked into a wrapper node Root (model is in metres, grounded, centred). Clip names are matched b
+- `ani_frog` — size 0.4x0.16x0.36; 4920 tris; mats Green/Yellow/Red/Black; clips Frog_Attack, Frog_Death, Frog_Idle, Frog_Jump — Scale already baked into a wrapper node Root (model is in metres, grounded, centred). Clip names are matched b
+- `ani_hedgehog` — size 0.26x0.25x0.3; 1472 tris; mats Atlas; clips Attack, Death, Idle — Scale already baked into a wrapper node Root (model is in metres, grounded, centred). Clip names are matched b
+- `ani_horse` — size 0.59x2.04x2.4; 2182 tris; mats Main/Hair/Main_Dark/Muzzle/Hooves; clips Attack_Headbutt, Attack_Kick, Death, Eating, Gallop_Jump, Gallop, Idle_HitReact_Left, Idle_HitReact_Right, Jump_toIdle — Scale already baked into a wrapper node Root (model is in metres, grounded, centred). Clip names are matched b
+- `ani_koi` — size 0.39x0.56x0.7; 1494 tris; mats Eyes/Koi_Main/Koi_Fins/Koi_Light/Koi_Dark; clips Attack, Death, Out_Of_Water, Swimming_Fast, Swimming_Impulse, Swimming_Normal — Scale already baked into a wrapper node Root (model is in metres, grounded, centred). Clip names are matched b
+- `ani_pig` — size 0.49x0.95x1.2; 2816 tris; mats AtlasMaterial; clips Death, Headbutt, Idle, Idle_Eating, Jump_Loop, Jump_Start, Run, Walk — Scale already baked into a wrapper node Root (model is in metres, grounded, centred). Clip names are matched b
+- `ani_raccoon` — size 0.31x0.3x0.7; 2876 tris; mats AtlasMaterial; clips Death, Headbutt, Idle, Idle_Eating, Jump_Loop, Jump_Start, Run, Walk — Scale already baked into a wrapper node Root (model is in metres, grounded, centred). Clip names are matched b
+- `ani_sheep` — size 0.46x0.73x1.2; 2528 tris; mats AtlasMaterial; clips Death, Headbutt, Idle, Idle_Eating, Jump_Loop, Jump_Start, Run, Walk — Scale already baked into a wrapper node Root (model is in metres, grounded, centred). Clip names are matched b
+- `ani_stag` — size 1.09x2.3x2.08; 3667 tris; mats Material.001/Material.003/Material/Material.010/Material.011; clips Attack_Headbutt, Attack_Kick, Death, Eating, Gallop, Gallop_Jump, Idle_HitReact_Left, Idle_HitReact_Right, Jump_toIdle — Scale already baked into a wrapper node Root (model is in metres, grounded, centred). Clip names are matched b
+- `ani_wolf` — size 0.28x0.72x1.4; 1962 tris; mats Main/Main_Light/Eyes_Black/Nose; clips Attack, Death, Eating, Gallop, Gallop_Jump, Idle_HitReact_Left, Idle_HitReact_Right, Jump_ToIdle, Walk — Scale already baked into a wrapper node Root (model is in metres, grounded, centred). Clip names are matched b
+
+## tex_ (33)
+- `tex_fx_circle_compass` —  — white-on-transparent additive/alpha sprite, source magic_03.png (512x512), RGB forced to white
+- `tex_fx_circle_pentagon` —  — white-on-transparent additive/alpha sprite, source magic_01.png (512x512), RGB forced to white
+- `tex_fx_claw_slash` —  — white-on-transparent additive/alpha sprite, source scratch_01.png (512x512), RGB forced to white
+- `tex_fx_debris` —  — white-on-transparent additive/alpha sprite, source dirt_02.png (512x512), RGB forced to white
+- `tex_fx_fire_burst_a` —  — white-on-transparent additive/alpha sprite, source muzzle_02.png (512x512), RGB forced to white
+- `tex_fx_fire_burst_b` —  — white-on-transparent additive/alpha sprite, source muzzle_04.png (512x512), RGB forced to white
+- `tex_fx_flame_lick_a` —  — white-on-transparent additive/alpha sprite, source flame_05.png (512x512), RGB forced to white
+- `tex_fx_flame_lick_b` —  — white-on-transparent additive/alpha sprite, source flame_06.png (512x512), RGB forced to white
+- `tex_fx_flare_streak` —  — white-on-transparent additive/alpha sprite, source flare_01.png (512x512), RGB forced to white
+- `tex_fx_flash_burst` —  — white-on-transparent additive/alpha sprite, source flash01.png (463x482), RGB forced to white; alpha = alpha x
+- `tex_fx_glow_dot` —  — white-on-transparent additive/alpha sprite, source circle_05.png (512x512), RGB forced to white
+- `tex_fx_lightning_a` —  — white-on-transparent additive/alpha sprite, source spark_01.png (512x512), RGB forced to white
+- `tex_fx_lightning_b` —  — white-on-transparent additive/alpha sprite, source spark_02.png (512x512), RGB forced to white
+- `tex_fx_lightning_beam` —  — white-on-transparent additive/alpha sprite, source spark_07.png (512x512), RGB forced to white
+- `tex_fx_lightning_bolt` —  — white-on-transparent additive/alpha sprite, source spark_05.png (512x512), RGB forced to white
+- `tex_fx_lightning_vine` —  — white-on-transparent additive/alpha sprite, source spark_06.png (512x512), RGB forced to white
+- `tex_fx_ring_double` —  — white-on-transparent additive/alpha sprite, source circle_03.png (512x512), RGB forced to white
+- `tex_fx_ring_soft` —  — white-on-transparent additive/alpha sprite, source circle_02.png (512x512), RGB forced to white
+- `tex_fx_slash_a` —  — white-on-transparent additive/alpha sprite, source slash_01.png (512x512), RGB forced to white
+- `tex_fx_slash_b` —  — white-on-transparent additive/alpha sprite, source slash_03.png (512x512), RGB forced to white
+- `tex_fx_slash_c` —  — white-on-transparent additive/alpha sprite, source slash_04.png (512x512), RGB forced to white
+- `tex_fx_smoke_dark` —  — white-on-transparent additive/alpha sprite, source blackSmoke02.png (386x342), RGB forced to white
+- `tex_fx_smoke_puff_a` —  — white-on-transparent additive/alpha sprite, source whitePuff00.png (381x346), RGB forced to white; alpha = alp
+- `tex_fx_smoke_puff_b` —  — white-on-transparent additive/alpha sprite, source whitePuff12.png (348x385), RGB forced to white; alpha = alp
+- `tex_fx_smoke_puff_c` —  — white-on-transparent additive/alpha sprite, source whitePuff20.png (379x384), RGB forced to white; alpha = alp
+- `tex_fx_smoke_puff_wisp` —  — white-on-transparent additive/alpha sprite, source smoke_04.png (512x512), RGB forced to white
+- `tex_fx_smoke_ring` —  — white-on-transparent additive/alpha sprite, source smoke_10.png (512x512), RGB forced to white
+- `tex_fx_sparkle_soft` —  — white-on-transparent additive/alpha sprite, source magic_05.png (512x512), RGB forced to white
+- `tex_fx_star_burst` —  — white-on-transparent additive/alpha sprite, source star_09.png (512x512), RGB forced to white
+- `tex_fx_star_cross` —  — white-on-transparent additive/alpha sprite, source magic_04.png (512x512), RGB forced to white
+- `tex_fx_star_four` —  — white-on-transparent additive/alpha sprite, source star_06.png (512x512), RGB forced to white
+- `tex_fx_star_sparkle` —  — white-on-transparent additive/alpha sprite, source star_08.png (512x512), RGB forced to white
+- `tex_fx_twirl` —  — white-on-transparent additive/alpha sprite, source twirl_01.png (512x512), RGB forced to white
+
+## bgm_ (12)
+- `bgm_battle` — 94.7s — Intense Japanese orchestral battle music driven by wadaiko and strings.
+- `bgm_boss` — 91.2s — Epic cinematic Japanese symphonic-rock boss battle with choir, guitar, taiko.
+- `bgm_duel` — 120.0s — Fast, driving, passionate sword-fight piece (shamisen, shakuhachi, brass, taiko); duel.
+- `bgm_dusk` — 117.4s — Wistful, tender and a little sad folk-tale melody (koto, shakuhachi, clarinet); everlasting dusk.
+- `bgm_ending` — 141.9s — Warm, hopeful, gentle chill-out with koto, piano, flute and choir; ending credits.
+- `bgm_final` — 168.0s — Dramatic, heavy orchestral epic boss battle for the final fight (FreePD, CC0).
+- `bgm_flight` — 97.9s — Bright, soaring fantasy orchestra with harp and brass; flying over the open fields.
+- `bgm_night` — 141.2s — Quiet, mysterious ambient shakuhachi and koto with moon-and-mist mood; night lands.
+- `bgm_shrine` — 121.1s — Calm, serene garden music: koto, sho, flute and soft strings; shrine precinct.
+- `bgm_sun` — 117.7s — Gentle, bright pastoral village tune with koto, flute and piano; sunny meadow.
+- `bgm_title` — 140.1s — Elegant, emotional Japanese orchestral piece with koto, flute and strings; opening-screen feel.
+- `bgm_town` — 68.9s — Lively, cheerful festival-town tune (shamisen, flutes, kagura bells, drums); night market.
+
+## amb_ (10)
+- `amb_fire` — 27.8s — Crackling fireplace / campfire.
+- `amb_forest_dusk` — 28.5s — Subdued late-autumn forest evening; dusk woods.
+- `amb_lake` — 21.0s — Water gently lapping on a lake shore.
+- `amb_meadow` — 28.5s — Sunny meadow: birds, bees and a light breeze.
+- `amb_mountain` — 28.5s — Cold rolling mountain wind.
+- `amb_night` — 28.5s — Calm night with crickets.
+- `amb_rain` — 25.5s — Steady rain.
+- `amb_river` — 28.4s — Small calm stream / river bed.
+- `amb_town` — 27.8s — Quiet lantern-lit night town bed: crickets, hearth crackle, a distant brook (mix of three CC0 loops; no voices
+- `amb_wind_high` — 30.5s — High-altitude wind drone for flying / summits.
+
+## sfx_ (167)
+- `sfx_bell_small_1` — 1.0s — Derived: bell_ding1
+- `sfx_bell_small_2` — 1.4s — Derived: bell_ding2
+- `sfx_bell_small_3` — 1.6s — Derived: bell_ding3
+- `sfx_book_close` — 0.2s — Derived: bookClose
+- `sfx_book_open` — 0.1s — Derived: bookOpen
+- `sfx_broom_whoosh_loop` — 4.0s — Derived: wind_woosh_loop
+- `sfx_bubble_1` — 0.6s — Derived: bubble_01
+- `sfx_bubble_2` — 0.3s — Derived: bubble_02
+- `sfx_buff_attack` — 1.5s — Derived: 16_Atk_buff_04
+- `sfx_buff_defense` — 1.5s — Derived: 17_Def_buff_01
+- `sfx_buff_speed` — 1.5s — Derived: 48_Speed_up_02
+- `sfx_cast_dark` — 1.3s — Derived: 46_Poison_01
+- `sfx_cast_earth` — 1.6s — Derived: 30_Earth_02
+- `sfx_cast_fire` — 1.4s — Derived: spell_fire_03
+- `sfx_cast_fire_2` — 0.7s — Derived: spell_fire_01
+- `sfx_cast_ice` — 1.8s — Derived: freeze
+- `sfx_cast_moon` — 1.8s — Derived: magical_3
+- `sfx_cast_sun` — 1.6s — Derived: magical_4
+- `sfx_cast_thunder` — 1.8s — Derived: 18_Thunder_02
+- `sfx_cast_water` — 1.5s — Derived: 22_Water_02
+- `sfx_cast_wind` — 1.0s — Derived: 25_Wind_01
+- `sfx_charge` — 2.0s — Derived: 45_Charge_05
+- `sfx_chest_close` — 0.7s — Derived: doorClose_3
+- `sfx_chest_open` — 0.7s — Derived: creak2, metalLatch
+- `sfx_climb` — 0.1s — Derived: 42_Cling_climb_03
+- `sfx_cloth_rustle` — 0.6s — Derived: cloth1
+- `sfx_coin_1` — 0.4s — Derived: item_coins_01
+- `sfx_coin_2` — 0.6s — Derived: item_coins_02
+- `sfx_coin_3` — 0.7s — Derived: handleCoins
+- `sfx_creature_hurt_1` — 0.4s — Derived: hurt_01
+- `sfx_creature_hurt_2` — 0.4s — Derived: die_01
+- `sfx_crystal_chime_1` — 0.3s — Derived: glass_001
+- `sfx_crystal_chime_2` — 0.1s — Derived: glass_003
+- `sfx_crystal_chime_3` — 0.1s — Derived: glass_005
+- `sfx_dash` — 0.9s — Derived: 52_Dive_02
+- `sfx_debuff` — 1.5s — Derived: 21_Debuff_01
+- `sfx_door_close` — 0.5s — Derived: doorClose_1
+- `sfx_door_creak` — 0.5s — Derived: creak1
+- `sfx_door_open` — 0.9s — Derived: doorOpen_1
+- `sfx_explosion_large` — 1.1s — Derived: cannon_02
+- `sfx_explosion_small` — 0.9s — Derived: bang_04
+- `sfx_firework_1` — 0.8s — Derived: fw_01
+- `sfx_firework_2` — 1.1s — Derived: fw_03
+- `sfx_firework_3` — 0.9s — Derived: fw_05
+- `sfx_glass_shatter_1` — 0.4s — Derived: bfh1_glass_breaking_01
+- `sfx_glass_shatter_2` — 0.6s — Derived: bfh1_glass_breaking_04
+- `sfx_growl_1` — 0.9s — Derived: roar_02
+- `sfx_growl_2` — 1.1s — Derived: roar_05
+- `sfx_growl_3` — 0.9s — Derived: roar_04
+- `sfx_heal_1` — 1.1s — Derived: 02_Heal_02
+- `sfx_heal_2` — 2.0s — Derived: healing
+- `sfx_hit_body_1` — 0.3s — Derived: impactPunch_medium_000
+- `sfx_hit_body_2` — 0.3s — Derived: impactPunch_medium_001
+- `sfx_hit_body_3` — 0.3s — Derived: impactPunch_medium_002
+- `sfx_hit_dark` — 1.5s — Derived: 39_Absorb_04
+- `sfx_hit_earth` — 0.8s — Derived: bfh1_rock_falling_01
+- `sfx_hit_fire` — 1.7s — Derived: 04_Fire_explosion_04_medium
+- `sfx_hit_fire_2` — 0.9s — Derived: spell_fire_05
+- `sfx_hit_heavy` — 0.5s — Derived: impactPunch_heavy_000
+- `sfx_hit_ice` — 1.0s — Derived: 13_Ice_explosion_01
+- `sfx_hit_moon` — 1.1s — Derived: magical_6_0
+- `sfx_hit_stone` — 0.1s — Derived: bfh1_rock_hit_01
+- `sfx_hit_sun` — 1.4s — Derived: magical_5
+- `sfx_hit_thunder` — 2.5s — Derived: sfx100v2_thunder_01
+- `sfx_hit_water` — 0.7s — Derived: splash_05
+- `sfx_hit_wind` — 1.2s — Derived: Wind2
+- `sfx_hit_wood` — 0.2s — Derived: bfh1_wood_hit_01
+- `sfx_howl_1` — 0.7s — Derived: howl
+- `sfx_howl_2` — 0.4s — Derived: wolfman
+- `sfx_ice_shatter_1` — 0.4s — Derived: LedasLuzta
+- `sfx_ice_shatter_2` — 0.3s — Derived: LedasLuzta2
+- `sfx_jingle_festival` — 6.3s — Derived: PerituneMaterial_Ohayashi_j
+- `sfx_jump` — 0.3s — Derived: 30_Jump_03
+- `sfx_koto_stinger_1` — 1.1s — Derived: jingles_PIZZI03
+- `sfx_koto_stinger_2` — 1.3s — Derived: jingles_PIZZI07
+- `sfx_land` — 0.4s — Derived: jumpland
+- `sfx_land_soft` — 0.2s — Derived: 45_Landing_01
+- `sfx_lantern_ignite` — 0.5s — Derived: spell_fire_07
+- `sfx_learn_fanfare` — 5.5s — Derived: Peritune_Zephyr_Fields_Jingle
+- `sfx_levelup` — 0.8s — Derived: Rise03
+- `sfx_levelup_chime` — 1.6s — Derived: Chime_LevelUp
+- `sfx_lock_open` — 0.5s — Derived: sfx100v2_lock_open_01
+- `sfx_paper_1` — 0.7s — Derived: bookFlip1
+- `sfx_paper_2` — 0.4s — Derived: bookFlip2
+- `sfx_paper_3` — 0.2s — Derived: bookFlip3
+- `sfx_pickup_1` — 0.2s — Derived: item_gem_01
+- `sfx_pickup_2` — 0.4s — Derived: item_misc_02
+- `sfx_pickup_gem` — 0.2s — Derived: item_gem_03
+- `sfx_poison` — 1.5s — Derived: 46_Poison_01
+- `sfx_revive` — 2.5s — Derived: 30_Revive_03
+- `sfx_rock_crumble_1` — 0.5s — Derived: bfh1_rock_breaking_01
+- `sfx_rock_crumble_2` — 0.8s — Derived: bfh1_rock_breaking_02
+- `sfx_rock_fall` — 0.8s — Derived: bfh1_rock_falling_01
+- `sfx_shrine_bell_1` — 1.4s — Derived: impactBell_heavy_000
+- `sfx_shrine_bell_2` — 0.8s — Derived: impactBell_heavy_002
+- `sfx_sleep` — 1.6s — Derived: Chime_Sleep
+- `sfx_slime_1` — 0.5s — Derived: slime_03
+- `sfx_slime_2` — 0.6s — Derived: slime_09
+- `sfx_splash_1` — 0.9s — Derived: splash_01
+- `sfx_splash_2` — 0.9s — Derived: splash_04
+- `sfx_splash_3` — 0.5s — Derived: splash_08
+- `sfx_squeak_1` — 0.4s — Derived: cute_01
+- `sfx_squeak_2` — 0.5s — Derived: cute_02
+- `sfx_squeak_3` — 0.6s — Derived: cute_03
+- `sfx_squeak_rat` — 0.2s — Derived: qubodupSqueakyRatPain
+- `sfx_steam_sizzle` — 1.6s — Derived: loop_bubbles_02
+- `sfx_step_grass_1` — 0.2s — Derived: footstep_grass_000
+- `sfx_step_grass_2` — 0.2s — Derived: footstep_grass_001
+- `sfx_step_grass_3` — 0.2s — Derived: footstep_grass_002
+- `sfx_step_grass_4` — 0.2s — Derived: footstep_grass_003
+- `sfx_step_stone_1` — 0.1s — Derived: footstep_concrete_000
+- `sfx_step_stone_2` — 0.1s — Derived: footstep_concrete_001
+- `sfx_step_stone_3` — 0.1s — Derived: footstep_concrete_002
+- `sfx_step_stone_4` — 0.1s — Derived: 08_Step_rock_02
+- `sfx_step_water_1` — 0.2s — Derived: sfx100v2_footstep_wet_01
+- `sfx_step_water_2` — 0.3s — Derived: sfx100v2_footstep_wet_02
+- `sfx_step_water_3` — 0.3s — Derived: sfx100v2_footstep_wet_03
+- `sfx_step_water_4` — 0.3s — Derived: 14_Step_water_02
+- `sfx_step_wood_1` — 0.3s — Derived: footstep_wood_000
+- `sfx_step_wood_2` — 0.3s — Derived: footstep_wood_001
+- `sfx_step_wood_3` — 0.3s — Derived: footstep_wood_002
+- `sfx_step_wood_4` — 0.3s — Derived: footstep_wood_003
+- `sfx_swim` — 1.2s — Derived: 26_Swim_Submerged_02
+- `sfx_swish_1` — 0.1s — Derived: swish-3
+- `sfx_swish_2` — 0.2s — Derived: swish-7
+- `sfx_swish_3` — 0.2s — Derived: swish-9
+- `sfx_switch_1` — 0.2s — Derived: sfx100v2_switch_01
+- `sfx_switch_2` — 0.2s — Derived: sfx100v2_switch_02
+- `sfx_taiko_1` — 0.6s — Derived: impactPunch_heavy_001
+- `sfx_taiko_2` — 0.7s — Derived: impactPunch_heavy_002
+- `sfx_taiko_roll` — 2.0s — Derived: impactPunch_heavy_001, impactPunch_heavy_001, impactPunch_heavy_001, impactPunch_heavy_001, impactPun
+- `sfx_teleport_1` — 1.5s — Derived: teleport
+- `sfx_teleport_2` — 2.0s — Derived: teleport
+- `sfx_ui_buy` — 0.7s — Derived: item_coins_03, confirmation_002
+- `sfx_ui_cancel` — 0.1s — Derived: back_001
+- `sfx_ui_cancel_2` — 1.0s — Derived: Chime_Cancel
+- `sfx_ui_close` — 0.2s — Derived: close_001
+- `sfx_ui_confirm` — 0.3s — Derived: confirmation_001
+- `sfx_ui_confirm_2` — 1.2s — Derived: Chime_Confirm
+- `sfx_ui_error` — 0.2s — Derived: error_001
+- `sfx_ui_move` — 0.0s — Derived: tick_001
+- `sfx_ui_move_2` — 0.0s — Derived: select_001
+- `sfx_ui_open` — 0.2s — Derived: open_001
+- `sfx_ui_save` — 1.1s — Derived: Chime_Save
+- `sfx_ui_scroll` — 0.5s — Derived: scroll_001
+- `sfx_ui_stamp` — 0.2s — Derived: bfh1_wood_hit_02
+- `sfx_ui_toggle` — 0.1s — Derived: toggle_001
+- `sfx_voice_effort_1` — 0.2s — Derived: attack1
+- `sfx_voice_effort_2` — 0.3s — Derived: attack2
+- `sfx_voice_effort_3` — 0.3s — Derived: attack3
+- `sfx_voice_healed` — 0.5s — Derived: healed1
+- `sfx_voice_hurt_1` — 0.2s — Derived: damaged1
+- `sfx_voice_hurt_2` — 0.4s — Derived: damaged2
+- `sfx_voice_hurt_3` — 0.3s — Derived: damaged3
+- `sfx_voice_jump_1` — 0.2s — Derived: jump1
+- `sfx_voice_jump_2` — 0.2s — Derived: jump2
+- `sfx_whoosh_1` — 1.2s — Derived: sfx100v2_air_01
+- `sfx_whoosh_2` — 0.3s — Derived: sfx100v2_air_03
+- `sfx_whoosh_3` — 1.0s — Derived: sfx100v2_air_02
+- `sfx_wind_chime_1` — 2.6s — Derived: bell_ding1, bell_ding3, bell_ding2, bell_ding4, bell_ding3
+- `sfx_wind_chime_2` — 2.0s — Derived: bell_ding4, bell_ding2, bell_ding1, bell_ding3
+- `sfx_wing_flap_1` — 0.5s — Derived: cloth3
+- `sfx_wing_flap_2` — 0.3s — Derived: cloth-heavy
+- `sfx_wood_break_1` — 0.2s — Derived: bfh1_wood_breaking_01
+- `sfx_wood_break_2` — 0.3s — Derived: bfh1_wood_breaking_03
+- `sfx_zap_1` — 1.2s — Derived: electricspell
+- `sfx_zap_2` — 1.2s — Derived: electricspell2

@@ -1,0 +1,36 @@
+{
+ "sculpt_nat_fallen_trunk_a": {
+  "file": "models/sculpt/log_fallen.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/log_fallen.mjs (node tools/sculpt/assets/bamboologs_lib.mjs)",
+  "scale": 1,
+  "size": [
+   8.39,
+   1.74,
+   1.24
+  ],
+  "tris": 2400,
+  "lods": [
+   2400,
+   800,
+   250
+  ],
+  "materials": [
+   "trunk",
+   "moss"
+  ],
+  "mats": {
+   "trunk": {
+    "surface": "bark",
+    "look": {}
+   },
+   "moss": {
+    "surface": "none",
+    "look": {}
+   }
+  },
+  "notes": "Sculpted uprooted fallen trunk (fallen1). trunk (mul, real colour: bark, root plate soil and stones, shelf fungi), moss (tint: the moss road on top). COLOR_0.a = snow mask. See .tmp/sculpt/bamboo_a/INSTALL.md."
+ }
+}

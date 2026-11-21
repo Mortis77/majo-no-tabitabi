@@ -1,0 +1,19 @@
+{
+ "sculpt_mon_bat": {
+  "file": "models/sculpt/shade_bat.glb",
+  "type": "model",
+  "license": "CC0 (original body sculpted for this project; skeleton and clips from the source pack, CC0)",
+  "author": "sculpted for this project (rig: Quaternius, CC0 (skeleton + clips))",
+  "source": "tools/sculpt/assets/shade_bat.mjs",
+  "scale": 1,
+  "tris": 9000,
+  "clips": [
+   "BatArmature|Bat_Attack",
+   "BatArmature|Bat_Attack2",
+   "BatArmature|Bat_Death",
+   "BatArmature|Bat_Flying",
+   "BatArmature|Bat_Hit"
+  ],
+  "notes": "Sculpted moth-bat shade on the mon_bat skeleton (joints, IBMs, clips unchanged). Vertex colours, no texture. Materials Main / Wing / Belly / Eyes (post step)."
+ }
+}

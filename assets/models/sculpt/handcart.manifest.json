@@ -1,0 +1,56 @@
+{
+ "sculpt_cart": {
+  "file": "models/sculpt/handcart.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/handcart.mjs (node tools/sculpt/assets/_smallprops.mjs)",
+  "scale": 1,
+  "size": [
+   1.146,
+   0.832,
+   2.187
+  ],
+  "tris": 5000,
+  "lods": [
+   5000,
+   1600,
+   450
+  ],
+  "materials": [
+   "Wood_wood",
+   "DarkWood_wood",
+   "Red_wood",
+   "Stone_Dark_metal"
+  ],
+  "mats": {
+   "Wood_wood": {
+    "surface": "wood",
+    "look": {
+     "rim": 0.3
+    }
+   },
+   "DarkWood_wood": {
+    "surface": "wood",
+    "look": {
+     "rim": 0.3
+    }
+   },
+   "Red_wood": {
+    "surface": "wood",
+    "look": {
+     "rim": 0.3
+    }
+   },
+   "Stone_Dark_metal": {
+    "surface": "metal",
+    "look": {
+     "spec": 0.55,
+     "specPower": 40,
+     "rim": 0.4
+    }
+   }
+  },
+  "notes": "Sculpted two-wheeled hand-cart (spoked wheels with iron tyres, gapped plank bed, low sides with a patched board, long shafts with worn grips and a pull bar, a prop leg). No awning: height 0.85 m instead of 1.89. Vertex colours on every LOD, no textures: batched prop. Families wood (Wood_wood, DarkWood_wood, Red_wood) / metal (Stone_Dark_metal)."
+ }
+}

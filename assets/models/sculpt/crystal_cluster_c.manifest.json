@@ -1,0 +1,42 @@
+{
+ "sculpt_crystal_cluster_c": {
+  "file": "models/sculpt/crystal_cluster_c.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/crystal_cluster_c.mjs (node tools/sculpt/assets/_smallprops.mjs)",
+  "scale": 1,
+  "size": [
+   2.995,
+   2.99,
+   2.991
+  ],
+  "tris": 2400,
+  "lods": [
+   2400,
+   800,
+   250
+  ],
+  "materials": [
+   "crystal",
+   "rock"
+  ],
+  "mats": {
+   "crystal": {
+    "surface": "none",
+    "look": {
+     "spec": 0.5,
+     "specPower": 40,
+     "rim": 0.4
+    }
+   },
+   "rock": {
+    "surface": "rock",
+    "look": {
+     "rim": 0.2
+    }
+   }
+  },
+  "notes": "Sculpted crystal piece (crystal_cluster_c). Vertex colours on every LOD. crystal = tint + glow (value only: facets, fracture steps), rock = mul (near white x the dark rock base). "
+ }
+}

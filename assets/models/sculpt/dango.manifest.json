@@ -1,0 +1,19 @@
+{
+ "sculpt_dango": {
+  "file": "models/sculpt/dango.glb",
+  "type": "model",
+  "license": "CC0 (original body sculpted for this project; skeleton and clips from the source pack, CC0)",
+  "author": "sculpted for this project (rig: the game's own 17-bone dango skeleton (companion.js BONE_POS), test clips hand-authored)",
+  "source": "tools/sculpt/assets/dango.mjs",
+  "scale": 1,
+  "tris": 7200,
+  "clips": [
+   "curl",
+   "scurve",
+   "lookback",
+   "wag",
+   "blink"
+  ],
+  "notes": "Sculpted body for 团子 on the game's own dango skeleton (17 joints dango_0..16, rest = BONE_POS). One skinned mesh, vertex colours (A = tip mask), TEXCOORD_0 x = glow ramp, y = tip mask. Material DangoFur."
+ }
+}

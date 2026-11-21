@@ -1,0 +1,34 @@
+{
+ "sculpt_rock_boulder_b": {
+  "file": "models/sculpt/rock_boulder_b.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/rock_boulder_b.mjs (node tools/sculpt/build.mjs)",
+  "scale": 1,
+  "size": [
+   1.04,
+   0.677,
+   0.852
+  ],
+  "tris": 2400,
+  "lods": [
+   2400,
+   800,
+   220
+  ],
+  "materials": [
+   "Rock_rock"
+  ],
+  "mats": {
+   "Rock_rock": {
+    "surface": "rock",
+    "look": {
+     "rim": 0.22,
+     "wrap": 0.3
+    }
+   }
+  },
+  "notes": "Sculpted world rock (rock_boulder_b). Every LOD vertex coloured: COLOR_0 RGBA, RGB = neutral stone value (multiply by the land / instance tint), A = moss-here mask (aMix). No textures. Origin = foot centre, +Y up, ~1 m unit; scale per species. See .tmp/sculpt/rock_boulder_b/INSTALL.md."
+ }
+}

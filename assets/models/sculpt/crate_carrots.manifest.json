@@ -1,0 +1,59 @@
+{
+ "sculpt_crate_carrots": {
+  "file": "models/sculpt/crate_carrots.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/crate_carrots.mjs (node tools/sculpt/assets/_smallprops.mjs)",
+  "scale": 1,
+  "size": [
+   0.719,
+   0.407,
+   0.649
+  ],
+  "tris": 1800,
+  "lods": [
+   1800,
+   600,
+   200
+  ],
+  "materials": [
+   "wood",
+   "metal",
+   "fruit",
+   "leaf"
+  ],
+  "mats": {
+   "wood": {
+    "surface": "wood",
+    "look": {
+     "rim": 0.3
+    }
+   },
+   "metal": {
+    "surface": "metal",
+    "look": {
+     "spec": 0.55,
+     "specPower": 40,
+     "rim": 0.4
+    }
+   },
+   "fruit": {
+    "surface": "none",
+    "look": {
+     "spec": 0.3,
+     "specPower": 36,
+     "rim": 0.35,
+     "wrap": 0.5
+    }
+   },
+   "leaf": {
+    "surface": "none",
+    "look": {
+     "trans": 0.4
+    }
+   }
+  },
+  "notes": "Sculpted market crate of carrots (slatted sides with a see-through gap, end boards with hand slots, carrots heaped unevenly, greens spilling over the rim). Vertex colours on every LOD, no textures: batched prop. Families wood / metal / fruit / leaf."
+ }
+}

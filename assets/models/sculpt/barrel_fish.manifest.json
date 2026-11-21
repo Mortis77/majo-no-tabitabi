@@ -1,0 +1,50 @@
+{
+ "sculpt_barrel_fish": {
+  "file": "models/sculpt/barrel_fish.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/barrel_fish.mjs (node tools/sculpt/assets/_smallprops.mjs)",
+  "scale": 1,
+  "size": [
+   0.667,
+   0.889,
+   0.642
+  ],
+  "tris": 1800,
+  "lods": [
+   1800,
+   600,
+   200
+  ],
+  "materials": [
+   "wood",
+   "straw",
+   "fruit"
+  ],
+  "mats": {
+   "wood": {
+    "surface": "wood",
+    "look": {
+     "rim": 0.3
+    }
+   },
+   "straw": {
+    "surface": "thatch",
+    "look": {
+     "scale": 0.8
+    }
+   },
+   "fruit": {
+    "surface": "none",
+    "look": {
+     "spec": 0.3,
+     "specPower": 36,
+     "rim": 0.35,
+     "wrap": 0.5
+    }
+   }
+  },
+  "notes": "Sculpted fish tub (tapered open tub, three plaited bamboo hoops, a carrying ear with rope, salt crust, five fish tails of different heights). Vertex colours on every LOD, no textures: batched + rolling prop. Families wood / straw / fruit (the fish, as the old model named them)."
+ }
+}

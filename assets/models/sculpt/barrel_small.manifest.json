@@ -1,0 +1,40 @@
+{
+ "sculpt_barrel_small": {
+  "file": "models/sculpt/barrel_small.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/barrel_small.mjs (node tools/sculpt/assets/_smallprops.mjs)",
+  "scale": 1,
+  "size": [
+   0.672,
+   0.706,
+   0.675
+  ],
+  "tris": 1800,
+  "lods": [
+   1800,
+   600,
+   200
+  ],
+  "materials": [
+   "wood",
+   "straw"
+  ],
+  "mats": {
+   "wood": {
+    "surface": "wood",
+    "look": {
+     "rim": 0.3
+    }
+   },
+   "straw": {
+    "surface": "thatch",
+    "look": {
+     "scale": 0.8
+    }
+   }
+  },
+  "notes": "Sculpted squat cask (uneven staves, four plaited split-bamboo hoops, paper label with ink stroke + red seal, bung with a straw twist). Vertex colours on every LOD, no textures: batched + rolling prop. Families wood / straw (the hoops; the old metal family is not used)."
+ }
+}

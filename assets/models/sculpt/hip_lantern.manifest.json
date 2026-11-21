@@ -1,0 +1,75 @@
+{
+ "sculpt_hip_lantern": {
+  "file": "models/sculpt/hip_lantern.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/hip_lantern.mjs (node tools/sculpt/build.mjs)",
+  "scale": 1,
+  "size": [
+   0.127,
+   0.218,
+   0.129
+  ],
+  "tris": 1800,
+  "lods": [
+   1800,
+   700,
+   250
+  ],
+  "materials": [
+   "LanternPaper_paper",
+   "Ink_paper",
+   "Lacquer_paint",
+   "Iron_metal",
+   "Cord_cloth"
+  ],
+  "mats": {
+   "LanternPaper_paper": {
+    "surface": "paper",
+    "look": {
+     "trans": 0.35,
+     "detail": 0,
+     "bump": 0,
+     "fine": 0
+    }
+   },
+   "Ink_paper": {
+    "surface": "paper",
+    "look": {
+     "detail": 0,
+     "bump": 0,
+     "fine": 0
+    }
+   },
+   "Lacquer_paint": {
+    "surface": "paint",
+    "look": {
+     "spec": 0.18,
+     "specPower": 36,
+     "detail": 0,
+     "bump": 0,
+     "fine": 0
+    }
+   },
+   "Iron_metal": {
+    "surface": "metal",
+    "look": {
+     "spec": 0.35,
+     "detail": 0,
+     "bump": 0,
+     "fine": 0
+    }
+   },
+   "Cord_cloth": {
+    "surface": "cloth",
+    "look": {
+     "detail": 0,
+     "bump": 0,
+     "fine": 0
+    }
+   }
+  },
+  "notes": "Sculpted hip lantern. Origin = lantern centre (old hipLantern group origin). Paper body = material LanternPaper_paper (celifyProp turns it into the glowing lanternPaperMaterial); crest = Ink. LOD0 atlas + object-space normal map; LOD1/2 vertex colours. See .tmp/sculpt/hip_lantern/INSTALL.md."
+ }
+}

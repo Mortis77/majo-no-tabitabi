@@ -1,0 +1,32 @@
+{
+ "sculpt_shade_jelly": {
+  "file": "models/sculpt/shade_jelly.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/shade_jelly.mjs (node tools/sculpt/assets/jellypaper_lib.mjs)",
+  "scale": 1,
+  "size": [
+   1.05,
+   0.763,
+   1.027
+  ],
+  "tris": 4980,
+  "lods": [
+   4980,
+   1720,
+   480
+  ],
+  "lodNames": [
+   "LOD0",
+   "LOD1",
+   "LOD2"
+  ],
+  "materials": [
+   "JellySkin",
+   "JellyCore",
+   "JellyKeep"
+  ],
+  "notes": "影团 shade jelly: static pieces JellyBody / JellyCore / JellyKeep per LOD for makeJelly (vertex colours, no textures). See .tmp/sculpt/shade_jelly/INSTALL.md."
+ }
+}

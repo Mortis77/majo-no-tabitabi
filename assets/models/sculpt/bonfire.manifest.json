@@ -1,0 +1,43 @@
+{
+ "sculpt_prop_bonfire": {
+  "file": "models/sculpt/bonfire.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/bonfire.mjs (node tools/sculpt/assets/_smallprops.mjs)",
+  "scale": 1,
+  "size": [
+   1.242,
+   0.554,
+   1.055
+  ],
+  "tris": 2000,
+  "lods": [
+   2000,
+   700,
+   370
+  ],
+  "materials": [
+   "Wood_bark",
+   "LightWood_bark",
+   "Stone_stone"
+  ],
+  "mats": {
+   "Wood_bark": {
+    "surface": "bark",
+    "look": {}
+   },
+   "LightWood_bark": {
+    "surface": "bark",
+    "look": {}
+   },
+   "Stone_stone": {
+    "surface": "stone",
+    "look": {
+     "detail": 0.2
+    }
+   }
+  },
+  "notes": "Sculpted fire pit: oval ring of ten field stones, four charred split logs leaning into a tent, a fallen log, ash bed. Vertex colours on every LOD, no textures, no flame mesh (flames + light stay code). Families Wood_bark / LightWood_bark as before plus a new Stone_stone."
+ }
+}

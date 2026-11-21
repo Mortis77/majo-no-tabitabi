@@ -1,0 +1,36 @@
+{
+ "sculpt_nat_stump_a": {
+  "file": "models/sculpt/stump_a.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/stump_a.mjs (node tools/sculpt/assets/bamboologs_lib.mjs)",
+  "scale": 1,
+  "size": [
+   1.33,
+   0.61,
+   1.01
+  ],
+  "tris": 2400,
+  "lods": [
+   2400,
+   800,
+   250
+  ],
+  "materials": [
+   "trunk",
+   "moss"
+  ],
+  "mats": {
+   "trunk": {
+    "surface": "bark",
+    "look": {}
+   },
+   "moss": {
+    "surface": "none",
+    "look": {}
+   }
+  },
+  "notes": "Sculpted broken stump with a sapling (stump). trunk (mul, real colour), moss (tint: moss cushions and the sapling leaves). COLOR_0.a = snow mask. See .tmp/sculpt/bamboo_a/INSTALL.md."
+ }
+}

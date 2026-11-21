@@ -1,0 +1,75 @@
+{
+ "sculpt_prop_broom": {
+  "file": "models/sculpt/broom.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/broom.mjs (node tools/sculpt/build.mjs)",
+  "scale": 1,
+  "size": [
+   0.346,
+   1.499,
+   0.363
+  ],
+  "tris": 6000,
+  "lods": [
+   6000,
+   2000,
+   600
+  ],
+  "materials": [
+   "Wood_wood",
+   "Straw_thatch",
+   "Cord_cloth",
+   "Paper_paper",
+   "Brass_metal"
+  ],
+  "mats": {
+   "Wood_wood": {
+    "surface": "wood",
+    "look": {
+     "detail": 0.15,
+     "bump": 0.2,
+     "fine": 0,
+     "rim": 0.25
+    }
+   },
+   "Straw_thatch": {
+    "surface": "thatch",
+    "look": {
+     "detail": 0.1,
+     "bump": 0.2,
+     "fine": 0
+    }
+   },
+   "Cord_cloth": {
+    "surface": "cloth",
+    "look": {
+     "detail": 0,
+     "bump": 0,
+     "fine": 0
+    }
+   },
+   "Paper_paper": {
+    "surface": "paper",
+    "look": {
+     "trans": 0.35,
+     "detail": 0,
+     "bump": 0,
+     "fine": 0
+    }
+   },
+   "Brass_metal": {
+    "surface": "metal",
+    "look": {
+     "spec": 0.55,
+     "specPower": 44,
+     "detail": 0,
+     "bump": 0,
+     "fine": 0
+    }
+   }
+  },
+  "notes": "Sculpted shrine-maiden broom: S-bent pale branch shaft with knots and a carved jewel cap, a fanned head of twig locks sweeping up at the tips, red-and-white cord band with hanging knot, bell, zig-zag paper streamer and a charm slip. Same length, axis and seat as prop_broom."
+ }
+}

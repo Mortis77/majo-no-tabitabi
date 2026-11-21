@@ -1,0 +1,49 @@
+{
+ "sculpt_tree_willow_a": {
+  "file": "models/sculpt/willow_a.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/willow_a.mjs (node tools/sculpt/assets/trees_b_lib.mjs)",
+  "scale": 1,
+  "size": [
+   3.41,
+   7.35,
+   5.86
+  ],
+  "tris": 5000,
+  "lods": [
+   5000,
+   1800,
+   500
+  ],
+  "materials": [
+   "trunk",
+   "leaves",
+   "leaves_dark"
+  ],
+  "mats": {
+   "trunk": {
+    "surface": "bark",
+    "look": {
+     "rim": 0.2
+    }
+   },
+   "leaves": {
+    "surface": "leaf",
+    "look": {
+     "rim": 0.4,
+     "wrap": 0.45
+    }
+   },
+   "leaves_dark": {
+    "surface": "leaf",
+    "look": {
+     "rim": 0.4,
+     "wrap": 0.5
+    }
+   }
+  },
+  "notes": "Sculpted river willow (willow1; willow2 turned 180 deg). Materials trunk (mul), leaves (tint: head dome) and leaves_dark (tint, dark 0.74: the hanging curtains). COLOR_0.a = top snow mask. See .tmp/sculpt/maple_a/INSTALL.md."
+ }
+}

@@ -1,0 +1,22 @@
+{
+  "name": "majo-no-tabitabi",
+  "version": "1.0.0",
+  "private": true,
+  "description": "魔女之旅 — 非营利同人飞行冒险 / Unofficial Wandering Witch fan adventure",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "release": "node build.mjs --release",
+    "serve": "node build.mjs --serve 8751",
+    "play": "node tools/play.mjs",
+    "package:mac": "node tools/journey/package-macos.mjs"
+  },
+  "dependencies": {
+    "@dimforge/rapier3d-compat": "^0.21.0",
+    "esbuild": "^0.28.2",
+    "three": "^0.187.0"
+  },
+  "devDependencies": {
+    "@gltf-transform/cli": "^4.5.1"
+  }
+}

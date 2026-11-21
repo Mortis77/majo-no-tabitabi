@@ -1,0 +1,42 @@
+{
+ "sculpt_shroom_b": {
+  "file": "models/sculpt/shroom_b.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/shroom_b.mjs (node tools/sculpt/assets/_smallprops.mjs)",
+  "scale": 1,
+  "size": [
+   3.251,
+   12.014,
+   3.262
+  ],
+  "tris": 3500,
+  "lods": [
+   3500,
+   1200,
+   350
+  ],
+  "materials": [
+   "cap",
+   "stem"
+  ],
+  "mats": {
+   "cap": {
+    "surface": "none",
+    "look": {
+     "rim": 0.35,
+     "wrap": 0.5
+    }
+   },
+   "stem": {
+    "surface": "none",
+    "look": {
+     "rim": 0.25,
+     "wrap": 0.4
+    }
+   }
+  },
+  "notes": "Sculpted giant mushroom (tall bell). Vertex colours on every LOD. cap = bell + gills (tint), stem = stem, ring, cup (mul)."
+ }
+}

@@ -1,0 +1,41 @@
+{
+ "sculpt_tree_ginkgo_a": {
+  "file": "models/sculpt/ginkgo_a.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/ginkgo_a.mjs (node tools/sculpt/assets/trees_b_lib.mjs)",
+  "scale": 1,
+  "size": [
+   5.36,
+   10.78,
+   4.83
+  ],
+  "tris": 5000,
+  "lods": [
+   5000,
+   1800,
+   500
+  ],
+  "materials": [
+   "trunk",
+   "leaves"
+  ],
+  "mats": {
+   "trunk": {
+    "surface": "bark",
+    "look": {
+     "rim": 0.2
+    }
+   },
+   "leaves": {
+    "surface": "leaf",
+    "look": {
+     "rim": 0.4,
+     "wrap": 0.45
+    }
+   }
+  },
+  "notes": "Sculpted ginkgo (ginkgo1; ginkgo2 at scale 1.18). Materials trunk (mul: COLOR_0 = bark colour; the litter heap round the foot is painted gold in it) and leaves (tint: COLOR_0 = value ramp). COLOR_0.a = top snow mask. See .tmp/sculpt/maple_a/INSTALL.md."
+ }
+}

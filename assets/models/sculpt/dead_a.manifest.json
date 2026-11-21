@@ -1,0 +1,33 @@
+{
+ "sculpt_tree_dead_a": {
+  "file": "models/sculpt/dead_a.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/dead_a.mjs (node tools/sculpt/assets/trees_c_lib.mjs)",
+  "scale": 1,
+  "size": [
+   4.54,
+   6.34,
+   3.07
+  ],
+  "tris": 5000,
+  "lods": [
+   5000,
+   1800,
+   500
+  ],
+  "materials": [
+   "trunk"
+  ],
+  "mats": {
+   "trunk": {
+    "surface": "bark",
+    "look": {
+     "rim": 0.25
+    }
+   }
+  },
+  "notes": "Sculpted split dead tree (dead1; dead3, deadSnow scaled). One material trunk (mul: COLOR_0 = wood colour). No crown part. COLOR_0.a = top snow mask. See .tmp/sculpt/broadleaf_a/INSTALL.md."
+ }
+}

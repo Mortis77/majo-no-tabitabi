@@ -1,0 +1,2 @@
+- **Poly Haven / colormass、Rico Cilliers** 提供了旅行装羊毛和亚麻的表面纹样。摄影由 colormass 完成，后期由 Rico Cilliers 完成。[Poly Wool Herringbone](https://polyhaven.com/a/poly_wool_herringbone) · [Rough Linen](https://polyhaven.com/a/rough_linen) · [CC0](https://polyhaven.com/license)
+- **Poly Haven / Rob Tuytel** 提供了旅行装挎包和靴面的皮纹。[Brown Leather](https://polyhaven.com/a/brown_leather) · [CC0](https://polyhaven.com/license)

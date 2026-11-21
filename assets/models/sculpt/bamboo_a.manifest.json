@@ -1,0 +1,40 @@
+{
+ "sculpt_tree_bamboo_a": {
+  "file": "models/sculpt/bamboo_a.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/bamboo_a.mjs (node tools/sculpt/assets/bamboologs_lib.mjs)",
+  "scale": 1,
+  "size": [
+   1.9,
+   8.87,
+   1.86
+  ],
+  "tris": 4000,
+  "lods": [
+   4000,
+   1400,
+   400
+  ],
+  "materials": [
+   "trunk",
+   "leaves"
+  ],
+  "mats": {
+   "trunk": {
+    "surface": "none",
+    "look": {
+     "rim": 0.3,
+     "spec": 0.25,
+     "specPower": 30
+    }
+   },
+   "leaves": {
+    "surface": "none",
+    "look": {}
+   }
+  },
+  "notes": "Sculpted bamboo clump (bamboo1). trunk = culms, twigs, sheaths, foot (tint, value ramp), leaves = leaf sprays (tint). COLOR_0.a = snow mask. See .tmp/sculpt/bamboo_a/INSTALL.md."
+ }
+}

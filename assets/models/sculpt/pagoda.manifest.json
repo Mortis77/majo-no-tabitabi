@@ -1,0 +1,90 @@
+{
+ "sculpt_pagoda": {
+  "file": "models/sculpt/pagoda.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/pagoda.mjs (node tools/sculpt/assets/landmarks_lib.mjs)",
+  "scale": 1,
+  "size": [
+   8.593,
+   18.043,
+   8.589
+  ],
+  "tris": 22000,
+  "lods": [
+   22000,
+   7000,
+   1800
+  ],
+  "materials": [
+   "Granite_stone",
+   "Lacquer_paint",
+   "Plaster_paint",
+   "Wood_wood",
+   "Tile_tile",
+   "Copper_metal",
+   "WindBell_metal",
+   "Moss_none"
+  ],
+  "mats": {
+   "Granite_stone": {
+    "surface": "stone",
+    "look": {
+     "detail": 0.25,
+     "bump": 0.3,
+     "fine": 0
+    }
+   },
+   "Lacquer_paint": {
+    "surface": "paint",
+    "look": {
+     "spec": 0.15,
+     "specPower": 30,
+     "detail": 0.3
+    }
+   },
+   "Plaster_paint": {
+    "surface": "paint",
+    "look": {
+     "spec": 0.05,
+     "detail": 0.2
+    }
+   },
+   "Wood_wood": {
+    "surface": "wood",
+    "look": {
+     "detail": 0.3
+    }
+   },
+   "Tile_tile": {
+    "surface": "tile",
+    "look": {
+     "spec": 0.2,
+     "specPower": 40,
+     "detail": 0.3
+    }
+   },
+   "Copper_metal": {
+    "surface": "metal",
+    "look": {
+     "spec": 0.45
+    }
+   },
+   "WindBell_metal": {
+    "surface": "metal",
+    "look": {
+     "spec": 0.5
+    }
+   },
+   "Moss_none": {
+    "surface": "none",
+    "look": {
+     "rim": 0.4,
+     "trans": 0.25
+    }
+   }
+  },
+  "notes": "Sculpted five-storey pagoda of 向日神社. LOD0 colour atlas + object-space normal map; LOD1/2 vertex colours. Wind bells are their own material (WindBell) with a bell_<storey>_<ne|nw|se|sw> pivot node each. See .tmp/sculpt/pagoda/INSTALL.md."
+ }
+}

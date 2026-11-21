@@ -1,0 +1,85 @@
+{
+ "sculpt_great_lantern_mid": {
+  "file": "models/sculpt/great_lantern_mid.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/great_lantern_mid.mjs (node tools/sculpt/build.mjs)",
+  "scale": 1,
+  "size": [
+   2.996,
+   5.414,
+   2.994
+  ],
+  "tris": 5000,
+  "lods": [
+   5000
+  ],
+  "materials": [
+   "Granite_stone",
+   "Moss_none",
+   "Lacquer_paint",
+   "Fitting_metal",
+   "Tile_tile",
+   "Straw_none",
+   "Shide_none",
+   "Offering_none"
+  ],
+  "mats": {
+   "Granite_stone": {
+    "surface": "stone",
+    "look": {
+     "detail": 0.25,
+     "bump": 0.3,
+     "fine": 0
+    }
+   },
+   "Moss_none": {
+    "surface": "none",
+    "look": {
+     "rim": 0.4,
+     "trans": 0.25
+    }
+   },
+   "Lacquer_paint": {
+    "surface": "paint",
+    "look": {
+     "spec": 0.15,
+     "specPower": 30,
+     "detail": 0.3
+    }
+   },
+   "Fitting_metal": {
+    "surface": "metal",
+    "look": {
+     "spec": 0.5
+    }
+   },
+   "Tile_tile": {
+    "surface": "tile",
+    "look": {
+     "spec": 0.2,
+     "specPower": 40,
+     "detail": 0.3
+    }
+   },
+   "Straw_none": {
+    "surface": "none",
+    "look": {
+     "rim": 0.2
+    }
+   },
+   "Shide_none": {
+    "surface": "none",
+    "look": {
+     "trans": 0.4
+    }
+   },
+   "Offering_none": {
+    "surface": "none",
+    "look": {}
+   }
+  },
+  "notes": "Sculpted great lantern (镇灯) body. LOD0 colour atlas + object-space normal map; LOD1/2 vertex colours. Paper barrel + ribs + caps, flame core and spill stay live from makeGreatLantern. Anchors fire/paper/paper_hook/spark/hang_*. Pendants: great_lantern_hang.glb at each hang_* node. See .tmp/sculpt/great_lantern/INSTALL.md."
+ }
+}

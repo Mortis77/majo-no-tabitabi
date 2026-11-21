@@ -1,0 +1,34 @@
+{
+ "sculpt_earth_rubble": {
+  "file": "models/sculpt/earth_rubble.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/earth_rubble.mjs (node tools/sculpt/build.mjs)",
+  "scale": 1,
+  "size": [
+   7.807,
+   1.468,
+   7.613
+  ],
+  "tris": 900,
+  "lods": [
+   900,
+   300
+  ],
+  "materials": [
+   "EarthRock_rock"
+  ],
+  "mats": {
+   "EarthRock_rock": {
+    "surface": "rock",
+    "look": {
+     "detail": 0.3,
+     "bump": 0.35,
+     "fine": 0.25
+    }
+   }
+  },
+  "notes": "Earth-spell rubble skirt, laid around the foot of any earth_column_* at ground level. Pivot = column axis at ground level; buried 0.25 m. See .tmp/sculpt/earth_rubble/INSTALL.md."
+ }
+}

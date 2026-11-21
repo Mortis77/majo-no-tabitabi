@@ -1,0 +1,41 @@
+{
+ "sculpt_tree_cherry_a": {
+  "file": "models/sculpt/cherry_a.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/cherry_a.mjs (node tools/sculpt/assets/trees_a_lib.mjs)",
+  "scale": 1,
+  "size": [
+   8.96,
+   7.65,
+   7.07
+  ],
+  "tris": 5000,
+  "lods": [
+   5000,
+   1800,
+   468
+  ],
+  "materials": [
+   "trunk",
+   "leaves_dark"
+  ],
+  "mats": {
+   "trunk": {
+    "surface": "bark",
+    "look": {
+     "rim": 0.2
+    }
+   },
+   "leaves_dark": {
+    "surface": "leaf",
+    "look": {
+     "rim": 0.4,
+     "wrap": 0.45
+    }
+   }
+  },
+  "notes": "Sculpted old cherry (cherry1). Materials trunk (mul: COLOR_0 = bark colour) and blossom (tint: COLOR_0 = value ramp). COLOR_0.a = top snow mask. See .tmp/sculpt/cherry_a/INSTALL.md."
+ }
+}

@@ -1,0 +1,145 @@
+{
+ "sculpt_prop_gohei": {
+  "file": "models/sculpt/gohei.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/gohei.mjs (node tools/sculpt/build.mjs)",
+  "scale": 1,
+  "size": [
+   0.107,
+   0.506,
+   0.04
+  ],
+  "tris": 3500,
+  "lods": [
+   3500,
+   1200,
+   400
+  ],
+  "materials": [
+   "Wood_wood",
+   "Brass_metal",
+   "Gold_metal",
+   "Cord_cloth",
+   "RedCord_cloth",
+   "Paper_paper",
+   "ShideL1_paper",
+   "ShideL2_paper",
+   "ShideL3_paper",
+   "ShideR1_paper",
+   "ShideR2_paper",
+   "ShideR3_paper"
+  ],
+  "mats": {
+   "Wood_wood": {
+    "surface": "wood",
+    "look": {
+     "detail": 0.15,
+     "bump": 0.2,
+     "fine": 0
+    }
+   },
+   "Brass_metal": {
+    "surface": "metal",
+    "look": {
+     "spec": 0.5,
+     "specPower": 40,
+     "detail": 0,
+     "bump": 0,
+     "fine": 0
+    }
+   },
+   "Gold_metal": {
+    "surface": "metal",
+    "look": {
+     "spec": 0.6,
+     "specPower": 48,
+     "detail": 0,
+     "bump": 0,
+     "fine": 0
+    }
+   },
+   "Cord_cloth": {
+    "surface": "cloth",
+    "look": {
+     "detail": 0,
+     "bump": 0,
+     "fine": 0
+    }
+   },
+   "RedCord_cloth": {
+    "surface": "cloth",
+    "look": {
+     "detail": 0,
+     "bump": 0,
+     "fine": 0
+    }
+   },
+   "Paper_paper": {
+    "surface": "paper",
+    "look": {
+     "trans": 0.35,
+     "detail": 0,
+     "bump": 0,
+     "fine": 0
+    }
+   },
+   "ShideL1_paper": {
+    "surface": "paper",
+    "look": {
+     "trans": 0.35,
+     "detail": 0,
+     "bump": 0,
+     "fine": 0
+    }
+   },
+   "ShideL2_paper": {
+    "surface": "paper",
+    "look": {
+     "trans": 0.35,
+     "detail": 0,
+     "bump": 0,
+     "fine": 0
+    }
+   },
+   "ShideL3_paper": {
+    "surface": "paper",
+    "look": {
+     "trans": 0.35,
+     "detail": 0,
+     "bump": 0,
+     "fine": 0
+    }
+   },
+   "ShideR1_paper": {
+    "surface": "paper",
+    "look": {
+     "trans": 0.35,
+     "detail": 0,
+     "bump": 0,
+     "fine": 0
+    }
+   },
+   "ShideR2_paper": {
+    "surface": "paper",
+    "look": {
+     "trans": 0.35,
+     "detail": 0,
+     "bump": 0,
+     "fine": 0
+    }
+   },
+   "ShideR3_paper": {
+    "surface": "paper",
+    "look": {
+     "trans": 0.35,
+     "detail": 0,
+     "bump": 0,
+     "fine": 0
+    }
+   }
+  },
+  "notes": "Sculpted gohei. Origin = grip, +Y along the wand (same as prop_gohei). Streamers are six separate segment meshes under the chained anchor nodes shide_L_1..3 / shide_R_1..3 (rest pose baked). LOD0 colour atlas + object-space normal map; LOD1/2 vertex colours. See .tmp/sculpt/gohei/INSTALL.md."
+ }
+}

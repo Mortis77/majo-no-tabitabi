@@ -1,0 +1,42 @@
+{
+ "sculpt_crate_b": {
+  "file": "models/sculpt/crate_b.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/crate_b.mjs (node tools/sculpt/assets/_smallprops.mjs)",
+  "scale": 1,
+  "size": [
+   0.9,
+   0.901,
+   0.9
+  ],
+  "tris": 1800,
+  "lods": [
+   1800,
+   626,
+   200
+  ],
+  "materials": [
+   "wood",
+   "metal"
+  ],
+  "mats": {
+   "wood": {
+    "surface": "wood",
+    "look": {
+     "rim": 0.3
+    }
+   },
+   "metal": {
+    "surface": "metal",
+    "look": {
+     "spec": 0.55,
+     "specPower": 40,
+     "rim": 0.4
+    }
+   }
+  },
+  "notes": "Sculpted framed crate (posts + rails, recessed upright boards, braces, a burnt carrier brand, a split board). Vertex colours on every LOD, no textures: batched prop. Families wood / metal."
+ }
+}

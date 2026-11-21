@@ -1,0 +1,40 @@
+{
+ "section": 5,
+ "frames": 1008,
+ "fps": 60,
+ "build": "ca43df76158f",
+ "shots": [
+  {
+   "file": ".tmp/trailer/shots/5-coda/takes/c1-approach/take1/c1-approach.mov",
+   "in": 0,
+   "length": 144,
+   "what": "High crane down over the night crystal field: the great lantern waiting on its dais, its ready ring glowing; she walks in small toward it",
+   "cue": "bar 37 downbeat (THE HIT, t=86.4): the edit lands here from white",
+   "note": "Dark, quiet, nearly static; take the fade from white over its first frames. Heroine is small on purpose (scale shot), right of the dais. 18-frame handle (144-161)."
+  },
+  {
+   "file": ".tmp/trailer/shots/5-coda/takes/c2-lighting/take2/c2-lighting.mov",
+   "in": 0,
+   "length": 144,
+   "what": "Profile from the west: she kneels at the dais foot with hands together, the fox above her, the lantern towering right under the Moon wheel; the fire takes and the light washes over the dais, a gold sigil turns over the sky",
+   "cue": "bar 38 downbeat (music box enters, t=88.8)",
+   "note": "Ignition (greatlantern:lit) at take frame 72.0 = beat 3 of bar 38 = section frame 216 (t=90.0); frames ~72-115 are near-white bloom, it clears to the sigil by ~120. Her skirt touches the bottom edge. Handle 144-161."
+  },
+  {
+   "file": ".tmp/trailer/shots/5-coda/takes/c3-title/take3/c3-title.mov",
+   "in": 0,
+   "length": 288,
+   "what": "TITLE PLATE: she rides the broom with the fox spirit across the face of the Moon wheel, camera flying with her below/behind looking up; nearly still, a slow push in",
+   "cue": "bar 39 downbeat (t=91.2), title 月帷巫女 over bars 39-40",
+   "note": "Safe title area: the upper 55 % of the frame, best centred slightly left (x 15-70 %, y 5-50 %): open night sky with soft violet rays. She sits at ~(37 %, 72 %), the wheel at ~(60 %, 72 %). A small sky rock enters the right edge only after take frame ~295 (in the handle) - do not slide this cut later than +6 frames."
+  },
+  {
+   "file": ".tmp/trailer/shots/5-coda/takes/c4-lanterns/take3/c4-lanterns.mov",
+   "in": 0,
+   "length": 432,
+   "what": "The lantern town in the lasting night from above, the camera craning up (37 -> 59 m) and turning slowly round the lamp tower: the lanterns of the plaza and streets come on ring by ring outward, then the tower answers and every street lantern string fades up; the town is at its brightest on bar 43 and the camera keeps a slow turn through the hold",
+   "cue": "bar 41 downbeat (last low drum, t=96.0); bars 41-42 caption, bar 43 (take 288-431) hold and fade to black",
+   "note": "Town dark at the cut. Lantern rings light at take f36, f72, f108, f144 (beats 2-5; each ring one by one, 3 frames apart; the stone lantern on the west road with ring 3); lamp-tower burst + all street strings fade up from f180 (beat 6), ~93 % by f288 = t 100.8 = the brightest picture; f288-431 is the hold to fade on (a slow turn, no stop). Caption 去把灯，一盏一盏点亮。: set it CENTRED like every other line, in the top band (y about 60-190 px): dark ground there, only the tower tip at the centre near y 200 late in the shot. 实机画面 bottom. No race ring (switched off), no trees except small tips in the top corners after f250. Handle 432-449."
+  }
+ ]
+}

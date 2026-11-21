@@ -1,0 +1,33 @@
+{
+ "sculpt_tree_dead_b": {
+  "file": "models/sculpt/dead_b.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/dead_b.mjs (node tools/sculpt/assets/trees_c_lib.mjs)",
+  "scale": 1,
+  "size": [
+   2.75,
+   6.84,
+   1.38
+  ],
+  "tris": 5000,
+  "lods": [
+   5000,
+   1800,
+   500
+  ],
+  "materials": [
+   "trunk"
+  ],
+  "mats": {
+   "trunk": {
+    "surface": "bark",
+    "look": {
+     "rim": 0.25
+    }
+   }
+  },
+  "notes": "Sculpted dead snag with a burl and a bird hole (dead2). One material trunk (mul). No crown part. COLOR_0.a = top snow mask. See .tmp/sculpt/broadleaf_a/INSTALL.md."
+ }
+}

@@ -1,0 +1,11 @@
+import fs from 'node:fs';
+import { NodeIO } from '@gltf-transform/core';
+const io = new NodeIO();
+const doc = await io.readBinary(new Uint8Array(fs.readFileSync(process.argv[2])));
+const sc = doc.getRoot().listScenes()[0];
+const walk=(n,d,wp)=>{const t=n.getTranslation();const p=[wp[0]+t[0],wp[1]+t[1],wp[2]+t[2]];const r=n.getRotation();
+ const rs=(Math.abs(r[3]-1)>1e-4)?' ROT '+r.map(v=>v.toFixed(3)).join(','):'';
+ if(!/Hair|Bust|Skirt|Sec|_end$/.test(n.getName()) || process.argv[3]) console.log(' '.repeat(d)+n.getName(),p.map(v=>v.toFixed(3)).join(','),rs, n.getScale().join(',')!='1,1,1'?'S'+n.getScale():'');
+ for(const c of n.listChildren())walk(c,d+1,p)};
+for(const n of sc.listChildren())walk(n,0,[0,0,0]);
+const anims=doc.getRoot().listAnimations();console.log(anims.length, anims.slice(0,3).map(a=>a.getName()+':'+a.listChannels().length));

@@ -1,0 +1,50 @@
+{
+ "sculpt_basket_berries": {
+  "file": "models/sculpt/basket_berries.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/basket_berries.mjs (node tools/sculpt/assets/_smallprops.mjs)",
+  "scale": 1,
+  "size": [
+   0.627,
+   0.421,
+   0.626
+  ],
+  "tris": 1824,
+  "lods": [
+   1824,
+   600,
+   200
+  ],
+  "materials": [
+   "straw",
+   "fruit",
+   "leaf"
+  ],
+  "mats": {
+   "straw": {
+    "surface": "thatch",
+    "look": {
+     "scale": 0.8
+    }
+   },
+   "fruit": {
+    "surface": "none",
+    "look": {
+     "spec": 0.3,
+     "specPower": 36,
+     "rim": 0.35,
+     "wrap": 0.5
+    }
+   },
+   "leaf": {
+    "surface": "none",
+    "look": {
+     "trans": 0.4
+    }
+   }
+  },
+  "notes": "Sculpted berry basket (wide withy stake-and-strand bowl, thick rim, bentwood bail with straw bindings, berries heaped, leaves). Vertex colours on every LOD, no textures: batched, burnable prop. Families straw / fruit / leaf (as prop_basket_berries)."
+ }
+}

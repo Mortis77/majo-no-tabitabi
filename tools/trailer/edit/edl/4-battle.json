@@ -1,0 +1,127 @@
+{
+  "section": 4,
+  "frames": 1440,
+  "fps": 60,
+  "shots": [
+    {
+      "file": ".tmp/trailer/shots/4-battle/takes/test-fight-side4/fight-side.mov",
+      "in": 0,
+      "length": 288,
+      "what": "Night on the crystal plain, lit horizon behind her: ink sigils open in a ring and shade creatures (wolves, blobs, a shade caster) rise around her; slow low push-in",
+      "cue": "bar 27 downbeat (battle starts, t=62.4)",
+      "note": "KEPT from the cut (reviewed good). Caption 影祟四起 safe in the upper third (sky) for the whole shot; first sigil opens ~f14, the last shade has risen by ~f140. No health bars appear in this range"
+    },
+    {
+      "file": ".tmp/trailer/shots/4-battle/takes/fight-game-nb/fight-game.mov",
+      "in": 316,
+      "length": 72,
+      "what": "Game camera, lock-on: she throws talismans, golden purifying sigils burst on the shades around her",
+      "cue": "bar 29 downbeat",
+      "note": "NEW take, enemy health bars hidden. The player's own camera (high, behind her)"
+    },
+    {
+      "file": ".tmp/trailer/shots/4-battle/takes/fight-side-nb3/fight-side.mov",
+      "in": 360,
+      "length": 72,
+      "what": "Low side angle: she (right, large) throws a stream of talismans into the shade pack, gold bursts on the wolves and blobs",
+      "cue": "bar 29 beat 3",
+      "note": "NEW take, bars hidden"
+    },
+    {
+      "file": ".tmp/trailer/shots/4-battle/takes/fight-game-nb/fight-game.mov",
+      "in": 412,
+      "length": 108,
+      "what": "Game camera: a wolf lunges, she dashes aside (dodge), then raises her golden guard shell as the shade caster's dark orbs come in",
+      "cue": "bar 30 downbeat",
+      "note": "NEW take, bars hidden. Dodge at shot frame 12; guard shell up ~frame 64; orbs arrive ~frame 70-100"
+    },
+    {
+      "file": ".tmp/trailer/shots/4-battle/takes/fight-side-nb3/fight-side.mov",
+      "in": 490,
+      "length": 36,
+      "what": "Low side angle: the dark orbs strike her guard shell and burst on the gold",
+      "cue": "bar 30 beat 4",
+      "note": "NEW take, bars hidden. Orbs hit through the shot. The handle (frames 526-544) is NOT usable past frame 532: the camera whips and a shade blob fills the lens"
+    },
+    {
+      "file": ".tmp/trailer/shots/4-battle/takes/fight-game-nb/fight-game.mov",
+      "in": 596,
+      "length": 72,
+      "what": "Game camera: she casts fire into the pack; the blast catches and the crystals around her flare orange",
+      "cue": "bar 31 downbeat",
+      "note": "NEW take, bars hidden. Cast at shot frame 4, blast ~frame 16"
+    },
+    {
+      "file": ".tmp/trailer/shots/4-battle/takes/fight-side-nb2/fight-side.mov",
+      "in": 600,
+      "length": 72,
+      "what": "Low side angle: second fire cast, the blast takes the shades and the crystal field blazes",
+      "cue": "bar 31 beat 3",
+      "note": "NEW take, bars hidden. Blast at shot frame ~12"
+    },
+    {
+      "file": ".tmp/trailer/shots/4-battle/takes/kinkan-ground-2/kinkan-ground.mov",
+      "in": 0,
+      "length": 144,
+      "what": "金环 from the ground: low over her shoulder, the shade pack ahead; she calls the golden ring, the sigil opens across the plain, a burst, the pillar of gold comes down and the shades are blown outward in silhouette while she stands in the foreground",
+      "cue": "bar 32 downbeat",
+      "note": "RE-SHOT. She raises her arms ~f0-20 (cast at f18), sigil spreads f20-70, THE BURST at shot frame 70-72 = bar 32 beat 3 (edit 792): one near-white frame (the game's own flash) then the pillar; shades thrown out f72-110; she stays in frame (right of centre) throughout"
+    },
+    {
+      "file": ".tmp/trailer/shots/4-battle/takes/duel-ots-3/duel-ots.mov",
+      "in": 0,
+      "length": 72,
+      "what": "The rival 胧夜 established: a long lens across the duel ring, the rival centre frame casting; her fireball crosses into frame, she charges in and the two collide in a blast",
+      "cue": "bar 33 downbeat (half-bar hit)",
+      "note": "NEW. Rival readable centre frame f0-40; her fireball crosses ~f36; she runs in f44-60; blast fills the frame from ~f62 (on the next half-bar hit)"
+    },
+    {
+      "file": ".tmp/trailer/shots/4-battle/takes/duel-game-2/duel-game.mov",
+      "in": 24,
+      "length": 72,
+      "what": "Duel (game camera): she fires, the rival's great fire spell sweeps past her",
+      "cue": "bar 33 beat 3 (half-bar hit)",
+      "note": "KEPT from the cut. Burst of her cast at shot frame ~6"
+    },
+    {
+      "file": ".tmp/trailer/shots/4-battle/takes/boss-land-2/boss-land.mov",
+      "in": 48,
+      "length": 72,
+      "what": "The great shade beast 胧牙 at the dusk tree, low behind her under the torii: it crouches beyond her, launches and soars over her toward the lens, huge against the sky, and lands",
+      "cue": "bar 34 downbeat (half-bar hit)",
+      "note": "RE-SHOT. Launch at shot frame 8; beast filling the upper frame f27-60; she dodges out left ~f38"
+    },
+    {
+      "file": ".tmp/trailer/shots/4-battle/takes/boss-huge-2/boss-huge.mov",
+      "in": 156,
+      "length": 72,
+      "what": "Low side-on: 胧牙 in profile fills the frame, she small before it under the torii; her talisman stream strikes its chest (hit flash), then her sun spell bursts",
+      "cue": "bar 34 beat 3 (half-bar hit)",
+      "note": "RE-SHOT. Talismans hit f0-40 (the beast flashes white); sun burst ~f58-66"
+    },
+    {
+      "file": ".tmp/trailer/shots/4-battle/takes/test-b10/b10-struggle.mov",
+      "in": 0,
+      "length": 144,
+      "what": "THE BEAM STRUGGLE, wide side-on: her sun beam (left) against the rival's beam (right), the clash ball boiling between, the ground cracking",
+      "cue": "bar 35 downbeat (the climb starts, t=81.6)",
+      "note": "KEPT from the cut"
+    },
+    {
+      "file": ".tmp/trailer/shots/4-battle/takes/b10c-struggle-2/b10c-struggle.mov",
+      "in": 144,
+      "length": 72,
+      "what": "Struggle insert: close over her right shoulder, her arms driving the beam into the boiling clash ball, rings bursting off it, the ground cracked black around it",
+      "cue": "bar 36 downbeat (t=84.0)",
+      "note": "NEW (same performance as the wide and the close); tremor grows. Her face cannot be read: the fox companion hovers in front of it in the struggle"
+    },
+    {
+      "file": ".tmp/trailer/shots/4-battle/takes/test-b10b/b10b-struggle.mov",
+      "in": 216,
+      "length": 72,
+      "what": "The struggle, close three-quarter on her: the beam from her hands into the clash and the rival beyond; push-in, tremor at its peak; she drives it home",
+      "cue": "bar 36 beat 3 (t=85.2)",
+      "note": "KEPT take, now from frame 216. Clash still locked at the last frame (edit 1439 = f5183); the win burst follows in the handle (take frames 288+). Cut to white at bar 37 downbeat"
+    }
+  ]
+}

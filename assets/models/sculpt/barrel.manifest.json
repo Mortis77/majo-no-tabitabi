@@ -1,0 +1,42 @@
+{
+ "sculpt_barrel_large": {
+  "file": "models/sculpt/barrel.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/barrel.mjs (node tools/sculpt/assets/_smallprops.mjs)",
+  "scale": 1,
+  "size": [
+   0.964,
+   1.101,
+   0.976
+  ],
+  "tris": 2400,
+  "lods": [
+   2400,
+   800,
+   250
+  ],
+  "materials": [
+   "wood",
+   "metal"
+  ],
+  "mats": {
+   "wood": {
+    "surface": "wood",
+    "look": {
+     "rim": 0.3
+    }
+   },
+   "metal": {
+    "surface": "metal",
+    "look": {
+     "spec": 0.55,
+     "specPower": 40,
+     "rim": 0.4
+    }
+   }
+  },
+  "notes": "Sculpted barrel (uneven staves, riveted hoops, bung + stain). Vertex colours on every LOD, no textures: batched + rolling prop. Materials wood / metal (as prop_barrel_large)."
+ }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "majo-no-tabitabi-desktop",
+  "productName": "魔女之旅",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Desktop shell for 魔女之旅",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "@electron/packager": "^20.3.0",
+    "electron": "^45.3.1"
+  }
+}

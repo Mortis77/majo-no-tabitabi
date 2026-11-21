@@ -1,0 +1,52 @@
+{
+ "sculpt_jar_a": {
+  "file": "models/sculpt/jar_a.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/jar_a.mjs (node tools/sculpt/assets/_smallprops.mjs)",
+  "scale": 1,
+  "size": [
+   0.31,
+   0.455,
+   0.305
+  ],
+  "tris": 1800,
+  "lods": [
+   1800,
+   600,
+   200
+  ],
+  "materials": [
+   "clay",
+   "glaze",
+   "wood"
+  ],
+  "mats": {
+   "clay": {
+    "surface": "earth",
+    "look": {
+     "spec": 0.12,
+     "specPower": 20,
+     "detail": 0.7,
+     "scale": 1.2
+    }
+   },
+   "glaze": {
+    "surface": "paint",
+    "look": {
+     "spec": 0.6,
+     "specPower": 70,
+     "detail": 0.2
+    }
+   },
+   "wood": {
+    "surface": "wood",
+    "look": {
+     "rim": 0.3
+    }
+   }
+  },
+  "notes": "Sculpted storage jar (rope collar, wooden lid). Vertex colours on every LOD, no textures: batched prop. Materials clay / glaze (as prop_jar_a) + wood (lid, rope)."
+ }
+}

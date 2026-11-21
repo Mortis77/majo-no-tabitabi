@@ -1,0 +1,41 @@
+{
+ "sculpt_prop_andon": {
+  "file": "models/sculpt/andon.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/andon.mjs (node tools/sculpt/assets/_smallprops.mjs)",
+  "scale": 1,
+  "size": [
+   0.574,
+   0.915,
+   0.57
+  ],
+  "tris": 2000,
+  "lods": [
+   2000,
+   700,
+   250
+  ],
+  "materials": [
+   "Atlas_wood",
+   "Light_paper"
+  ],
+  "mats": {
+   "Atlas_wood": {
+    "surface": "wood",
+    "look": {
+     "rim": 0.3
+    }
+   },
+   "Light_paper": {
+    "surface": "paper",
+    "look": {
+     "trans": 0.35,
+     "rim": 0.15
+    }
+   }
+  },
+  "notes": "Sculpted andon: tapering paper box on splayed legs, lifted rail ends, arched handle over an open top, one patched pane. Vertex colours on every LOD; families Atlas_wood / Light_paper as before (paper = the lit part)."
+ }
+}

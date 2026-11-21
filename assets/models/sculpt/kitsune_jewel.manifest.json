@@ -1,0 +1,50 @@
+{
+ "sculpt_kitsune_jewel": {
+  "file": "models/sculpt/kitsune_jewel.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/kitsune_jewel.mjs (node tools/sculpt/build.mjs)",
+  "scale": 1,
+  "size": [
+   1.2,
+   2.46,
+   1.4
+  ],
+  "tris": 12000,
+  "lods": [
+   12000,
+   3500,
+   1274
+  ],
+  "materials": [
+   "Granite_stone",
+   "Moss_none",
+   "Bib_cloth"
+  ],
+  "mats": {
+   "Granite_stone": {
+    "surface": "stone",
+    "look": {
+     "detail": 0.25,
+     "bump": 0.3,
+     "fine": 0
+    }
+   },
+   "Moss_none": {
+    "surface": "none",
+    "look": {
+     "rim": 0.4,
+     "trans": 0.25
+    }
+   },
+   "Bib_cloth": {
+    "surface": "cloth",
+    "look": {
+     "detail": 0.5
+    }
+   }
+  },
+  "notes": "Sculpted kitsune holding a flame-jewel under its right forepaw (tail to -x), left ear tip chipped. Replaces decor.js kitsune(-1, false, s). Red cloth bib sculpted in (material Bib_cloth, tintable); anchor \"bib\". Figure 1.15x the old one. See .tmp/sculpt/kitsune_jewel/INSTALL.md."
+ }
+}

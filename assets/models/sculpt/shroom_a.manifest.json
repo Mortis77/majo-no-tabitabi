@@ -1,0 +1,42 @@
+{
+ "sculpt_shroom_a": {
+  "file": "models/sculpt/shroom_a.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/shroom_a.mjs (node tools/sculpt/assets/_smallprops.mjs)",
+  "scale": 1,
+  "size": [
+   8.385,
+   5.21,
+   8.318
+  ],
+  "tris": 3500,
+  "lods": [
+   3500,
+   1200,
+   350
+  ],
+  "materials": [
+   "cap",
+   "stem"
+  ],
+  "mats": {
+   "cap": {
+    "surface": "none",
+    "look": {
+     "rim": 0.35,
+     "wrap": 0.5
+    }
+   },
+   "stem": {
+    "surface": "none",
+    "look": {
+     "rim": 0.25,
+     "wrap": 0.4
+    }
+   }
+  },
+  "notes": "Sculpted giant mushroom (old parasol). Vertex colours on every LOD. cap = cap skin + gills (tint, value only), stem = stem + bulb + collar (mul)."
+ }
+}

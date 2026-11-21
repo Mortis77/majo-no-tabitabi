@@ -1,0 +1,34 @@
+{
+ "sculpt_earth_column_b": {
+  "file": "models/sculpt/earth_column_b.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/earth_column_b.mjs (node tools/sculpt/build.mjs)",
+  "scale": 1,
+  "size": [
+   5.281,
+   7.135,
+   4.655
+  ],
+  "tris": 3000,
+  "lods": [
+   3000,
+   1000
+  ],
+  "materials": [
+   "EarthRock_rock"
+  ],
+  "mats": {
+   "EarthRock_rock": {
+    "surface": "rock",
+    "look": {
+     "detail": 0.3,
+     "bump": 0.35,
+     "fine": 0.25
+    }
+   }
+  },
+  "notes": "Earth-spell column B (four fat prisms, two dropped, one proud flank). Pivot = base centre at ground level; extends 0.6 m below ground, standable top at 6.0 m. LOD0 atlas + object-space normal map (extras.normalSpace=object); LOD1 vertex colours. See .tmp/sculpt/earth_column_b/INSTALL.md."
+ }
+}

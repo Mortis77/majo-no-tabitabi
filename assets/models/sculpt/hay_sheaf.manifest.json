@@ -1,0 +1,33 @@
+{
+ "sculpt_hay_sheaf": {
+  "file": "models/sculpt/hay_sheaf.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/hay_sheaf.mjs (node tools/sculpt/assets/_smallprops.mjs)",
+  "scale": 1,
+  "size": [
+   0.813,
+   1.011,
+   0.876
+  ],
+  "tris": 1800,
+  "lods": [
+   1800,
+   600,
+   200
+  ],
+  "materials": [
+   "straw"
+  ],
+  "mats": {
+   "straw": {
+    "surface": "thatch",
+    "look": {
+     "scale": 0.8
+    }
+   }
+  },
+  "notes": "Sculpted rice-straw sheaf (splayed butts, waist band of twisted straw with a tucked end, drooping ragged crown, strand relief). Vertex colours on every LOD, no textures: batched, very flammable prop. Family straw."
+ }
+}

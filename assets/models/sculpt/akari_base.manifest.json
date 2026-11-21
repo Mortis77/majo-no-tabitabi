@@ -1,0 +1,140 @@
+{
+ "char_akari_base": {
+  "file": "models/sculpt/akari_base.glb",
+  "type": "model",
+  "preload": false,
+  "license": "CC0 (original body, face, undergarment and textures sculpted for this project; hair + bow mesh, skeleton: VRoid HairSample_Female, CC0)",
+  "author": "sculpted for this project (tools/sculpt/figure); hair, bow and skeleton: pixiv Inc. (VRoid Project) CC0",
+  "source": "tools/sculpt/figure/build-akari.mjs + tools/sculpt/assets/akari_{body,head,under}.mjs",
+  "scale": 1,
+  "size": [
+   1.305,
+   1.504,
+   0.275
+  ],
+  "tris": 51047,
+  "clipsFrom": [
+   "anim_ual",
+   "anim_miko"
+  ],
+  "morphs": [
+   "blink",
+   "blink_l",
+   "blink_r",
+   "joy",
+   "fun",
+   "angry",
+   "sorrow",
+   "surprised",
+   "a",
+   "i",
+   "u",
+   "e",
+   "o"
+  ],
+  "morphMesh": "akari_face",
+  "bones": {
+   "head": "J_Bip_C_Head",
+   "chest": "J_Bip_C_Chest",
+   "upperChest": "J_Bip_C_UpperChest",
+   "spine": "J_Bip_C_Spine",
+   "hips": "J_Bip_C_Hips",
+   "handR": "J_Bip_R_Hand",
+   "handL": "J_Bip_L_Hand",
+   "neck": "J_Bip_C_Neck",
+   "footR": "J_Bip_R_Foot",
+   "footL": "J_Bip_L_Foot"
+  },
+  "hipsHeight": 0.887,
+  "meshes": [
+   "akari_face",
+   "akari_body",
+   "akari_hair",
+   "akari_ribbon",
+   "akari_under"
+  ],
+  "materials": [
+   "FaceMouth",
+   "EyeWhite",
+   "FaceEyelash",
+   "EyeIris",
+   "EyeHighlight",
+   "Face",
+   "Body",
+   "Hair",
+   "Ribbon",
+   "cloth_white",
+   "cloth_trim"
+  ],
+  "secondaryChains": [
+   {
+    "root": "J_Sec_RibbonL_1_01",
+    "joints": [
+     "J_Sec_RibbonL_1_01",
+     "J_Sec_RibbonL_1_02",
+     "J_Sec_RibbonL_1_03"
+    ],
+    "tail": "J_Sec_RibbonL_1_end",
+    "parent": "J_Bip_C_Head",
+    "kind": "tail"
+   },
+   {
+    "root": "J_Sec_RibbonR_1_01",
+    "joints": [
+     "J_Sec_RibbonR_1_01",
+     "J_Sec_RibbonR_1_02",
+     "J_Sec_RibbonR_1_03"
+    ],
+    "tail": "J_Sec_RibbonR_1_end",
+    "parent": "J_Bip_C_Head",
+    "kind": "tail"
+   }
+  ],
+  "notes": "Base figure of 灯里 for all three outfits and the ?akari=base test view. Complete sculpted body and face with 13 expression shapes, undergarment and fitted hair. The shared eye lines and brows retain the same morph targets. The fitting regions are in assets/models/sculpt/akari_base.regions.json.",
+  "springDefaults": {
+   "skirt": {
+    "stiffness": 0.6,
+    "gravityPower": 0.5,
+    "dragForce": 0.5,
+    "hitRadius": 0.05,
+    "colliders": [
+     "thighs",
+     "shins"
+    ]
+   },
+   "sleeve": {
+    "stiffness": 0.35,
+    "gravityPower": 1,
+    "dragForce": 0.45,
+    "hitRadius": 0.035,
+    "colliders": [
+     "hips",
+     "thighs",
+     "chest"
+    ]
+   },
+   "tail": {
+    "stiffness": 0.4,
+    "gravityPower": 0.4,
+    "dragForce": 0.4,
+    "hitRadius": 0.025,
+    "colliders": [
+     "hips",
+     "thighs"
+    ]
+   },
+   "charm": {
+    "stiffness": 0.2,
+    "gravityPower": 1,
+    "dragForce": 0.3,
+    "hitRadius": 0.015,
+    "colliders": [
+     "hips",
+     "thighs"
+    ]
+   }
+  },
+  "bytes": 3378052,
+  "textures": 10
+ }
+}

@@ -1,0 +1,41 @@
+{
+ "sculpt_tree_broadleaf_b": {
+  "file": "models/sculpt/broadleaf_b.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/broadleaf_b.mjs (node tools/sculpt/assets/trees_c_lib.mjs)",
+  "scale": 1,
+  "size": [
+   4.29,
+   9.19,
+   4.03
+  ],
+  "tris": 5000,
+  "lods": [
+   5000,
+   1800,
+   464
+  ],
+  "materials": [
+   "trunk",
+   "leaves"
+  ],
+  "mats": {
+   "trunk": {
+    "surface": "bark",
+    "look": {
+     "rim": 0.2
+    }
+   },
+   "leaves": {
+    "surface": "leaf",
+    "look": {
+     "rim": 0.4,
+     "wrap": 0.45
+    }
+   }
+  },
+  "notes": "Sculpted slim broadleaf with off-centre crown and a dead bough (broad5; broad4, broadSnow scaled). Materials trunk (mul) and leaves (tint). COLOR_0.a = top snow mask. See .tmp/sculpt/broadleaf_a/INSTALL.md."
+ }
+}

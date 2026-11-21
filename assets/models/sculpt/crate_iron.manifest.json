@@ -1,0 +1,42 @@
+{
+ "sculpt_crate_iron": {
+  "file": "models/sculpt/crate_iron.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/crate_iron.mjs (node tools/sculpt/assets/_smallprops.mjs)",
+  "scale": 1,
+  "size": [
+   1,
+   0.667,
+   0.958
+  ],
+  "tris": 1800,
+  "lods": [
+   1800,
+   608,
+   200
+  ],
+  "materials": [
+   "wood",
+   "metal"
+  ],
+  "mats": {
+   "wood": {
+    "surface": "wood",
+    "look": {
+     "rim": 0.3
+    }
+   },
+   "metal": {
+    "surface": "metal",
+    "look": {
+     "spec": 0.55,
+     "specPower": 40,
+     "rim": 0.4
+    }
+   }
+  },
+  "notes": "Sculpted iron-bound strongbox (boarded body, corner irons, two riveted straps over the lid, hasp + padlock, drop rings). Vertex colours on every LOD, no textures: batched prop. Families wood / metal."
+ }
+}

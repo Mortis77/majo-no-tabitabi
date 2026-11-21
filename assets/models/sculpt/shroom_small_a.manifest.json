@@ -1,0 +1,41 @@
+{
+ "sculpt_shroom_small_a": {
+  "file": "models/sculpt/shroom_small_a.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/shroom_small_a.mjs (node tools/sculpt/assets/_smallprops.mjs)",
+  "scale": 1,
+  "size": [
+   0.183,
+   0.337,
+   0.177
+  ],
+  "tris": 900,
+  "lods": [
+   900,
+   300
+  ],
+  "materials": [
+   "cap",
+   "stalk"
+  ],
+  "mats": {
+   "cap": {
+    "surface": "none",
+    "look": {
+     "rim": 0.35,
+     "wrap": 0.5
+    }
+   },
+   "stalk": {
+    "surface": "none",
+    "look": {
+     "rim": 0.25,
+     "wrap": 0.4
+    }
+   }
+  },
+  "notes": "Sculpted small mushroom tuft. Vertex colours on every LOD. cap = tint + glow (value only), stalk = painted colour (mul by white)."
+ }
+}

@@ -1,0 +1,109 @@
+// 灯里's wardrobe at runtime (docs/api/heroine.md "Wardrobe"): G.player.outfit / G.player.setOutfit(id).
+// A change loads the other outfit's model on demand while the old one stays on screen, waits while a cutscene, a ceremony
+// or an art's close-up owns her, then — inside one player update, before anything draws — builds the new rig, hands it
+// everything the old rig held (rig.adopt: clips + times, face, look-at, hand IK, the props attached to her bones: gohei,
+// hip lantern, wings), poses it, resets the spring chains to that pose, puts it where the old one was and frees the old one.
+// Petals and light motes and a soft cloth / sparkle sound cover the frame of the change. There is never a frame without
+// her, never a T-pose (a placeholder model is refused) and never the base figure alone (no such asset is in the table).
+import { setJourneyAccessories } from '../actors/journey-accessories.js';
+import { G } from '../core/game.js';
+import { OUTFITS, DEFAULT_OUTFIT, outfitById, journeyOutfit } from '../data/outfits.js';
+
+const valid = (id) => !!outfitById(id);
+/** The outfit she wears when the game opens: ?outfit=, else the stored save's, else the default. */
+export function initialOutfit() {
+  const p = String(G.params?.outfit || '');
+  if (valid(p)) return p;
+  let s = null;
+  try { s = G.save?.peek?.(); } catch (e) { s = null; }
+  return journeyOutfit(s);
+}
+/** Manifest id of an outfit's model (the developer switch wins). */
+export function assetOf(id) { return (outfitById(id) || outfitById(DEFAULT_OUTFIT)).asset; }
+
+/** Is she owned by something that must not see a change of clothes (cutscene, ending, a learn ceremony, an art close-up)? */
+export function heroineOwned() {
+  if (G.mode === 'cutscene' || G.mode === 'ending') return true;
+  if (G.story?.cut?.active) return true;
+  if (G.cam?.cinematicActive && !G.dialogue?.active && G.mode !== 'talk') return true;   // an art's close-up (dialogue shots use the camera too)
+  if (G.ui?.ceremonyActive > 0) return true;
+  return false;
+}
+
+/**
+ * @param P the player; S its private state (S.rig, S.tilt)
+ * @param o { opts: createActor options, create: createActor, setRig(rig): store the new rig everywhere the player keeps it, outfit }
+ */
+export function createWardrobe(P, S, o) {
+  let worn = o.outfit;            // what she wears (and the save stores)
+  let want = null;                // { id, quiet, resolve[] } — a change waiting for its model / for the owner to let go
+  let flourishDue = false;        // a change made behind the pause scroll shows its petals when play resumes
+  const W = {
+    get outfit() { return worn; },
+    get pending() { return want ? want.id : null; },
+    /** swaps done (tests) */
+    swaps: 0,
+    list: OUTFITS,
+    /** Change her clothes. Resolves true once she wears it (false for an unknown id / a model that failed to load). */
+    set(id, { quiet = false } = {}) {
+      if (!valid(id)) return Promise.resolve(false);
+      if (id === worn && !want) return Promise.resolve(true);
+      if (want && want.id === id) return new Promise((r) => want.resolve.push(r));
+      if (want) for (const r of want.resolve) r(false);
+      if (id === worn) { want = null; return Promise.resolve(true); }      // changed back before the other one arrived
+      want = { id, quiet, resolve: [], asset: assetOf(id), loading: null, failed: false };
+      const w = want;
+      const p = new Promise((r) => w.resolve.push(r));
+      w.loading = Promise.resolve(G.assets?.load?.(w.asset)).then((g) => { if (!g) w.failed = true; }, () => { w.failed = true; });
+      return p;
+    },
+    /** Called first thing in every player update. */
+    tick() {
+      if (flourishDue && G.mode === 'play') { flourishDue = false; flourish(); }
+      const w = want;
+      if (!w) return;
+      if (w.failed) { G.reportError?.('wardrobe', new Error('outfit model failed to load: ' + w.asset)); want = null; for (const r of w.resolve) r(false); return; }
+      if (!G.assets?.ready?.(w.asset) || heroineOwned()) return;
+      swap(w);
+    },
+  };
+
+  function finish(w, ok) {
+    if (ok) worn = w.id;
+    if (want === w) want = null;
+    if (ok && G.state) G.state.outfit = worn;
+    for (const r of w.resolve) r(ok);
+    if (ok) G.events?.emit?.('player:outfit', { id: worn });
+  }
+
+  function swap(w) {
+    const old = S.rig;
+    const rig = o.create(w.asset, o.opts);
+    if (!rig || rig.model.userData.placeholder) { rig?.dispose?.(); finish(w, false); return; }
+    rig.adopt(old);
+    setJourneyAccessories(rig,{brooch:!!G.state?.flags?.majo_brooch});
+    // same place: the rig's group sits in the tilt group; the model carries the pelvis offset of the foot IK
+    rig.group.position.copy(old.group.position); rig.group.quaternion.copy(old.group.quaternion); rig.group.scale.copy(old.group.scale);
+    rig.model.position.copy(old.model.position);
+    rig.group.visible = old.group.visible;
+    old.group.parent.add(rig.group);
+    rig.update(0);                 // pose it at the carried clip times (dt 0: nothing advances)
+    rig.resetSprings();            // the chains start from that pose on the next step, no snap from the rest pose
+    o.setRig(rig);
+    old.dispose();                 // removes its group; per-instance skeletons freed (geometry / materials are the asset cache's)
+    W.swaps++;
+    finish(w, true);
+    if (!w.quiet) { if (G.mode === 'play') flourish(); else flourishDue = true; }
+  }
+
+  function flourish() {
+    try {
+      const v = P.pos.clone(); v.y += 1.0;
+      G.fx?.burst?.('petals', v, { scale: 0.7, count: 0.8 });
+      G.fx?.burst?.('heal', v, { scale: 0.8, count: 0.7 });
+    } catch (e) { /* optional */ }
+    try { G.audio?.sfx?.('cloth', { pos: P.pos, vol: 0.8 }); G.audio?.sfx?.('sparkle', { pos: P.pos, vol: 0.45 }); } catch (e) { /* optional */ }
+  }
+
+  return W;
+}

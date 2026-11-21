@@ -1,0 +1,59 @@
+{
+ "sculpt_barrel_apples": {
+  "file": "models/sculpt/barrel_apples.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/barrel_apples.mjs (node tools/sculpt/assets/_smallprops.mjs)",
+  "scale": 1,
+  "size": [
+   0.711,
+   0.94,
+   0.707
+  ],
+  "tris": 1800,
+  "lods": [
+   1800,
+   600,
+   242
+  ],
+  "materials": [
+   "wood",
+   "metal",
+   "fruit",
+   "leaf"
+  ],
+  "mats": {
+   "wood": {
+    "surface": "wood",
+    "look": {
+     "rim": 0.3
+    }
+   },
+   "metal": {
+    "surface": "metal",
+    "look": {
+     "spec": 0.55,
+     "specPower": 40,
+     "rim": 0.4
+    }
+   },
+   "fruit": {
+    "surface": "none",
+    "look": {
+     "spec": 0.3,
+     "specPower": 36,
+     "rim": 0.35,
+     "wrap": 0.5
+    }
+   },
+   "leaf": {
+    "surface": "none",
+    "look": {
+     "trans": 0.4
+    }
+   }
+  },
+  "notes": "Sculpted orchard cask (tall open cask, four iron hoops, bung with a cider stain, apples heaped over the rim, leaves). Vertex colours on every LOD, no textures: batched + rolling prop. Families wood / metal / fruit / leaf."
+ }
+}

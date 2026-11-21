@@ -1,0 +1,523 @@
+// Accessible rooms for the first two episodes. Individual walls can cut away only if
+// the orbit camera is outside that face and the traveller is physically inside.
+import * as THREE from 'three';
+import { G } from '../../core/game.js';
+import { box, cyl, cone, sphere, torus, bakeStatic } from '../../core/geo.js';
+import { Site, mat, beam, texMat, textTexture } from './kit.js';
+import { t } from '../../core/i18n.js';
+import { procTree } from './decor.js';
+
+const wallMat = mat.plaster(0xe2d3ae),
+  wood = mat.wood(0x76513a),
+  oak = mat.wood(0x977047),
+  dark = mat.wood(0x49392e);
+const trimWood = mat.wood(0x966f4c);
+const red = mat.cloth(0x99483e),
+  teal = mat.cloth(0x465c57),
+  linen = mat.cloth(0xe5d9c3),
+  gold = mat.metal(0xc09445);
+const slate = mat.tile(0x566c70),
+  brick = mat.stone(0xb68871),
+  stone = mat.stone(0xaba18e),
+  glass = mat.paint(0x899fa5);
+const paper = mat.paper(0xead6a6),
+  ink = mat.paint(0x76553d);
+function rect(g, x, y, z, w, h, d, m) {
+  const o = box(w, h, d, m, x, y, z);
+  g.add(o);
+  return o;
+}
+function chair(g, x, z, angle, am = teal, big = false) {
+  const a = new THREE.Group(),
+    s = big ? 1.35 : 1;
+  rect(a, 0, 0.38, 0, 0.72, 0.16, 0.66, oak);
+  rect(a, 0, 0.51, 0, 0.66, 0.15, 0.58, am);
+  rect(a, 0, 0.88, -0.33, 0.71, 0.74, 0.14, am);
+  for (const side of [-1, 1]) {
+    for (const dz of [-0.25, 0.25]) rect(a, side * 0.28, 0.19, dz, 0.11, 0.38, 0.11, dark);
+    if (big) {
+      rect(a, side * 0.36, 0.68, 0, 0.12, 0.16, 0.7, oak);
+      rect(a, side * 0.33, 0.64, 0.27, 0.1, 0.25, 0.12, oak);
+    }
+  }
+  a.scale.setScalar(s);
+  a.rotation.y = angle;
+  a.position.set(x, 0, z);
+  g.add(a);
+}
+function table(g, x, z, w, d, h) {
+  rect(g, x, h, z, w, 0.14, d, oak);
+  for (const sx of [-1, 1])
+    for (const sz of [-1, 1]) rect(g, x + sx * (w / 2 - 0.15), h / 2, z + sz * (d / 2 - 0.14), 0.13, h, 0.13, wood);
+}
+function openBook(g, x, y, z) {
+  for (const side of [-1, 1]) {
+    const cover = rect(g, x + side * 0.24, y, z, 0.48, 0.065, 0.62, red);
+    cover.rotation.z = -side * 0.11;
+    const page = rect(g, x + side * 0.23, y + 0.042, z, 0.44, 0.05, 0.56, paper);
+    page.rotation.z = -side * 0.11;
+    for (let j = 0; j < 6; j++)
+      rect(g, x + side * 0.24, y + 0.081, z - 0.19 + j * 0.068, 0.24 - 0.012 * (j % 3), 0.008, 0.012, ink);
+  }
+}
+function framedWindow(g, x, y, z, w, h) {
+  rect(g, x, y, z, w + 0.28, h + 0.29, 0.19, dark);
+  rect(g, x, y, z + 0.11, w, h, 0.09, glass);
+  for (const s of [-0.26, 0, 0.26]) rect(g, x + w * s, y, z + 0.18, 0.08, h, 0.08, oak);
+  for (const s of [-0.32, 0, 0.32]) rect(g, x, y + h * s, z + 0.18, w, 0.09, 0.08, oak);
+  rect(g, x, y - h / 2 - 0.15, z + 0.11, w + 0.58, 0.18, 0.52, stone);
+}
+function shelf(g, x, z, books = true) {
+  rect(g, x, 1.38, z, 2.75, 2.76, 0.34, dark);
+  for (let j = 0; j < 4; j++) {
+    const y = 0.22 + j * 0.66;
+    rect(g, x, y, z + 0.2, 2.86, 0.14, 0.7, oak);
+    if (books)
+      for (let i = 0; i < 8; i++) {
+        const height = 0.37 + ((i * 3 + j) % 5) * 0.032;
+        const b = rect(
+          g,
+          x - 1.1 + i * 0.29,
+          y + 0.09 + height / 2,
+          z + 0.19,
+          0.15 + 0.024 * (i % 3),
+          height,
+          0.42,
+          [teal, red, wood, gold][(j + i) % 4]
+        );
+        b.rotation.z = i === 6 ? 0.14 : 0;
+      }
+  }
+}
+const fireGold = new THREE.MeshBasicMaterial({ color: 0xffab38 }),
+  fireCore = new THREE.MeshBasicMaterial({ color: 0xffe290 });
+function curtains(g, x, z, w, h, angle) {
+  const panel = new THREE.Group();
+  const cloth = mat.cloth(0x48666b),
+    shade = mat.cloth(0x374e52);
+  for (const side of [-1, 1]) {
+    for (let i = 0; i < 7; i++) {
+      const xx = side * (w * 0.42 + i * 0.11),
+        wide = 0.15 + 0.055 * (i % 2);
+      const top = rect(panel, xx, h * 0.73, 0.09 + (i % 2) * 0.08, wide, h * 0.52, 0.15, i % 2 ? cloth : shade);
+      top.rotation.z = side * 0.08;
+      const skirt = rect(
+        panel,
+        xx + 0.14 * side,
+        h * 0.31,
+        0.1 + (i % 2) * 0.09,
+        wide,
+        h * 0.35,
+        0.15,
+        i % 2 ? cloth : shade
+      );
+      skirt.rotation.z = -side * 0.14;
+    }
+    rect(panel, side * (w * 0.41 + 0.32), h * 0.48, 0.29, 0.83, 0.13, 0.18, gold);
+  }
+  rect(panel, 0, h + 0.02, 0, w + 2.8, 0.15, 0.22, dark);
+  panel.rotation.y = angle;
+  panel.position.set(x, 0, z);
+  g.add(panel);
+}
+function candlestick(g, x, y, z) {
+  g.add(
+    cyl(0.16, 0.24, 0.08, gold, x, y + 0.04, z, 8),
+    cyl(0.041, 0.067, 0.38, gold, x, y + 0.23, z, 8),
+    cyl(0.082, 0.08, 0.3, paper, x, y + 0.54, z, 8),
+    sphere(0.048, fireCore, x, y + 0.75, z, 7, 5)
+  );
+}
+function plant(g, x, z, height) {
+  g.add(cyl(0.31, 0.22, 0.47, brick, x, 0.245, z, 9));
+  for (let j = 0; j < 7; j++) {
+    const a = j * 2.4,
+      xy = 0.34 + 0.06 * (j % 3),
+      hy = height * (0.55 + (j % 3) * 0.19);
+    g.add(beam(x, 0.4, z, x + Math.sin(a) * xy, hy, z + Math.cos(a) * xy, 0.028, 0.029, oak));
+    const l = sphere(
+      0.27,
+      mat.paint(j % 2 ? 0x587653 : 0x758956),
+      x + Math.sin(a) * xy,
+      hy,
+      z + Math.cos(a) * xy,
+      6,
+      5
+    );
+    l.scale.set(0.58, 1, 0.38);
+    g.add(l);
+  }
+}
+function hearth(g, z, grand) {
+  const w = grand ? 4.7 : 3.65;
+  rect(g, 0, 2.05, z, w, 4.1, 0.7, stone);
+  rect(g, 0, 1.12, z + 0.4, w * 0.69, 2.24, 0.18, dark);
+  const masonry = mat.stone(0xbea589);
+  for (let i = 0; i < 11; i++) {
+    const a = (i * Math.PI) / 10,
+      r = w * 0.32,
+      blk = rect(g, r * Math.cos(a), 1.1 + r * Math.sin(a), z + 0.58, 0.41, 0.32, 0.3, i % 2 ? stone : masonry);
+    blk.rotation.z = a;
+  }
+  for (const side of [-1, 1]) {
+    rect(g, side * w * 0.32, 0.75, z + 0.55, 0.34, 1.5, 0.29, masonry);
+    const log = cyl(0.11, 0.145, 0.93, dark, side * 0.42, 0.51, z + 0.69, 8);
+    log.rotation.z = side * 0.98;
+    g.add(log);
+  }
+  for (let i = 0; i < 11; i++) {
+    const a = i * 1.4,
+      f = sphere(
+        0.19,
+        i % 3 ? fireGold : fireCore,
+        Math.cos(a) * 0.58,
+        0.68 + 0.13 * Math.sin(a * 5),
+        z + 0.65 + Math.sin(a) * 0.14,
+        7,
+        5
+      );
+    f.scale.set(0.66, 1.6 + 0.38 * (i % 3), 0.65);
+    f.rotation.z = 0.3 * Math.sin(a);
+    g.add(f);
+  }
+
+  for (let i = -2; i <= 2; i++) {
+    const f = cone(0.3, 0.64 + 0.12 * (2 - Math.abs(i)), i % 2 ? fireGold : fireCore, i * 0.32, 0.66, z + 0.62, 6);
+    f.rotation.z = 0.21 * i;
+    g.add(f);
+  }
+  rect(g, 0, 0.17, z + 0.7, w + 0.45, 0.34, 1.5, brick);
+  rect(g, 0, 2.35, z + 0.2, w + 0.65, 0.28, 1.1, stone);
+  if (grand) {
+    const hood = cone(2.25, 3.7, mat.stone(0xbaafa0), 0, 4.05, z + 0.15, 4);
+    hood.rotation.y = Math.PI / 4;
+    hood.scale.z = 0.46;
+    g.add(hood);
+    rect(g, 0, 6.57, z, 1.63, 2.85, 0.77, stone);
+    for (const side of [-1, 1]) {
+      rect(g, side * w * 0.42, 1.32, z + 0.55, 0.46, 2.65, 0.64, masonry);
+      rect(g, side * w * 0.42, 2.64, z + 0.53, 0.69, 0.24, 0.86, stone);
+    }
+  } else {
+    rect(g, 0, 3.29, z + 0.39, 2.17, 1.41, 0.12, wood);
+    rect(g, 0, 3.29, z + 0.47, 1.91, 1.15, 0.07, mat.paint(0xe6b565));
+    for (let i = -2; i <= 2; i++) {
+      rect(g, 0.37 * i, 3.29, z + 0.53, 0.045, 1.15, 0.075, gold);
+    }
+    for (const off of [-0.29, 0.29]) rect(g, 0, 3.29 + off, z + 0.53, 1.91, 0.055, 0.075, gold);
+  }
+}
+function bed(g, x, z) {
+  rect(g, x, 0.4, z, 1.83, 0.48, 2.89, wood);
+  rect(g, x, 0.69, z, 1.72, 0.23, 2.8, linen);
+  rect(g, x, 0.83, z - 0.86, 1.21, 0.2, 0.58, paper);
+  rect(g, x, 0.83, z + 0.46, 1.75, 0.14, 1.42, teal);
+  rect(g, x, 0.91, z + 0.89, 1.76, 0.08, 0.16, gold);
+  rect(g, x, 0.87, z - 1.4, 1.94, 1.19, 0.15, wood);
+}
+function drawRoom(ctx, id, { x, z, w, d, y, height, kind, frontDoor = 4.5 }) {
+  const site = new Site(id, x, z),
+    inner = new THREE.Group(),
+    shell = [],
+    fascia = new THREE.Group(),
+    half = w / 2,
+    depth = d / 2;
+  rect(inner, 0, 0.017, 0, w - 0.12, 0.035, d - 0.12, oak);
+  for (let a = -half + 0.78; a < half; a += 1.0) rect(inner, a, 0.043, 0, 0.025, 0.012, d - 0.4, dark);
+  const rugW = kind === 'inn' ? 6.1 : 7.6;
+  rect(inner, 0, 0.056, 0, rugW, 0.018, d * 0.56, kind === 'inn' ? teal : red);
+  for (const v of [-1, 1]) rect(inner, v * (rugW / 2 - 0.25), 0.067, 0, 0.1, 0.008, d * 0.55 - 0.14, gold);
+  function shellFace(side) {
+    const g = new THREE.Group(),
+      horizontal = side === 'N' || side === 'S',
+      len = horizontal ? w : d,
+      door = side === 'S';
+    const pieces = door
+      ? [
+          [-(len + frontDoor) / 4, (len - frontDoor) / 2],
+          [(len + frontDoor) / 4, (len - frontDoor) / 2]
+        ]
+      : [[0, len]];
+    for (const [u, l] of pieces) {
+      rect(g, u, height / 2, 0, l, height, 0.48, kind === 'inn' ? mat.plaster(0xb8a689) : wallMat);
+      for (const h of [0.55, height - 0.16]) rect(g, u, h, 0, l, 0.23, 0.61, wood);
+      for (const s of [-1, 1]) rect(g, u + s * (l / 2 - 0.11), height * 0.5, 0, 0.21, height, 0.59, wood);
+      const lx = horizontal ? u : side === 'W' ? -half : half,
+        lz = horizontal ? (side === 'N' ? -depth : depth) : u;
+      site.colBox(lx, lz, horizontal ? l / 2 : 0.25, horizontal ? 0.25 : l / 2, 0, y, y + height);
+    }
+    if (door) {
+      rect(g, 0, (height + 3.8) / 2, 0, frontDoor, height - 3.8, 0.51, wallMat);
+      rect(g, 0, 3.8, 0, frontDoor + 0.4, 0.35, 0.66, wood);
+    }
+    for (const v of [-1, 1]) {
+      const u = v * (len * 0.32);
+      if (kind === 'fran' && side === 'N') framedWindow(g, u, height * 0.53, 0.3, len * 0.2, height * 0.65);
+      else framedWindow(g, u, height * 0.6, 0.29, 1.4, 1.82);
+    }
+    // Wainscot leaves a dark lower register like the inn in episode two.
+    const inside = new THREE.Group();
+    inside.rotation.y = Math.PI;
+    const pan = kind === 'fran' ? mat.wood(0x5e5950) : kind === 'inn' ? mat.wood(0x765b41) : mat.wood(0x85613e);
+    for (const [u, l] of pieces) {
+      rect(inside, -u, 0.73, 0.254, l, 1.46, 0.12, pan);
+      rect(inside, -u, 1.47, 0.32, l, 0.14, 0.15, oak);
+      const count = Math.floor(l / 1.4);
+      for (let j = 0; j < count; j++)
+        rect(inside, -u - l / 2 + ((j + 0.5) * l) / count, 0.73, 0.333, 0.085, 1.35, 0.06, trimWood);
+    }
+    g.add(inside);
+    // Both sides of a wall are seen on foot.
+    const windows = new THREE.Group();
+    windows.rotation.y = Math.PI;
+    for (const v of [-1, 1]) {
+      if (kind === 'fran' && side === 'N')
+        framedWindow(windows, v * len * 0.32, height * 0.52, 0.3, len * 0.254, height * 0.77);
+      else framedWindow(windows, v * (len * 0.32), height * 0.6, 0.28, 1.4, 1.82);
+    }
+    g.add(windows);
+    if (door && id === 'sayaInn') {
+      const m = texMat(
+        textTexture(t('world.sign.inn'), { w: 300, h: 85, style: 'inkwood', bg: '#735638', fg: '#edddb6' })
+      );
+      const sign = new THREE.Mesh(new THREE.PlaneGeometry(3.0, 0.78), m);
+      sign.position.set(0, 4.3, 0.35);
+      g.add(sign);
+    }
+    g.rotation.y = side === 'S' ? 0 : side === 'N' ? Math.PI : side === 'W' ? -Math.PI / 2 : Math.PI / 2;
+    g.position.set(
+      x + (side === 'W' ? -half : side === 'E' ? half : 0),
+      y,
+      z + (side === 'N' ? -depth : side === 'S' ? depth : 0)
+    );
+    const baked = bakeStatic(g);
+    G.scene.add(baked);
+    shell.push([side, baked]);
+  }
+  for (const side of ['W', 'N', 'E', 'S']) shellFace(side);
+  // Warm timber and the lath ceiling are visible when the player looks up from inside.
+  for (let u = -depth + 1.0; u < depth; u += 2.85) rect(fascia, 0, height - 0.16, u, w, 0.28, 0.24, wood);
+  rect(
+    fascia,
+    0,
+    height + 0.07,
+    0,
+    w,
+    0.18,
+    d,
+    mat.wood(kind === 'inn' ? 0x886f52 : kind === 'home' ? 0x94683f : 0xa99f84)
+  );
+  const rise = kind === 'fran' ? 4.1 : 3.1,
+    slope = Math.atan2(rise, half + 0.55),
+    slant = Math.hypot(half + 0.55, rise);
+  for (const side of [-1, 1]) {
+    const r = rect(
+      fascia,
+      (side * (half + 0.55)) / 2,
+      height + rise / 2,
+      0,
+      slant + 0.18,
+      0.22,
+      d + 1.52,
+      kind === 'inn' ? brick : slate
+    );
+    r.rotation.z = -side * slope;
+    rect(fascia, side * (half + 0.55), height, 0, 0.19, 0.3, d + 1.52, wood);
+  }
+  for (const side of [-1, 1]) {
+    const g = new THREE.Shape();
+    g.moveTo(-half, 0);
+    g.lineTo(half, 0);
+    g.lineTo(0, rise);
+    g.closePath();
+    const geo = new THREE.ExtrudeGeometry(g, { depth: 0.26, bevelEnabled: false });
+    const o = new THREE.Mesh(geo, wallMat);
+    o.position.set(0, height, side * depth);
+    fascia.add(o);
+  }
+  rect(fascia, half * 0.51, height + rise * 0.85, -depth * 0.56, 1.1, 3.5, 1.1, brick);
+  rect(fascia, half * 0.51, height + rise * 0.85 + 1.78, -depth * 0.56, 1.34, 0.24, 1.34, stone);
+  fascia.position.set(x, y, z);
+  const roof = bakeStatic(fascia);
+  G.scene.add(roof);
+  for (let i = -4; i <= 4; i++) {
+    const u = (w * i) / 9;
+    site.platBox(u, 0, w / 18, depth + 0.7, 0, y + height + rise * (1 - Math.abs(u) / (half + 0.55)) + 0.12, 0.2);
+  }
+  if (kind === 'inn') {
+    plant(inner, -6.7, 7.3, 1.6);
+    candlestick(inner, 5.9, 1.39, 4.4);
+    const reg = new THREE.Group();
+    for (let j = 0; j < 5; j++) {
+      for (let i = 0; i < 5; i++) {
+        rect(reg, i * 0.26 - 0.54, 2.6 + j * 0.29, 0, 0.075, 0.16, 0.07, gold);
+      }
+    }
+    rect(reg, 0, 3.14, -0.1, 1.7, 1.8, 0.13, wood);
+    reg.position.set(6.7, 0, 0.6);
+    reg.rotation.y = -1.57;
+    inner.add(reg);
+
+    // The inn's front desk faces the street. The path along the western side stays open to the bedrooms.
+    rect(inner, 4.65, 0.63, 4.3, 4.2, 1.26, 1.32, wood);
+    rect(inner, 4.65, 1.29, 4.3, 4.45, 0.13, 1.48, oak);
+    openBook(inner, 4.5, 1.39, 4.25);
+    site.colBox(4.65, 4.3, 2.1, 0.67, 0, y, y + 1.4);
+    shelf(inner, -5, -depth + 0.67);
+    bed(inner, 4.4, -7.0);
+    bed(inner, -4.6, -7.3);
+    for (const sx of [-1, 1]) {
+      rect(inner, sx * (w / 4 + 1), 2.05, -2.7, w / 2 - 2, 4.1, 0.31, wallMat);
+      site.colBox(sx * (w / 4 + 1), -2.7, w / 4 - 1, 0.16, 0, y, y + 4.1);
+    }
+    table(inner, -4.5, 2.7, 2.1, 1.4, 0.86);
+    chair(inner, -5.1, 3.9, 0.2);
+  } else {
+    hearth(inner, -depth + 0.6, kind === 'fran');
+    for (const side of [-1, 1]) {
+      curtains(inner, side * w * 0.32, -depth + 0.56, kind === 'fran' ? 3.1 : 2.0, kind === 'fran' ? 6.6 : 4.3, 0);
+      plant(inner, side * (half - 1.1), -depth + 2.1, kind === 'fran' ? 2.6 : 1.5);
+    }
+    if (kind === 'fran') {
+      const chan = torus(1.65, 0.075, gold, 0, height - 0.66, -1.6, 6, 28);
+      chan.rotation.x = Math.PI / 2;
+      inner.add(chan);
+      for (let i = 0; i < 7; i++) {
+        const a = (i * Math.PI * 2) / 7;
+        candlestick(inner, 1.65 * Math.cos(a), height - 0.64, -1.6 + 1.65 * Math.sin(a));
+      }
+    } else {
+      candlestick(inner, -0.65, 0.95, -3.33);
+      candlestick(inner, 1.05, 2.52, -depth + 1.16);
+    }
+
+    if (kind === 'fran') {
+      chair(inner, -3.9, -2.6, 0.62, teal, true);
+      chair(inner, 3.7, -2.3, -0.72, teal, true);
+      table(inner, 0, 0.6, 2.0, 1.25, 0.7);
+      openBook(inner, 0, 0.8, 0.6);
+    } else {
+      table(inner, 0.2, -3.4, 2.48, 1.17, 0.84);
+      openBook(inner, 0.1, 0.96, -3.34);
+      chair(inner, -1.45, -2.65, 0.63);
+      chair(inner, 2.6, -4.2, -0.63, teal, true);
+    }
+    shelf(inner, kind === 'fran' ? 4.9 : -4.75, -depth + 0.61);
+    bed(inner, -half + 1.63, 1.5);
+  }
+  site.add(inner, 0, y, 0);
+  ctx.tick(() => {
+    const p = G.player?.pos,
+      eye = G.camera?.position;
+    const active =
+      p &&
+      eye &&
+      Math.abs(p.x - x) < half + 0.05 &&
+      Math.abs(p.z - z) < depth + 0.05 &&
+      p.y < y + height - 1 &&
+      eye.distanceTo(p) < 18;
+    roof.visible = !(active && eye.y > y + height - 0.8);
+    for (const [s, o] of shell)
+      o.visible = !(
+        active &&
+        (s === 'S'
+          ? eye.z > z + depth - 0.22
+          : s === 'N'
+            ? eye.z < z - depth + 0.22
+            : s === 'E'
+              ? eye.x > x + half - 0.22
+              : eye.x < x - half + 0.22)
+      );
+    const distance = p ? Math.hypot(p.x - x, p.z - z) : 0;
+    if (distance > 480) {
+      roof.visible = false;
+      for (const pair of shell) pair[1].visible = false;
+    }
+  });
+  return site;
+}
+// The woodland house is wrapped in a climbing vine. Its doorway, steps and the
+// eastward path to the practice clearing stay open at human and broom height.
+function woodlandGarden(site, y) {
+  const leaf = mat.paint(0x536c51),
+    sun = mat.paint(0x798861),
+    flower = mat.paint(0x947ca8),
+    twigs = mat.wood(0x716d51);
+  const border = new THREE.Group();
+  for (const side of [-1, 1]) {
+    const root = side * 6.1;
+    for (let j = 0; j < 13; j++) {
+      const x = root + 0.42 * Math.sin(j * 0.7 + side),
+        h = 0.45 + j * 0.48,
+        z = 8.49 + 0.13 * Math.sin(j * 0.6);
+      const nx = root + 0.42 * Math.sin((j + 1) * 0.7 + side);
+      border.add(beam(x, h, z, nx, h + 0.48, z + 0.05, 0.11, 0.1, twigs));
+      const branch = side * (j % 2 ? 1 : -1),
+        end = x + branch * (0.56 + 0.15 * (j % 3));
+      border.add(beam(x, h, z, end, h + 0.43, z, 0.058, 0.063, twigs));
+      for (let k = 0; k < 3; k++) {
+        const b = sphere(0.23, k % 2 ? leaf : sun, end - 0.22 * k * branch, h + 0.32 - 0.09 * k, z + 0.03 * k, 7, 5);
+        b.scale.set(1.25, 0.65, 0.42);
+        border.add(b);
+      }
+      if (j > 2 && j % 3 === 1)
+        for (let k = 0; k < 4; k++) {
+          const f = sphere(
+            0.118 * (1 - k * 0.12),
+            flower,
+            end + 0.11 * Math.sin(k),
+            h + 0.26 - k * 0.135,
+            z + 0.143,
+            6,
+            5
+          );
+          f.scale.set(1.15, 0.92, 0.85);
+          border.add(f);
+        }
+    }
+  }
+  for (const [x, z, h] of [
+    [-12, 5, 9.8],
+    [13, -7, 12.8],
+    [-11, -11, 11.1],
+    [9, -14, 13.1]
+  ]) {
+    const base=G.world.heightAt(site.x+x,site.z+z);
+    const key=x<0?'broad2':'birch', tint=z>0?0x90a56e:x>0?0x98aa7c:0x71875d;
+    site.add(procTree(key,h/7.8,tint),x,base-.03,z,x*.73);
+    site.colCyl(x,z,.32,base,base+h*.65);
+  }
+  site.add(border, 0, y, 0);
+}
+
+export async function buildJourneyRooms(ctx) {
+  // One shared local fire light. Keeping its slot alive avoids shader recompilation on crossing a door.
+  const fire = new THREE.PointLight(0xffb373, 0, 12, 1.55);
+  G.scene.add(fire);
+  ctx.tick((_dt, time) => {
+    const p = G.player?.pos;
+    if (!p) {
+      fire.intensity = 0;
+      return;
+    }
+    const rooms = [
+      [2220, 48, 19, 8.1, 8.1],
+      [2055, -35, 24, 8.1, 8.1],
+      [-2119, -515, 30, 8.0, 10.5]
+    ];
+    const r = rooms.find(([x, z, y, w, d]) => Math.abs(p.x - x) < w + 1 && Math.abs(p.z - z) < d + 1 && p.y < y + 4);
+    fire.intensity = r ? 17.5 + 1.1 * Math.sin(time * 3.77) : 0;
+    if (r) fire.position.set(r[0], r[2] + 1.65, r[1] - r[4] + 2.0);
+  });
+
+  for (const [id, x, z, w, d, y, height, kind] of [
+    ['elainaHome', 2220, 48, 15.5, 16, 19, 5.45, 'home'],
+    ['franHouse', 2055, -35, 15.4, 16, 24, 7.75, 'fran'],
+    ['sayaInn', -2119, -515, 16, 21, 30, 5.8, 'inn']
+  ]) {
+    const site = drawRoom(ctx, id, { x, z, w, d, y, height, kind });
+    if (kind === 'fran') woodlandGarden(site, y);
+    await site.bakeSliced(ctx.step);
+    ctx.place(id, { group: site.baked, site });
+  }
+}

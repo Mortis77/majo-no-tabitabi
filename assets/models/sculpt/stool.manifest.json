@@ -1,0 +1,33 @@
+{
+ "sculpt_stool": {
+  "file": "models/sculpt/stool.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/stool.mjs (node tools/sculpt/assets/woodwork_lib.mjs)",
+  "scale": 1,
+  "size": [
+   0.605,
+   0.454,
+   0.57
+  ],
+  "tris": 1800,
+  "lods": [
+   1800,
+   600,
+   200
+  ],
+  "materials": [
+   "wood"
+  ],
+  "mats": {
+   "wood": {
+    "surface": "wood",
+    "look": {
+     "rim": 0.3
+    }
+   }
+  },
+  "notes": "Sculpted three-legged stool: oval bevelled seat with a worn hollow, three splayed round legs with wedged through-tenons, the front leg mended with a splint and cord. Footprint is a tripod (about 0.62 x 0.56 m) inside the old 0.675 square. Vertex colours on every LOD, material `wood` as prop_stool."
+ }
+}

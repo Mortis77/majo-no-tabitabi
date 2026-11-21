@@ -1,0 +1,46 @@
+{
+  "section": 1,
+  "frames": 864,
+  "shots": [
+    {
+      "file": ".tmp/trailer/shots/1-prologue/takes/p1-01-black/p1-01-black.mov",
+      "in": 0,
+      "length": 144,
+      "what": "Black (no picture) under narration line 1.",
+      "cue": "bar 1 downbeat, t=0.0 (film start)",
+      "note": "Caption line 1 (很久很久以前…) over black, centred. Not game-rendered: plain black ProRes 422 HQ, BT.709 tv range, 162 frames."
+    },
+    {
+      "file": ".tmp/trailer/shots/1-prologue/takes/p1-02-dusk-isle/p1-02-dusk-isle.mov",
+      "in": 0,
+      "length": 144,
+      "what": "Dusk sky: the sky isle over the mirror-lake coast with its thin fall (right edge of the rock), pink sea and far isles; slow lateral drift with a slight rise.",
+      "cue": "bar 2 downbeat, t=2.4 (first picture)",
+      "note": "Lower third = calm pink sea and a low shore strip: caption-safe. The fall is thin; it reads on the right side of the isle."
+    },
+    {
+      "file": ".tmp/trailer/shots/1-prologue/takes/p1-03-sun-veil/p1-03-sun-veil.mov",
+      "in": 0,
+      "length": 144,
+      "what": "Looking east from the fox-village edge: the Sun wheel with the dark Moon wheel beside it high right, the Veil rising over the land, fox-village roofs below; slow crane up.",
+      "cue": "bar 3 downbeat, t=4.8 (line 2 月影落下的地方…「月帷」; the low pad swells in)",
+      "note": "Upper left sky is empty and calm (alternative caption spot); lower third has roofs and bamboo tops, low contrast. The Sun is hot top right: keep text away from it."
+    },
+    {
+      "file": ".tmp/trailer/shots/1-prologue/takes/p1-04-torii-tunnel-t2/p1-04-torii-tunnel.mov",
+      "in": 0,
+      "length": 144,
+      "what": "Inside the vermilion 千本鸟居 tunnel, symmetric, fox-fire lanterns overhead, a slow push up the path toward the light.",
+      "cue": "bar 4 downbeat, t=7.2",
+      "note": "Symmetric one-point perspective: a centred caption sits on the bright path; give it the soft glow. A lantern passes out of the top edge near the end (normal parallax)."
+    },
+    {
+      "file": ".tmp/trailer/shots/1-prologue/takes/p1-05-pray-lookup-t6/p1-05-pray-lookup.mov",
+      "in": 0,
+      "length": 288,
+      "what": "Portrait of the heroine before the fox elder's hall at dusk: close three-quarter front from her left at chest height, face in the upper third, eyes closed, hands joined in front of her chest (the game's pray action held at its hands-together pose), the fox spirit floating above her right shoulder, petals and leaves drifting. On bar 6 she opens her eyes and lifts her head toward the sky while the camera drifts up and back to show the lit hall behind her.",
+      "cue": "bar 5 downbeat, t=9.6 (the bell): eyes closed, hands together on the cut; bar 6 downbeat (shot f144, film f720, t=12.0): the lift",
+      "note": "She stands right of centre (face x~0.65-0.75 of frame); the low left (path, stone fox pedestal) is calm and off her body: caption line 3 goes low left. Face and joined hands read in every frame of bar 5 (no bow: the clip is stopped before it). Eyes open from shot f156 (film f732); head rises shot f150-220 (film f726-796) and stays up; camera move eases f140-305, ends with her hands still in frame. 18-frame tail handle f288-305."
+    }
+  ]
+}

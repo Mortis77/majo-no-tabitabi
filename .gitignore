@@ -1,0 +1,13 @@
+.tmp/
+node_modules
+dist/
+.DS_Store
+release/
+desktop/dist/
+assets/_incoming/
+
+assets/_terrain_cache/
+.field-bake-*/
+
+# Personal visual references from local development
+docs/reviews/private-refs/

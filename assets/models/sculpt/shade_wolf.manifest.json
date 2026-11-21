@@ -1,0 +1,38 @@
+{
+ "sculpt_ani_wolf": {
+  "file": "models/sculpt/shade_wolf.glb",
+  "type": "model",
+  "license": "CC0 (original body sculpted for this project; skeleton and clips from the source pack, CC0)",
+  "author": "sculpted for this project (rig: Quaternius, CC0 (skeleton + clips))",
+  "source": "tools/sculpt/assets/shade_wolf.mjs",
+  "scale": 1,
+  "tris": 14000,
+  "clips": [
+   "Attack",
+   "Death",
+   "Eating",
+   "Gallop",
+   "Gallop_Jump",
+   "Idle_HitReact_Left",
+   "Idle_HitReact_Right",
+   "Jump_ToIdle",
+   "Walk",
+   "Idle_2_HeadLow",
+   "Idle_2",
+   "Idle",
+   "AnimalArmature|Attack",
+   "AnimalArmature|Death",
+   "AnimalArmature|Eating",
+   "AnimalArmature|Gallop",
+   "AnimalArmature|Gallop_Jump",
+   "AnimalArmature|Idle",
+   "AnimalArmature|Idle_2",
+   "AnimalArmature|Idle_2_HeadLow",
+   "AnimalArmature|Idle_HitReact_Left",
+   "AnimalArmature|Idle_HitReact_Right",
+   "AnimalArmature|Jump_ToIdle",
+   "AnimalArmature|Walk"
+  ],
+  "notes": "Sculpted shade wolf on the ani_wolf skeleton (joints, IBMs, clips unchanged). Vertex colours as a value map under the shade tint. Primitives: Main (body), Eyes_Black (the hot eye cores), Eye_Ember (eye rims + lip seam)."
+ }
+}

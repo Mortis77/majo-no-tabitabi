@@ -1,0 +1,41 @@
+{
+ "sculpt_tree_pine_a": {
+  "file": "models/sculpt/pine_a.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/pine_a.mjs (node tools/sculpt/assets/trees_a_lib.mjs)",
+  "scale": 1,
+  "size": [
+   4.96,
+   9.97,
+   5.05
+  ],
+  "tris": 5000,
+  "lods": [
+   5000,
+   1800,
+   396
+  ],
+  "materials": [
+   "trunk",
+   "leaves_dark"
+  ],
+  "mats": {
+   "trunk": {
+    "surface": "bark",
+    "look": {
+     "rim": 0.2
+    }
+   },
+   "leaves_dark": {
+    "surface": "leaf",
+    "look": {
+     "rim": 0.35,
+     "wrap": 0.4
+    }
+   }
+  },
+  "notes": "Sculpted windswept pine (pine3, pineSnow). Materials trunk (mul) and leaves_dark (tint, x0.74). COLOR_0.a = top snow mask (pineSnow). See .tmp/sculpt/cherry_a/INSTALL.md."
+ }
+}

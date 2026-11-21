@@ -1,0 +1,41 @@
+{
+ "sculpt_tree_maple_b": {
+  "file": "models/sculpt/maple_b.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/maple_b.mjs (node tools/sculpt/assets/trees_b_lib.mjs)",
+  "scale": 1,
+  "size": [
+   4.8,
+   7.41,
+   4.88
+  ],
+  "tris": 5000,
+  "lods": [
+   5000,
+   1800,
+   500
+  ],
+  "materials": [
+   "trunk",
+   "leaves"
+  ],
+  "mats": {
+   "trunk": {
+    "surface": "bark",
+    "look": {
+     "rim": 0.2
+    }
+   },
+   "leaves": {
+    "surface": "leaf",
+    "look": {
+     "rim": 0.4,
+     "wrap": 0.45
+    }
+   }
+  },
+  "notes": "Sculpted vase maple (maple3; maple2 at scale 1.2). Materials trunk (mul: COLOR_0 = bark colour) and leaves (tint: COLOR_0 = value ramp). COLOR_0.a = top snow mask. See .tmp/sculpt/maple_a/INSTALL.md."
+ }
+}

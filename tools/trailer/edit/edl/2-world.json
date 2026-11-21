@@ -1,0 +1,108 @@
+{
+  "section": 2,
+  "frames": 1440,
+  "fps": 60,
+  "bars": "7-16",
+  "shots": [
+    {
+      "file": ".tmp/trailer/shots/2-world/takes/w02-meadow-track/F/w02-meadow-track.mov",
+      "take": "F",
+      "in": 0,
+      "length": 144,
+      "what": "Low dolly from her front three-quarter to her side: she sprints left to right through the tall grass, fox bobbing, torii and shrine hill behind",
+      "cue": "bar 7 downbeat - theme enters (section start, on motion)",
+      "section_frame": 0,
+      "note": "Moved here from bar 8 per review: the theme lands on her, low beside her, grass parting at her feet. She moves to screen right."
+    },
+    {
+      "file": ".tmp/trailer/shots/2-world/takes/w01b-meadow-run-close/F/w01b-meadow-run-close.mov",
+      "take": "F",
+      "in": 0,
+      "length": 144,
+      "what": "Game camera low behind her, tilted up (real input W+D+Shift): she sprints through the long grass toward the village, the fox spirit flying overhead against the sky",
+      "cue": "bar 8 downbeat",
+      "section_frame": 144,
+      "note": "Re-shoot. Game camera looking up pulls in close, so she is large. A thin fence post passes far left around take frames 85-95. She moves to screen right, houses of the village ahead (leads into bar 9)."
+    },
+    {
+      "file": ".tmp/trailer/shots/2-world/takes/w03-village/F/w03-village.mov",
+      "take": "F",
+      "in": 18,
+      "length": 144,
+      "what": "Game camera: she sprints past the village fields; the farmer hoes in mid-ground left, thatched houses, the night dome on the horizon",
+      "cue": "bar 9 downbeat - pulse enters",
+      "section_frame": 288,
+      "note": "in=18 skips the game camera settling at the head. Farmer visible working roughly frames 20-100 of the take. A thatched eave edges into the top-right corner in the last ~8 used frames (camera passing a house)."
+    },
+    {
+      "file": ".tmp/trailer/shots/2-world/takes/w04-shrine-sweep/F/w04-shrine-sweep.mov",
+      "take": "F",
+      "in": 0,
+      "length": 144,
+      "what": "Dolly with her across the shrine courtyard, left to right; the old woman sweeps the stone path behind her, the red hall behind",
+      "cue": "bar 10 downbeat",
+      "section_frame": 432,
+      "note": "Old woman sweeping is readable mid-background around take frames 50-120; a banner pole wipes the foreground near frame 60."
+    },
+    {
+      "file": ".tmp/trailer/shots/2-world/takes/w05-leap/F/w05-leap.mov",
+      "take": "F",
+      "in": 10,
+      "length": 144,
+      "what": "Camera rides beside her: she sprints off the shrine hill edge, leaps, jumps again and the wings of light open; glide out over the land, left to right",
+      "cue": "bar 11 downbeat - caption 一片永昼　一片薄暮　一片长夜 fades in",
+      "section_frame": 576,
+      "note": "Take-off on take frame 16 (section +6); second jump / wings opening ~take frame 46 = section beat 2 of bar 11. Caption 一片永昼　一片薄暮　一片长夜: the sky here is pale, so centre it (x=960, review found it ~190 px right) and give it a soft dark backing, or set it lower over the green slope (y about 780-880), which is darker and calm in this shot."
+    },
+    {
+      "file": ".tmp/trailer/shots/2-world/takes/w06b-glide-flank/F/w06b-glide-flank.mov",
+      "take": "F",
+      "in": 0,
+      "length": 144,
+      "what": "A real glide: the camera trails behind her right shoulder then swings out to flank her as she glides down over the day fields and the river toward the red dusk forest; she crosses left to right, the fox above",
+      "cue": "bar 12 downbeat (caption holds)",
+      "section_frame": 720,
+      "note": "Re-shoot per review. She descends about 6 m over the shot; the land streams below. Caption: centre it (x=960), soft dark backing; the sky upper third is warm pale, the dome sits top-right in the first half."
+    },
+    {
+      "file": ".tmp/trailer/shots/2-world/takes/w07-broom-dusk/F/w07-broom-dusk.mov",
+      "take": "F",
+      "in": 0,
+      "length": 144,
+      "what": "Game camera over the red dusk forest: she lets go of the wings and calls the broom (F) - the summoning circle - and flies on toward the great red maple",
+      "cue": "bar 13 downbeat",
+      "section_frame": 864,
+      "note": "Broom summoned by real input on take frame 18 (half a beat after the cut); circle peaks ~frames 30-50. Motion blur 8."
+    },
+    {
+      "file": ".tmp/trailer/shots/2-world/takes/w08-broom-lake/F/w08-broom-lake.mov",
+      "take": "F",
+      "in": 0,
+      "length": 144,
+      "what": "Side follow over the mirror lake: she rides the broom left to right low over the water, reflections, the dusk shore passing",
+      "cue": "bar 14 downbeat",
+      "section_frame": 1008,
+      "note": "Motion blur 12."
+    },
+    {
+      "file": ".tmp/trailer/shots/2-world/takes/w09-town-above/F/w09-town-above.mov",
+      "take": "F",
+      "in": 0,
+      "length": 144,
+      "what": "High wide over the town of lanterns in the lasting night: her broom trail crosses the frame left to right above the roofs",
+      "cue": "bar 15 downbeat - the music lifts",
+      "section_frame": 1152,
+      "note": "Motion blur 8. She is small here on purpose (a scale shot); her trail leads the eye."
+    },
+    {
+      "file": ".tmp/trailer/shots/2-world/takes/w10-glowwood/F/w10-glowwood.mov",
+      "take": "F",
+      "in": 0,
+      "length": 144,
+      "what": "Game camera on the broom, diving down into the glowing mushroom wood",
+      "cue": "bar 16 downbeat",
+      "section_frame": 1296,
+      "note": "Motion blur 8. Ends section 2; section 3 starts at the next bar line."
+    }
+  ]
+}

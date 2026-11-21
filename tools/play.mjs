@@ -1,0 +1,129 @@
+#!/usr/bin/env node
+// Run the game in a private headless Chrome, drive it with a script, take screenshots, report errors.
+//
+//   node tools/play.mjs --name mytest [--systems sky,terrain] [--params "pos=-455,150"] [--script path.js | --eval "code"]
+//                       [--size 1280x720] [--timeout 180] [--quality high]
+//
+// --systems   build only these systems (others absent; the core supplies a fallback sky / ground / free camera)
+// --params    extra URL parameters. autostart=1 (skip title, never touches the real save) and mute=1 are always set.
+//             Useful: pos=x,z   cam=px,py,pz,tx,ty,tz (free camera start when the player system is absent)   quality=low|med|high
+// --script    a JS file whose body runs INSIDE the page as an async function with `T` (helpers) and `G` (the game) in scope.
+//             Whatever it returns is printed as JSON. Helpers:
+//               await T.frames(n)            wait n rendered frames          await T.wait(ms)
+//               T.key('KeyW', true|false)    hold / release a key            await T.press('Space', 90)
+//               T.look(dx, dy)               mouse-look by pixels            T.teleport(x, z, y?)
+//               T.cam(px,py,pz, tx,ty,tz)    lock the camera (T.cam() frees it). NOTE: this MOVES G.camera, and aim /
+//                                            camera-relative movement read G.camera — a camera in front of her turns her away.
+//               T.viewCam(px,py,pz, tx,ty,tz) VIEW-ONLY test camera: the frame is drawn from here, but between frames
+//                                            G.camera is the game camera again (aim, movement, orbit camera unaffected).
+//                                            Free it with T.cam(). Use this for side / front / back verification strips.
+//               T.orbitCam(side, dist=4, h=1.1, lookH=0.95)  view-only camera around the heroine at her current pos/yaw:
+//                                            side 'front'|'back'|'left'|'right' or a yaw offset (rad). Call it every frame
+//                                            (or before each T.shot) to follow her while she moves.
+//               await T.shot('name')         save <out>/<name>.png           T.errors()  T.stats()
+// --title    do NOT autostart: boot to the real title screen with saving enabled; the script drives the menu.
+// --profile  name of a persistent browser profile under .tmp/profiles/ (keeps the save between runs; default: throwaway).
+// Without a script: waits 2.5 s and saves final.png.
+// Output folder: .tmp/play/<name>/ (printed at the end). Exit code 0 = no errors, 2 = errors were reported.
+import fs from 'node:fs';
+import path from 'node:path';
+import { launch, TMP } from './cdp.mjs';
+import { build, serveGame } from '../build.mjs';
+
+const args = process.argv.slice(2);
+const opt = (n, d = null) => { const i = args.indexOf('--' + n); return i >= 0 ? args[i + 1] : d; };
+const name = (opt('name', 'run') || 'run').replace(/[^\w.-]/g, '_');
+const systems = opt('systems') ? opt('systems').split(',').map((s) => s.trim()).filter(Boolean) : null;
+const [W, H] = (opt('size', '1280x720') || '1280x720').split('x').map(Number);
+const timeout = Number(opt('timeout', 180)) * 1000;
+const outDir = path.join(TMP, 'play', name);
+fs.rmSync(outDir, { recursive: true, force: true });
+fs.mkdirSync(outDir, { recursive: true });
+
+let script = opt('eval');
+if (opt('script')) script = fs.readFileSync(path.resolve(opt('script')), 'utf8');
+if (!script) script = `await T.wait(2500); await T.shot('final'); return { stats: T.stats(), region: G.env.regionName, veil: +G.env.veil.toFixed(2) };`;
+
+const b = await build({ systems });
+if (!b.ok) { console.error('BUILD FAILED\n' + b.errors); process.exit(1); }
+if (b.warnings) console.log('build warnings:\n' + b.warnings);
+
+// a named profile needs a stable origin (localStorage is per host:port), so it gets a fixed port derived from its name
+const profPort = opt('profile') ? 47400 + [...opt('profile')].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 500, 7) : 0;
+const { server, url } = await serveGame({ getBuild: async () => b, port: profPort });
+const usp = new URLSearchParams(opt('params') || '');
+const TITLE = args.includes('--title'); // real flow: boot -> title screen -> the script picks new / continue (saving enabled)
+if (!TITLE) usp.set('autostart', '1');
+if (!usp.has('mute')) usp.set('mute', '1');
+if (opt('quality')) usp.set('quality', opt('quality'));
+
+const page = await launch({ width: W, height: H, profileDir: opt('profile') ? path.join(TMP, 'profiles', opt('profile').replace(/[^\w.-]/g, '_')) : null });
+const logs = [];
+const seen = new Map();
+const note = (kind, text) => {
+  const k = kind + text;
+  if (seen.has(k)) { seen.get(k).n++; return; }
+  const rec = { kind, text, n: 1 }; seen.set(k, rec); logs.push(rec);
+};
+page.on('Runtime.consoleAPICalled', (p) => {
+  if (p.type !== 'error' && p.type !== 'warning' && !args.includes('--verbose')) return;
+  const text = p.args.map((a) => a.value !== undefined ? String(a.value) : (a.description || a.type)).join(' ');
+  note(p.type, text.slice(0, 600));
+});
+page.on('Runtime.exceptionThrown', (p) => {
+  const d = p.exceptionDetails;
+  note('exception', ((d.exception && d.exception.description) || d.text || '').slice(0, 900));
+});
+await page.send('Runtime.addBinding', { name: '__mvShot' });
+const shots = [];
+page.on('Runtime.bindingCalled', async (p) => {
+  if (p.name !== '__mvShot') return;
+  const n = String(p.payload || 'shot').replace(/[^\w.-]/g, '_');
+  const file = path.join(outDir, n + '.png');
+  try { await page.screenshot(file); shots.push(file); } catch (e) { note('error', 'screenshot failed: ' + e.message); }
+  page.send('Runtime.evaluate', { expression: `window.__mvShotDone(${JSON.stringify(String(p.payload || 'shot'))})` }).catch(() => {});
+});
+
+let code = 0;
+let result;
+const t0 = Date.now();
+try {
+  await page.goto(url + '?' + usp.toString());
+  let ready = false;
+  while (Date.now() - t0 < Math.max(90000, Math.min(timeout, 240000))) { // boot can take minutes when several runs share the GPU
+    const r = await page.evaluate(TITLE ? "(window.__mvReady === 'failed') ? 'failed' : (window.__game && window.__game.mode === 'title' && window.__T ? true : null)" : 'window.__mvReady === undefined ? null : window.__mvReady').catch(() => null);
+    if (r === true) { ready = true; break; }
+    if (r === 'failed') break;
+    await new Promise((r2) => setTimeout(r2, 150));
+  }
+  if (!ready) {
+    code = 2;
+    console.log('GAME DID NOT BECOME READY (boot failed or timed out).');
+    await page.screenshot(path.join(outDir, 'boot-failure.png')).then((f) => shots.push(f)).catch(() => {});
+  } else {
+    console.log(`ready in ${((Date.now() - t0) / 1000).toFixed(1)} s`);
+    try {
+      result = await page.evaluate(`(async () => { const T = window.__T, G = window.__game; ${script}\n})()`, { timeout });
+    } catch (e) {
+      code = 2;
+      console.log('SCRIPT ERROR: ' + e.message);
+      await page.screenshot(path.join(outDir, 'script-error.png')).then((f) => shots.push(f)).catch(() => {});
+    }
+  }
+  const gerr = await page.evaluate('window.__game && window.__game.debug ? window.__game.debug.errors() : []').catch(() => []);
+  if (gerr.length) { code = 2; console.log('G.errors:\n  ' + gerr.join('\n  ')); }
+} finally {
+  await page.close();
+  server.close();
+}
+const bad = logs.filter((l) => l.kind !== 'warning' && l.kind !== 'log' && l.kind !== 'info' && l.kind !== 'debug');
+if (logs.length) {
+  console.log('console:');
+  for (const l of logs.slice(0, 40)) console.log(`  [${l.kind}${l.n > 1 ? ' ×' + l.n : ''}] ${l.text}`);
+  if (logs.length > 40) console.log(`  … ${logs.length - 40} more`);
+}
+if (bad.length) code = 2;
+if (result !== undefined) console.log('result: ' + JSON.stringify(result, null, 1));
+if (shots.length) console.log('screenshots:\n  ' + shots.join('\n  '));
+console.log(code === 0 ? 'OK (no errors)' : 'FINISHED WITH ERRORS');
+process.exit(code);

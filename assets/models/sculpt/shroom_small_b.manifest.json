@@ -1,0 +1,41 @@
+{
+ "sculpt_shroom_small_b": {
+  "file": "models/sculpt/shroom_small_b.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/shroom_small_b.mjs (node tools/sculpt/assets/_smallprops.mjs)",
+  "scale": 1,
+  "size": [
+   0.39,
+   0.34,
+   0.339
+  ],
+  "tris": 900,
+  "lods": [
+   900,
+   312
+  ],
+  "materials": [
+   "cap",
+   "stalk"
+  ],
+  "mats": {
+   "cap": {
+    "surface": "none",
+    "look": {
+     "rim": 0.35,
+     "wrap": 0.5
+    }
+   },
+   "stalk": {
+    "surface": "none",
+    "look": {
+     "rim": 0.25,
+     "wrap": 0.4
+    }
+   }
+  },
+  "notes": "Sculpted small toadstool group. Vertex colours on every LOD. cap = caps + gills (tint + glow), stalk = painted colour."
+ }
+}

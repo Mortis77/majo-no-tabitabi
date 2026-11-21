@@ -1,0 +1,41 @@
+{
+ "sculpt_nat_log_a": {
+  "file": "models/sculpt/log_a.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/log_a.mjs (node tools/sculpt/assets/bamboologs_lib.mjs)",
+  "scale": 1,
+  "size": [
+   0.61,
+   0.72,
+   2.48
+  ],
+  "tris": 2400,
+  "lods": [
+   2400,
+   800,
+   250
+  ],
+  "materials": [
+   "trunk",
+   "moss",
+   "cap"
+  ],
+  "mats": {
+   "trunk": {
+    "surface": "bark",
+    "look": {}
+   },
+   "moss": {
+    "surface": "none",
+    "look": {}
+   },
+   "cap": {
+    "surface": "none",
+    "look": {}
+   }
+  },
+  "notes": "Sculpted sawn log (log1). trunk (mul, real colour: bark, sawn face, axe faces, mushroom stems), moss (tint), cap (tint, glow: the small mushrooms). COLOR_0.a = snow mask. See .tmp/sculpt/bamboo_a/INSTALL.md."
+ }
+}

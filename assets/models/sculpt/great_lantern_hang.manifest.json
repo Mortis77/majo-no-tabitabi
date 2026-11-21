@@ -1,0 +1,47 @@
+{
+ "sculpt_great_lantern_hang": {
+  "file": "models/sculpt/great_lantern_hang.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/great_lantern_hang.mjs (node tools/sculpt/build.mjs)",
+  "scale": 1,
+  "size": [
+   0.249,
+   0.993,
+   0.185
+  ],
+  "tris": 1600,
+  "lods": [
+   1600,
+   500,
+   160
+  ],
+  "materials": [
+   "Cord_none",
+   "Shide_none",
+   "Fitting_metal"
+  ],
+  "mats": {
+   "Cord_none": {
+    "surface": "none",
+    "look": {
+     "rim": 0.2
+    }
+   },
+   "Shide_none": {
+    "surface": "none",
+    "look": {
+     "trans": 0.4
+    }
+   },
+   "Fitting_metal": {
+    "surface": "metal",
+    "look": {
+     "spec": 0.5
+    }
+   }
+  },
+  "notes": "Corner pendant of the sculpted great lantern: origin at the hang point, hangs -Y. Fitting takes the land tint like great_lantern.glb."
+ }
+}

@@ -1,0 +1,323 @@
+{
+ "piece": "月帷巫女 trailer score",
+ "bpm": 100,
+ "meter": "4/4",
+ "beatSeconds": 0.6,
+ "barSeconds": 2.4,
+ "bars": 42,
+ "tailBar": 43,
+ "lengthSeconds": 103.2,
+ "sampleRate": 48000,
+ "cues": [
+  {
+   "id": "bell",
+   "what": "bar 5 downbeat — soft bell",
+   "t": 9.6
+  },
+  {
+   "id": "theme",
+   "what": "bar 7 downbeat — theme enters",
+   "t": 14.4
+  },
+  {
+   "id": "pulse",
+   "what": "bar 9 downbeat — hand-drum pulse enters",
+   "t": 19.2
+  },
+  {
+   "id": "elements",
+   "what": "bar 17 downbeat — elements start",
+   "t": 38.4
+  },
+  {
+   "id": "cella",
+   "what": "cell a accent — bar 18 beat 4",
+   "t": 42.6
+  },
+  {
+   "id": "cellb",
+   "what": "cell b accent — bar 20 beat 4",
+   "t": 47.4
+  },
+  {
+   "id": "cellc",
+   "what": "cell c accent — bar 22 beat 4",
+   "t": 52.2
+  },
+  {
+   "id": "celld",
+   "what": "cell d accent — bar 24 beat 4",
+   "t": 57
+  },
+  {
+   "id": "celle",
+   "what": "cell e accent — bar 26 beat 4",
+   "t": 61.8
+  },
+  {
+   "id": "battle",
+   "what": "bar 27 downbeat — battle starts",
+   "t": 62.4
+  },
+  {
+   "id": "climb",
+   "what": "bar 35 downbeat — climb starts",
+   "t": 81.6
+  },
+  {
+   "id": "hit",
+   "what": "bar 37 downbeat — THE HIT, then silence",
+   "t": 86.4
+  },
+  {
+   "id": "title",
+   "what": "bar 39 downbeat — title (music box, after the reversed swell)",
+   "t": 91.2
+  },
+  {
+   "id": "lastDrum",
+   "what": "bar 41 downbeat — last low drum",
+   "t": 96
+  },
+  {
+   "id": "end",
+   "what": "end of bar 42 — final chord rings into bar 43",
+   "t": 100.8
+  },
+  {
+   "id": "out",
+   "what": "end of bar 43 — silence",
+   "t": 103.2
+  }
+ ],
+ "sections": [
+  {
+   "id": "prologue",
+   "name": "晨 PROLOGUE",
+   "bars": [
+    1,
+    6
+   ],
+   "start": 0,
+   "end": 14.4
+  },
+  {
+   "id": "world",
+   "name": "行 THE WORLD",
+   "bars": [
+    7,
+    16
+   ],
+   "start": 14.4,
+   "end": 38.4
+  },
+  {
+   "id": "elements",
+   "name": "象 THE ELEMENTS",
+   "bars": [
+    17,
+    26
+   ],
+   "start": 38.4,
+   "end": 62.4
+  },
+  {
+   "id": "battle",
+   "name": "战 BATTLE",
+   "bars": [
+    27,
+    36
+   ],
+   "start": 62.4,
+   "end": 86.4
+  },
+  {
+   "id": "coda",
+   "name": "灯 CODA",
+   "bars": [
+    37,
+    43
+   ],
+   "start": 86.4,
+   "end": 103.2
+  }
+ ],
+ "barLines": [
+  {
+   "bar": 1,
+   "t": 0
+  },
+  {
+   "bar": 2,
+   "t": 2.4
+  },
+  {
+   "bar": 3,
+   "t": 4.8
+  },
+  {
+   "bar": 4,
+   "t": 7.2
+  },
+  {
+   "bar": 5,
+   "t": 9.6
+  },
+  {
+   "bar": 6,
+   "t": 12
+  },
+  {
+   "bar": 7,
+   "t": 14.4
+  },
+  {
+   "bar": 8,
+   "t": 16.8
+  },
+  {
+   "bar": 9,
+   "t": 19.2
+  },
+  {
+   "bar": 10,
+   "t": 21.6
+  },
+  {
+   "bar": 11,
+   "t": 24
+  },
+  {
+   "bar": 12,
+   "t": 26.4
+  },
+  {
+   "bar": 13,
+   "t": 28.8
+  },
+  {
+   "bar": 14,
+   "t": 31.2
+  },
+  {
+   "bar": 15,
+   "t": 33.6
+  },
+  {
+   "bar": 16,
+   "t": 36
+  },
+  {
+   "bar": 17,
+   "t": 38.4
+  },
+  {
+   "bar": 18,
+   "t": 40.8
+  },
+  {
+   "bar": 19,
+   "t": 43.2
+  },
+  {
+   "bar": 20,
+   "t": 45.6
+  },
+  {
+   "bar": 21,
+   "t": 48
+  },
+  {
+   "bar": 22,
+   "t": 50.4
+  },
+  {
+   "bar": 23,
+   "t": 52.8
+  },
+  {
+   "bar": 24,
+   "t": 55.2
+  },
+  {
+   "bar": 25,
+   "t": 57.6
+  },
+  {
+   "bar": 26,
+   "t": 60
+  },
+  {
+   "bar": 27,
+   "t": 62.4
+  },
+  {
+   "bar": 28,
+   "t": 64.8
+  },
+  {
+   "bar": 29,
+   "t": 67.2
+  },
+  {
+   "bar": 30,
+   "t": 69.6
+  },
+  {
+   "bar": 31,
+   "t": 72
+  },
+  {
+   "bar": 32,
+   "t": 74.4
+  },
+  {
+   "bar": 33,
+   "t": 76.8
+  },
+  {
+   "bar": 34,
+   "t": 79.2
+  },
+  {
+   "bar": 35,
+   "t": 81.6
+  },
+  {
+   "bar": 36,
+   "t": 84
+  },
+  {
+   "bar": 37,
+   "t": 86.4
+  },
+  {
+   "bar": 38,
+   "t": 88.8
+  },
+  {
+   "bar": 39,
+   "t": 91.2
+  },
+  {
+   "bar": 40,
+   "t": 93.6
+  },
+  {
+   "bar": 41,
+   "t": 96
+  },
+  {
+   "bar": 42,
+   "t": 98.4
+  },
+  {
+   "bar": 43,
+   "t": 100.8
+  },
+  {
+   "bar": 44,
+   "t": 103.2
+  }
+ ]
+}

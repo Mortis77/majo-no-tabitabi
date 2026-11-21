@@ -1,0 +1,19 @@
+{
+ "sculpt_ani_chicken": {
+  "file": "models/sculpt/chicken.glb",
+  "type": "model",
+  "license": "CC0 (original body sculpted for this project; skeleton and clips from the source pack, CC0)",
+  "author": "sculpted for this project (rig: Quaternius, CC0 (skeleton + clips))",
+  "source": "tools/sculpt/assets/chicken.mjs",
+  "scale": 1,
+  "tris": 4200,
+  "clips": [
+   "AnimalArmature|AnimalArmature|AnimalArmature|Attack",
+   "AnimalArmature|AnimalArmature|AnimalArmature|Death",
+   "AnimalArmature|AnimalArmature|AnimalArmature|Idle",
+   "AnimalArmature|AnimalArmature|AnimalArmature|Idle_Peck",
+   "AnimalArmature|AnimalArmature|AnimalArmature|Run"
+  ],
+  "notes": "Sculpted hen on the ani_chicken skeleton (joints, IBMs, clips unchanged). Vertex colours, no texture. Material name kept (AtlasMaterial)."
+ }
+}

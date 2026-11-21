@@ -1,0 +1,43 @@
+{
+ "sculpt_stone_lantern": {
+  "file": "models/sculpt/stone_lantern.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/stone_lantern.mjs (node tools/sculpt/build.mjs)",
+  "scale": 1,
+  "size": [
+   1.28,
+   2.669,
+   1.469
+  ],
+  "tris": 14000,
+  "lods": [
+   14000,
+   3200,
+   2332
+  ],
+  "materials": [
+   "Granite_stone",
+   "Moss_none"
+  ],
+  "mats": {
+   "Granite_stone": {
+    "surface": "stone",
+    "look": {
+     "detail": 0.25,
+     "bump": 0.3,
+     "fine": 0
+    }
+   },
+   "Moss_none": {
+    "surface": "none",
+    "look": {
+     "rim": 0.4,
+     "trans": 0.25
+    }
+   }
+  },
+  "notes": "Sculpted stone lantern. LOD0 colour atlas + object-space normal map (material extras.normalSpace=object); LOD1/2 vertex colours. Node \"fire\" = firePos (0,1.73,0). Paper panels and flame stay live from makeStoneLantern. See tools/sculpt/README.md (installing)."
+ }
+}

@@ -1,0 +1,19 @@
+[
+  { "name": "fx",         "path": "fx/fx.js",              "export": "fxSystem" },
+  { "name": "audio",      "path": "audio/audio.js",        "export": "audioSystem" },
+  { "name": "ui",         "path": "ui/ui.js",              "export": "uiSystem" },
+  { "name": "physics",    "path": "physics/physics.js",    "export": "physicsSystem" },
+  { "name": "elements",   "path": "elements/elements.js",  "export": "elementsSystem" },
+  { "name": "sky",        "path": "world/sky.js",          "export": "skySystem" },
+  { "name": "terrain",    "path": "world/terrain.js",      "export": "terrainSystem" },
+  { "name": "flora",      "path": "world/flora.js",        "export": "floraSystem" },
+  { "name": "landforms",  "path": "world/landforms.js",    "export": "landformsSystem" },
+  { "name": "life",       "path": "world/life.js",         "export": "lifeSystem" },
+  { "name": "structures", "path": "world/structures.js",   "export": "structuresSystem" },
+  { "name": "props",      "path": "props/props.js",        "export": "propsSystem" },
+  { "name": "gameplay",   "path": "gameplay/gameplay.js",  "export": "gameplaySystem" },
+  { "name": "player",     "path": "player/player.js",      "export": "playerSystem" },
+  { "name": "spells",     "path": "spells/spells.js",      "export": "spellsSystem" },
+  { "name": "combat",     "path": "combat/combat.js",      "export": "combatSystem" },
+  { "name": "story",      "path": "story/story.js",        "export": "storySystem" }
+]
