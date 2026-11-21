@@ -460,7 +460,7 @@ vec3 gPos; vec3 gNrm; float gKill = 0.0;
   vGCol = mix(vGCol, col * ${GRASS_TOP} * mix(0.98, 1.12, t) * (1.0 + 0.12 * gSheen), far * 0.9 * (1.0 - g.cropK));
   if (g.cropK < 0.5) {
     // In linear sRGB, scaling chroma around Rec.709 luminance keeps the blade's brightness.
-    const float grassSaturation = 0.90;
+    const float grassSaturation = 0.80;
     const vec3 luma = vec3(.2126, .7152, .0722);
     vGCol = mix(vec3(dot(vGCol, luma)), vGCol, grassSaturation);
     tip = mix(vec3(dot(tip, luma)), tip, grassSaturation); // transmitted sunlight uses the same pigment
