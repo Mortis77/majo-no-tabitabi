@@ -166,7 +166,7 @@ void main() {
 const GRADE_FRAG = /* glsl */`
 uniform sampler2D tDiffuse;
 uniform vec3 uLift, uGain, uVigCol, uFlash;
-uniform float uSat, uContrast, uVig, uGradeOn, uVib, uSharp, uSatKnee;
+uniform float uSat, uContrast, uMidLift, uVig, uGradeOn, uVib, uSharp, uSatKnee;
 uniform vec3 uShTint;
 uniform vec2 uTexel;
 varying vec2 vUv;
@@ -191,14 +191,23 @@ void main() {
   if (uGradeOn > 0.5) {
     c = uGain * (c + uLift * (1.0 - c));
     float l = dot(c, vec3(0.2126, 0.7152, 0.0722));
-    float sat = max(c.r, max(c.g, c.b)) - min(c.r, min(c.g, c.b));
-    c = mix(vec3(l), c, uSat + uVib * (1.0 - sat) * (1.0 - sat));
-    // saturation knee (look round): the loudest colours (pure vermilion, grass green) are pulled back, muted ones kept
-    c = mix(vec3(l), c, 1.0 - uSatKnee * smoothstep(0.3, 0.85, sat));
+    float hi = max(c.r, max(c.g, c.b)), lo = min(c.r, min(c.g, c.b));
+    float chroma = hi - lo;
+    // Pastel flowers, grass and sky gain the most colour. Taper the gain on
+    // bright peach tones (skin), near-white silver hair and sunlit cloud tops.
+    float peach = smoothstep(.018, .105, c.r - c.g) * smoothstep(.0, .06, c.g - c.b)
+                * smoothstep(.40, .68, l) * (1.0 - smoothstep(.28, .51, chroma));
+    float mids = smoothstep(.035, .15, l) * (1.0 - smoothstep(.85, .985, l));
+    float quiet = 1.0 - smoothstep(.08, .65, chroma);
+    float scale = 1.0 + (uSat - 1.0 + uVib * quiet) * mids * (1.0 - .9 * peach);
+    scale *= 1.0 - uSatKnee * smoothstep(.36, .9, chroma);
+    // Increase chroma along one hue ray, only as far as both bounds of sRGB allow.
+    float room = min(l / max(l - lo, .0001), (1.0 - l) / max(hi - l, .0001));
+    c = mix(vec3(l), c, min(scale, max(1.0, room)));
     // Shape luminance around middle grey, leaving black and white fixed.
     // The same brightness adjustment on all channels keeps blush and roof tiles in hue.
     float lum = clamp(dot(c,vec3(.2126,.7152,.0722)),0.,1.);
-    float delta = 4.*(uContrast-1.)*lum*(1.-lum)*(lum-.5);
+    float delta = lum*(1.-lum)*(4.*(uContrast-1.)*(lum-.5) + uMidLift*(2.-lum));
     if(delta<0.) c *= 1.+delta/max(.0001,lum);
     else c += (1.-c)*delta/max(.0001,1.-lum);
     // split tone: the land's colour sinks into the shadows only; mid-tones (skin) and whites (the kosode) stay clean
@@ -269,10 +278,10 @@ export const GRADES = {
   // vib = vibrance: extra saturation for the muted colours only (skin and already-vivid colours are left alone)
   // knee (look round) = how much the loudest colours are pulled back; gain warms the lights, sh cools the darks; lift is
   // kept tiny so the darks stay dark (a raised black was half of the old flat look); the vignette is the faintest touch
-  neutral: { lift: [0, 0, 0], gain: [1, 1, 1], sh: [1, 1, 1], sat: 1, vib: 0, knee: 0, contrast: 1, vig: 0, vigCol: [1, 1, 1] },
-  sun: { lift: [0.0, 0.002, 0.008], gain: [1.005, 1.0, 0.995], sh: [0.98, 0.995, 1.03], sat: 1.0, vib: 0.05, knee: 0.15, contrast: 1.25, vig: 0.12, vigCol: [0.86, 0.9, 0.98] },
-  dusk: { lift: [0.012, 0.0, 0.024], gain: [1.025, 0.985, 0.96], sh: [0.99, 0.95, 1.06], sat: 1.0, vib: 0.07, knee: 0.25, contrast: 1.19, vig: 0.18, vigCol: [0.8, 0.66, 0.86] },
-  night: { lift: [0.0, 0.006, 0.02], gain: [1.01, 1.0, 0.99], sh: [0.95, 0.98, 1.08], sat: 1.0, vib: 0.06, knee: 0.2, contrast: 1.06, vig: 0.22, vigCol: [0.62, 0.68, 0.9] },
+  neutral: { lift: [0, 0, 0], gain: [1, 1, 1], sh: [1, 1, 1], sat: 1, vib: 0, knee: 0, contrast: 1, midLift: 0, vig: 0, vigCol: [1, 1, 1] },
+  sun: { lift: [0.0, 0.002, 0.008], gain: [1.005, 1.0, 0.995], sh: [0.98, 0.995, 1.03], sat: 1.49, vib: 0.65, knee: 0.14, contrast: 1.22, midLift: .07, vig: 0.12, vigCol: [0.86, 0.9, 0.98] },
+  dusk: { lift: [0.012, 0.0, 0.024], gain: [1.025, 0.985, 0.96], sh: [0.99, 0.95, 1.06], sat: 1.31, vib: 0.37, knee: 0.15, contrast: 1.20, midLift: .04, vig: 0.18, vigCol: [0.8, 0.66, 0.86] },
+  night: { lift: [0.0, 0.006, 0.02], gain: [1.01, 1.0, 0.99], sh: [0.95, 0.98, 1.08], sat: 1.09, vib: 0.13, knee: 0.16, contrast: 1.06, midLift: 0, vig: 0.22, vigCol: [0.62, 0.68, 0.9] },
 };
 
 class ScenePass extends Pass {
@@ -433,7 +442,7 @@ export function createPipeline(renderer, scene, camera, opt) {
     vertexShader: FS_VERT, fragmentShader: GRADE_FRAG, depthTest: false, depthWrite: false,
     uniforms: { tDiffuse: { value: null }, uLift: { value: new THREE.Vector3() }, uGain: { value: new THREE.Vector3(1, 1, 1) },
       uVigCol: { value: new THREE.Vector3(1, 1, 1) }, uFlash: { value: new THREE.Color(0, 0, 0) },
-      uSat: { value: 1 }, uContrast: { value: 1 }, uVig: { value: 0 }, uGradeOn: { value: 1 },
+      uSat: { value: 1 }, uContrast: { value: 1 }, uMidLift: { value: 0 }, uVig: { value: 0 }, uGradeOn: { value: 1 },
       uVib: { value: 0 }, uSatKnee: { value: 0 }, uTone: { value: opt.tone ?? 1 }, uToneExp: { value: 1.08 }, uToneCt: { value: 1.22 }, uToneSat: { value: 1.08 }, uShTint: { value: new THREE.Vector3(1, 1, 1) }, uSharp: { value: opt.sharpen ?? 0.6 }, uTexel: { value: new THREE.Vector2(1, 1) },
       uPre: { value: 0 } },
   });

@@ -440,7 +440,7 @@ const FOG = /* glsl */`
   float mvFL = max( dot( mvFc, vec3( 0.2126, 0.7152, 0.0722 ) ), 1e-3 );
   float mvTL = mix( mvL, mvFL, 0.35 );
   float mvDuskW = saturate( 4.0 * mvFv * ( 1.0 - mvFv ) );
-  vec3 mvDepthTint = mix( mix( vec3( 0.62, 0.8, 1.18 ), vec3( 1.15, 0.86, 0.66 ), mvDuskW ), vec3( 0.78, 0.62, 1.25 ), smoothstep( 0.75, 1.0, mvFv ) );
+  vec3 mvDepthTint = mix( mix( vec3( 0.58, 0.87, 1.24 ), vec3( 1.15, 0.86, 0.66 ), mvDuskW ), vec3( 0.78, 0.62, 1.25 ), smoothstep( 0.75, 1.0, mvFv ) );
   vec3 mvAerC = ( vec3( mvTL ) * 0.45 + mvFc * 0.55 * mvTL / mvFL ) * mvDepthTint;
   gl_FragColor.rgb = mix( gl_FragColor.rgb, mvAerC, mvAer * 0.48 );
   // ground mist pooling in the low ground and valleys, patchy and slowly drifting; thickest at dusk

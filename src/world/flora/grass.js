@@ -16,7 +16,7 @@ import { ATLAS_HALF } from '../../data/atlas.js';
 import * as THREE from 'three';
 import { toonGradient, hookMaterial } from '../../core/mats.js';
 import { POI } from '../../data/world.js';
-import { GROUND_TINT_GLSL, GRASS_TOP } from '../terrain/shader.js';
+import { GROUND_TINT_GLSL, GRASS_TOP, MEADOW } from '../terrain/shader.js';
 import { plotGLSL } from '../terrain/paddyLayout.js';
 import { flowerPatch, flowerVertex } from './meadowFlowers.js';
 import { BELL } from '../../data/bellcrown.js';
@@ -109,11 +109,11 @@ GG gGround(vec2 root, bool flower) {
   float wNight = smoothstep(0.56, 0.86, tv);
   float wDusk = max(0.0, 1.0 - wSun - wNight);
   // ground colour, exactly as the terrain paints it
-  vec3 gSun = mix(${lin(0x617e55)}, ${lin(0x90ae72)}, smoothstep(0.36, 0.64, n1));
-  gSun = mix(gSun, ${lin(0xb4bc7b)}, smoothstep(0.58, 0.8, n2) * 0.55);
-  gSun = mix(gSun, ${lin(0x597d60)}, smoothstep(0.55, 0.78, n0) * 0.45);
-  gSun = mix(gSun, ${lin(0x65937a)}, smoothstep(0.55, 0.72, n4) * 0.35);
-  gSun = mix(gSun, ${lin(0xb4bc7b)}, smoothstep(0.62, 0.75, n4 * 0.5 + n2 * 0.5) * 0.25);
+  vec3 gSun = mix(${MEADOW.sunDark}, ${MEADOW.sun}, smoothstep(0.36, 0.64, n1));
+  gSun = mix(gSun, ${MEADOW.sunLight}, smoothstep(0.58, 0.8, n2) * 0.55);
+  gSun = mix(gSun, ${MEADOW.sunDeep}, smoothstep(0.55, 0.78, n0) * 0.45);
+  gSun = mix(gSun, ${MEADOW.sunTeal}, smoothstep(0.55, 0.72, n4) * 0.35);
+  gSun = mix(gSun, ${MEADOW.sunLight}, smoothstep(0.62, 0.75, n4 * 0.5 + n2 * 0.5) * 0.25);
   vec3 gDusk = mix(${lin(0xa29a5c)}, ${lin(0xc8bb6a)}, smoothstep(0.36, 0.64, n1));
   gDusk = mix(gDusk, ${lin(0xa86a46)}, smoothstep(0.64, 0.8, n2) * 0.45);
   gDusk = mix(gDusk, ${lin(0x7c6a72)}, smoothstep(0.58, 0.8, n0) * 0.35);
@@ -121,7 +121,7 @@ GG gGround(vec2 root, bool flower) {
   gNight = mix(gNight, ${lin(0x274a4a)}, smoothstep(0.56, 0.78, n2) * 0.7);
   vec3 col = gSun * wSun + gDusk * wDusk + gNight * wNight;
   float hillW = exp(-dot(root - gHill.xy, root - gHill.xy) / (gHill.z * gHill.z));
-  col = mix(col, ${lin(0xb6b96c)}, hillW * 0.5 * smoothstep(0.35, 0.6, n2 + 0.2));
+  col = mix(col, ${MEADOW.hill}, hillW * 0.5 * smoothstep(0.35, 0.6, n2 + 0.2));
   col *= 0.9 + 0.12 * n3 + 0.08 * n4;
   // the terrain's large-scale tint (dry / lush, hollows, knolls, alpine): same inputs, so blades match the soil
   float curv = (gTex(gData, root + vec2(8.0, 0.0)).r + gTex(gData, root - vec2(8.0, 0.0)).r
@@ -436,29 +436,33 @@ vec3 gPos; vec3 gNrm; float gKill = 0.0;
   // converges on the colour the terrain paints under and beyond the blades (GRASS_TOP), so the hand-over has no line
   float clump = clumpN * 0.55 + cH * 0.45;
   // revision: fresher tips (green-white, not yellow), lighter cool roots: the olive came from yellow tips over near-black roots
-  vec3 tip = col * mix(vec3(.98, 1.13, .90), vec3(1.31, 1.35, 1.05), clump);
+  vec3 tip = col * mix(vec3(1.04, 1.11, 1.03), vec3(1.31, 1.34, 1.18), clump);
   tip *= mix(vec3(1.0),vec3(.74,1.05,.89),basal);
   tip *= mix(vec3(1.04, 1.0, 0.92), vec3(0.95, 1.0, 1.06), fract(cH * 5.3));
+  // Up close the sunlit tips borrow the local turf's tone. Fade in 3D so a
+  // meadow seen from a high broom keeps the same colour as its distant terrain.
+  float cameraDy = gCam.y - g.h;
+  float nearGrass = (1.0 - smoothstep(25.0, 484.0, dist * dist + cameraDy * cameraDy)) * wSun * (1.0 - g.cropK);
+  vec3 turfTone = mix(col, vec3(dot(col, vec3(.2126, .7152, .0722))), .28);
+  tip = mix(tip, turfTone, .64 * nearGrass);
   float dryPick = fract(hA * 13.7);
   vec3 duskTip = dryPick < 0.45 ? ${lin(0xe0b450)} : dryPick < 0.75 ? ${lin(0xd0784a)} : ${lin(0xe8d08a)};
   tip = mix(tip, duskTip, wDusk * 0.85 * (1.0 - g.cropK));
   if (g.crop > 1.5 && g.crop < 2.5) tip = ${lin(0xf0d070)};
-  vec3 root0 = mix(col * vec3(0.44, 0.57, 0.63), col * vec3(0.66, 0.54, 0.44), wDusk);
+  vec3 root0 = mix(col * mix(vec3(0.44, 0.57, 0.63), vec3(0.64, 0.72, 0.84), wSun), col * vec3(0.66, 0.54, 0.44), wDusk);
   if (g.crop > 1.5 && g.crop < 2.5) root0 = ${lin(0x8a9a48)}; // wheat: green-gold stalk under a gold ear
   float tt = t * t;
   vGCol = mix(root0, tip, (g.crop > 1.5 && g.crop < 2.5) ? smoothstep(0.5, 0.72, t) : smoothstep(0.0, 1.0, t)) * (0.94 + 0.12 * aBlade.w);
   vGCol = mix(vGCol, mix(${lin(0xcdbb84)}, ${lin(0xb98a5a)}, wDusk), seed * smoothstep(0.55, 0.8, t) * 0.85);   // seed heads
   // the wind's sheen: broad soft waves of lighter, silvered tips travelling across the field
-  vGCol = mix(vGCol, vGCol * 1.2 + vec3(0.022, 0.026, 0.016), gSheen * t * 0.7);
+  vGCol = mix(vGCol, vGCol * 1.2 + vec3(0.022, 0.026, 0.016), gSheen * t * 0.7 * (1.0 - .65 * nearGrass));
   // far: the blade becomes a soft stroke of the ground colour, a little lighter toward its tip (never darker than the soil)
   vGCol = mix(vGCol, col * ${GRASS_TOP} * mix(0.98, 1.12, t) * (1.0 + 0.12 * gSheen), far * 0.9 * (1.0 - g.cropK));
-  // fresh but not loud: a touch of desaturation (sunlit slopes warm up through the key light, shade cools via the sky)
-  vGCol = mix(vec3(dot(vGCol, vec3(0.3, 0.55, 0.15))), vGCol, 0.9);
   vGCol = mix(vGCol, ${lin(0xe8f4ff)}, smoothstep(0.0, 0.6, g.sc.b) * 0.8);
   float pulse = 0.65 + 0.35 * sin(gTime * 0.9 + root.x * 0.05 + root.y * 0.04);
   vec3 veinC = mix(${lin(0x3de0c0)}, ${lin(0x9c7cff)}, smoothstep(0.3, 0.7, g.n.x));
   vGGlow = veinC * wNight * tt * (0.06 + 1.1 * step(0.93, aBlade2.z * 0.5 + hA * 0.5)) * pulse * (1.0 - g.cropK);
-  vGTrans = tip * (0.35 + 0.65 * t) * t * (wSun + wDusk * 0.8) * (1.0 - g.cropK * 0.5) * (1.0 - far * 0.7);
+  vGTrans = tip * (0.35 + 0.65 * t) * t * (wSun + wDusk * 0.8) * (1.0 - g.cropK * 0.5) * (1.0 - far * 0.7) * (1.0 - .32 * nearGrass);
   
 }
 `;

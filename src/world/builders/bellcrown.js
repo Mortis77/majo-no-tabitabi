@@ -13,15 +13,15 @@ const H = BELL.y;
 const stone = mat.stone(0xd5c5ae),
   light = mat.plaster(0xeee1c5),
   foot = mat.stone(0xad9685);
-const tile = [0xb89661, 0xaf7851, 0x729c8a, 0xc79857, 0x758f9a, 0xa39887, 0xbd9e6a].map((c) => mat.tile(c));
+const tile = [0xc99456, 0xbf5b38, 0x358878, 0xd79d4c, 0x42768e, 0xa39179, 0xcaa15d].map((c) => mat.tile(c));
 const plaster = [light, mat.plaster(0xe7c5a4), mat.plaster(0xd6b398), mat.plaster(0xe2c7a5)];
 const wood = mat.wood(0x724e40),
   trim = mat.wood(0xac7955),
   dark = mat.paint(0x343940);
 const glass = mat.paint(0x71919a),
   brass = mat.metal(0xcd9a51),
-  blue = mat.cloth(0x485e7a),
-  red = mat.cloth(0xa64d42);
+  blue = mat.cloth(0x385d86),
+  red = mat.cloth(0xb24c42);
 const pave = mat.stone(0xb29d8c),
   street = mat.stone(0xc7b39b),
   border = mat.stone(0xe1caa4);

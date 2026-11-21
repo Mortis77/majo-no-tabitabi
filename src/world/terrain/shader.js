@@ -34,10 +34,10 @@ vec3 trGroundTint(vec3 col, float h, float curv, float n0, float n1, float n2, f
   // look round: the meadow as a painting: broad soft swells of lush cool green and sun-dried warm green, sunlit warm
   // crowns on the knolls, deeper cool green in the hollows
   float lush = smoothstep(0.3, 0.72, n2 * 0.6 + n1 * 0.4);
-  vec3 s = col * mix(vec3(1.06, 1.04, 0.9), vec3(0.88, 0.96, 0.97), lush);
+  vec3 s = col * mix(vec3(1.06, 1.04, 0.92), vec3(0.83, 1.01, 1.04), lush);
   s = mix(s, s * vec3(0.68, 0.86, 0.84), hollow * 0.7);
   s = mix(s, s * vec3(1.12, 1.08, 0.86), knoll * 0.5);
-  s = mix(s, ${lin(0xb2b468)} * (0.9 + 0.2 * n3), dryP * 0.3);
+  s = mix(s, ${lin(0xb7bf66)} * (0.9 + 0.2 * n3), dryP * 0.3);
   vec3 d = mix(col, col * vec3(0.7, 0.64, 0.7), hollow * 0.6);
   d = mix(d, d * vec3(1.12, 1.06, 0.92), dryP * 0.4);
   float ash = smoothstep(0.48, 0.68, n1 * 0.5 + n2 * 0.5 + knoll * 0.2);
@@ -134,13 +134,19 @@ vec3 trLand(vec3 c, float wd, float wn) {
 }
 `;
 
+// Both the actual blades and their distant terrain colour use these reflectances.
+export const MEADOW = {
+  sun: lin(0x8cc351), sunDark: lin(0x70a75b), sunLight: lin(0xb6ce69),
+  sunDeep: lin(0x55a475), sunTeal: lin(0x68ad7d), hill: lin(0xbac85b)
+};
+
 const C = {
-  sun: lin(0x90ae72), sunDark: lin(0x617e55), sunLight: lin(0xb4bc7b), sunDeep: lin(0x597d60), sunTeal: lin(0x65937a), hill: lin(0xb6b96c),
+  ...MEADOW,
   duskOchre: lin(0xa29a5c), duskGold: lin(0xc8bb6a), duskRed: lin(0xa86a46), duskPlum: lin(0x7c6a72),
   nightA: lin(0x2e3d4a), nightB: lin(0x222b38), nightTeal: lin(0x274a4a),
   sand: lin(0xf0dfae), sandB: lin(0xdcc690), sandWet: lin(0xb8a27a), seabed: lin(0x5e8c86),
   gravelA: lin(0xc9bda0), gravelB: lin(0xa39a86),
-  rock: lin(0xa29fa6), rockDark: lin(0x75717c), rockDusk: lin(0x8a7076), rockNight: lin(0x3e4152),
+  rock: lin(0xb8b6ab), rockDark: lin(0x7c8582), rockDusk: lin(0x8a7076), rockNight: lin(0x3e4152),
   snow: lin(0xf4f8ff), snowShade: lin(0xdde8fa),
   dirtA: lin(0xc6ab86), dirtB: lin(0xa58c6c), stoneA: lin(0xc2bcb0), stoneB: lin(0xa29c92), gravelW: lin(0xcfc6b3),
   paddyA: lin(0x9fdc5e), paddyB: lin(0x78c450), soilA: lin(0x9a6c46), soilB: lin(0x7a5236), grainA: lin(0xe2c35e), grainB: lin(0xc9a440),
@@ -232,8 +238,7 @@ float floralDrift = meadowRibbon(trP.xz,floralBroad,floralDetail);
 float floralWet = 1.0 - smoothstep(17.0,33.0,trRiver);
 float floralShade = smoothstep(.47,.70,floralBroad);
 float floralPick = smoothstep(.38,.62,texture2D(trNoise,trP.xz/52.0+.12).r);
-vec3 flowerTone = mix(vec3(.99,.70,.16),vec3(.94,.88,.73),floralPick);
-flowerTone = mix(flowerTone,vec3(.44,.43,.81),max(.86*floralShade,floralWet));
+vec3 flowerTone = meadowDayPetal(floralPick, floralShade, floralWet);
 flowerTone = mix(flowerTone,mix(vec3(.91,.22,.18),vec3(.96,.54,.15),floralPick),wDusk*(1.-.83*floralWet));
 flowerTone = mix(flowerTone,vec3(.43,.65,.79),wNight);
 float meadowRoom = smoothstep(3.15,5.5,trRoad)*smoothstep(9.5,13.,trRiver);

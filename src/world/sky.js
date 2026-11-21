@@ -176,7 +176,7 @@ function updateLampPools(cam, v, rdt) {
   box.x = ox; box.y = oz;
   LM.used = used; LM.bakes++;
 }
-const _grade = { lift: [0, 0, 0], gain: [0, 0, 0], sh: [1, 1, 1], sat: 1, vib: 0, knee: 0, contrast: 1, vig: 0, vigCol: [0, 0, 0] };
+const _grade = { lift: [0, 0, 0], gain: [0, 0, 0], sh: [1, 1, 1], sat: 1, vib: 0, knee: 0, contrast: 1, midLift: 0, vig: 0, vigCol: [0, 0, 0] };
 
 function lerpGrade(a, b, t, o) {
   for (let i = 0; i < 3; i++) {
@@ -186,6 +186,7 @@ function lerpGrade(a, b, t, o) {
     o.sh[i] = (a.sh?.[i] ?? 1) + ((b.sh?.[i] ?? 1) - (a.sh?.[i] ?? 1)) * t;
   }
   o.sat = a.sat + (b.sat - a.sat) * t; o.vib = (a.vib || 0) + ((b.vib || 0) - (a.vib || 0)) * t; o.knee = (a.knee || 0) + ((b.knee || 0) - (a.knee || 0)) * t; o.contrast = a.contrast + (b.contrast - a.contrast) * t; o.vig = a.vig + (b.vig - a.vig) * t;
+  o.midLift = a.midLift + (b.midLift - a.midLift) * t;
   return o;
 }
 
@@ -444,7 +445,7 @@ export const skySystem = {
     st.sun.intensity=SUN_INTENSITY*(1-overcast*.24)*weather.sunlight;
     // In clear daylight the sky fills the shaded facade. When the sun disappears
     // into stratus or below the horizon, the sky supplies a larger share of its light.
-    const daylightFill = .55 + .43 * overcast;
+    const daylightFill = .74 + .31 * overcast;
     st.hemi.intensity=(daylightFill+(1-daylightFill)*dark)*(1-.72*dark);
     U.mvHemiMul.value = st.hemi.intensity;
     pal('hemiSky', v, st.hemi.color);
@@ -468,7 +469,8 @@ export const skySystem = {
     st.shadow.update((G.player?.pos ? daylightFromVeil(veilAt(G.player.pos.x, G.player.pos.z)) : day)*weather.sunlight);
 
     // exposure (eye adaptation)
-    const target = (1+.09*dark)*_sc.exposure * (G.sky.exposure ?? 1) * (1 - rain * 0.12) * (1 + (st.ringBoost - 1) * 0.06);
+    const daylightExposure = 1 - .04 * weather.sunlight * (1 - .4 * overcast);
+    const target = daylightExposure*(1+.09*dark)*_sc.exposure * (G.sky.exposure ?? 1) * (1 - rain * 0.12) * (1 + (st.ringBoost - 1) * 0.06);
     st.exposure = st.exposure === 1 && !st._expInit ? target : damp(st.exposure, target, 1.8, rdt);
     st._expInit = true;
 
@@ -508,6 +510,7 @@ export const skySystem = {
     if (st.grade) g = GRADES[st.grade];
     else g = gradePhase < .5 ? lerpGrade(GRADES.sun, GRADES.dusk, smoothstep(.05,.5,gradePhase), _grade) : lerpGrade(GRADES.dusk, GRADES.night, smoothstep(.5,.92,gradePhase), _grade);
     gu.uLift.value.fromArray(g.lift); gu.uGain.value.fromArray(g.gain); gu.uVigCol.value.fromArray(g.vigCol); gu.uShTint.value.fromArray(g.sh || [1, 1, 1]);
+    gu.uMidLift.value = g.midLift;
     gu.uSat.value = g.sat; gu.uVib.value = g.vib || 0; gu.uSatKnee.value = g.knee || 0; gu.uContrast.value = g.contrast; gu.uVig.value = g.vig;
     gu.uGradeOn.value = post.flags.grade ? 1 : 0;
     gu.uFlash.value.copy(st.flashCol).multiplyScalar(fk * 0.45);
