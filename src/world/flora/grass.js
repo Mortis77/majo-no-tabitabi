@@ -458,13 +458,6 @@ vec3 gPos; vec3 gNrm; float gKill = 0.0;
   vGCol = mix(vGCol, vGCol * 1.2 + vec3(0.022, 0.026, 0.016), gSheen * t * 0.7 * (1.0 - .65 * nearGrass));
   // far: the blade becomes a soft stroke of the ground colour, a little lighter toward its tip (never darker than the soil)
   vGCol = mix(vGCol, col * ${GRASS_TOP} * mix(0.98, 1.12, t) * (1.0 + 0.12 * gSheen), far * 0.9 * (1.0 - g.cropK));
-  if (g.cropK < 0.5) {
-    // In linear sRGB, scaling chroma around Rec.709 luminance keeps the blade's brightness.
-    const float grassSaturation = 0.80;
-    const vec3 luma = vec3(.2126, .7152, .0722);
-    vGCol = mix(vec3(dot(vGCol, luma)), vGCol, grassSaturation);
-    tip = mix(vec3(dot(tip, luma)), tip, grassSaturation); // transmitted sunlight uses the same pigment
-  }
   vGCol = mix(vGCol, ${lin(0xe8f4ff)}, smoothstep(0.0, 0.6, g.sc.b) * 0.8);
   float pulse = 0.65 + 0.35 * sin(gTime * 0.9 + root.x * 0.05 + root.y * 0.04);
   vec3 veinC = mix(${lin(0x3de0c0)}, ${lin(0x9c7cff)}, smoothstep(0.3, 0.7, g.n.x));
