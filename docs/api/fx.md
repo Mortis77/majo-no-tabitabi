@@ -195,3 +195,94 @@ went down (5 clash spheres vs 3 + 2×2 beam sheath / core). Struggle frame (day,
 2.49 M triangles, 287 particles, 17 shapes (T.stats / G.fx.stats in fdSeq_day).
 Known shortfalls: cloth does not whip yet (rig.js reads `windAt`, request filed to read `visualWindAt`); the loser dome
 reads a little like glass; the winner's beam keeps burning after the break (gameplay, unchanged), which shortens the quiet.
+
+## As-built updates (vfx — anime duel magic, 2026-11-22)
+Goal: every cast and duel moment reads like the Wandering Witch fights — circles blooming at the wand, comet bullets,
+crisp lightning with afterglow, glitter, shield lattices, starbursts, slow beats, impact frames, a camera that keeps both
+duelists in view. Most of it lands through the names spells / combat already call; new calls are listed below.
+
+**Magic circles (`src/fx/circles.js`, one instanced draw call, cap 40 / 24 on 'low', renderOrder 24).** Four layers painted
+into the RGBA channels of one 512² procedural texture: R outer rune band (invented glyphs, ticks), G star polygon {8/3} with
+knots, B inner glyph ring + hexagram, A star-sparkle core. Layers turn in alternating directions, draw themselves on
+around the ring like a pen (outer first, a hot pen tip at the front), the circle blooms in with a small overshoot and
+leaves with a flare (bright spike + widening), a collapse or a fade. Additive only; lines peak ~2.5 (under BLOOM_CLAMP 4).
+- `G.fx.circle(pos, { normal|dir, ref, radius=1, color (hex|element), core, intensity=1.4, spin=0.9, layers=15 (1 band,
+  2 star, 4 inner, 8 core), dur=0.8, outDur, out:'flare'|'collapse'|'fade', draw (s to draw on), fill, delay, ground,
+  handle, charge, tracked })` → handle `{ pos, normal, ref, radius, charge (0..1: layers appear at 0 / .22 / .45 / .72),
+  release(style, dur), kill(), setColor(), setIntensity(), setLayers(), alive }` (opts.handle) | kill fn (tracked) | true.
+  Handles are never stolen; copy into `pos` / `normal` every frame while you hold one and always release() it.
+- `G.fx.ward(pos, normal, { radius=1.4, color, intensity=1.6, dur=0.32 })` — hexagonal lattice flash, a ripple through the cells.
+- `G.fx.starburst(pos, { radius=2, color, intensity=1.6, dur=0.34 })` — camera-facing uneven rays, hot core, running ring.
+- `G.fx.sigil(...)` (same signature, `tracked` still returns a kill function) and the recipes' ground sigils
+  (`magic_circle`, `summon`, `levelup`, `greatlantern`) now draw the layered circle instead of the flat sigil decal —
+  every telegraph / ground circle in the game upgraded at once.
+
+**Casts (`magic.js`, listens to 'spell:cast').** Small forms: a quick small circle (band + core) at the wand.
+Charged forms: the `charge` emitter (spells.js, unchanged) now grows a circle 0.6–0.8 m in front of the wand whose layers
+draw on as the charge builds, a ground circle under her from a third of the way, and a visual-only updraft that lifts
+hair and robe (`G.elements.addWind({ visual: true })`, read by rig.js through visualWindAt). When the charge ends the
+circles linger 0.45 s; the cast flares them out (else they fold away). A big cast with no charge (rivals, scripts) gets
+a "barrel" of three circles down the cast line. Big casts also: ground circle (replaces the glyph rings), a release gust,
+hanging sparkles, a light shake for the heroine's own casts.
+
+**Bullets.** Every projectile's trail is restyled to `style: 3` / `'comet'` (ribbons.js: hot thin core, wide soft halo,
+beads of light running down it; ~2.6× the caller's life, up to 0.75 s) in an element palette, and sheds `bullet_glints`
+every 45 ms within 45 m. Fire orbs keep their own streaks under the flame tail. `Trail.restyle({ style, width, life, add,
+intensity, taper, c0, c1 })` changes a live trail. `G.fx.trail({ style: 'comet' })` for new ones.
+
+**Lightning.** `G.fx.lightning(..., { afterglow })` (0..1, default 0.6 for dur ≥ 0.2 s, else 0.2): the strike keeps its
+clock, then the channel glows on (light only) and cools away; a crisp white-hot thread runs through the strike.
+
+**New bursts.** `sparkle_hang` (glints + dots that hang 1.5–3 s; color), `glint_burst` (star + short rays + glitter; dir),
+`bullet_glints`, `dust_ring` (dust rolling out over the ground: big releases, finishers). Hits throw element glitter; `shatter_rock` / `hit_earth` add rock glitter; `clash` adds two-colour
+starbursts, a camera-facing shock ring per side and hanging glitter (its old white flash sprite is dimmer); `clash` at
+scale > 1.55 and every `clash_big` call `G.fx.duel.beat('clash', { big })`; `charge_done` adds a starburst + glitter.
+
+**Duel cinematics — `G.fx.duel` (`src/fx/duel.js`).** Pacing / look only; never changes damage or outcomes.
+`G.settings.cinematic === false` turns off slow motion, camera liberties and impact frames (no default needed: undefined =
+on; a settings row is not added yet). Shake always goes through `G.fx.shake` → `G.settings.shake`.
+- `slowmo(scale=0.3, hold=0.2, out=0.35)` — eases G.time.slow down in 50 ms, holds `hold` real seconds, eases back over
+  `out`; overlapping calls keep the deepest. The frame loop multiplies it in (`src/core/boot.js`: `T.scale * T.slow`).
+  Only in mode 'play'; reset on clear / mode change.
+- `impact(color, k=1)` — impact frame: `G.sky.flash(color×0.5k, 0.12)` (1–2 frames of tint), at most every 0.3 s.
+- `shake(weight, pos?)` — 'tap' | 'light' | 'medium' | 'heavy' | 'massive' | 0..1; distance-attenuated; heavy ones kick FOV.
+- `gust(pos, dir, strength=9, dur=0.9, radius=3.5)` — visual-only wind: cloth / hair / grass / motes, never bodies.
+- `angle(target, { dur=0.8, dist, mix, low, fov=-7, weight=0.85, cooldown=2.5, range=40 })` — a brief dramatic camera
+  angle side-on to the line heroine → target (line-of-sight checked, other side tried), tighter FOV, eased in and out.
+- `engage(foe)` / `disengage()` — explicit duel framing target; otherwise auto: Fran's spar (`G.story.spar.active`),
+  the `G.combat.duel` enemy. `focus` = current target, `slow` = current factor, `enabled`.
+- `beat(kind, pos, opts)` — `'parry'` (gold starburst + ward + flaring circle + rings + hanging sparkle, slow 0.22×,
+  gold impact frame, medium shake), `'block'` (ward lattice + small ring), `'dodge'` (wind ring, slow 0.35×),
+  `'clash'` ({ big, color, color2 }: slow, two-colour impact, angle), `'finisher'` (slow 0.2× ~0.45 s, impact,
+  starburst, sparkle, gust, heavy shake, angle), `'break'` (struggle end).
+- Auto-wired (listeners only): 'spell:clash' reflect → parry, block → block (the guard's centre / facing from
+  G.spells.guards); 'player:dodge' with a hostile bullet closing within 0.5 s → dodge; 'enemy:killed' of a boss / elite →
+  finisher; a G.combat duel turning `over` with `won` → finisher on the rival; Fran's spar ending in 'break' → finisher on
+  Fran; 'beam:struggle' end → break; 'boss:defeated' → a short beat; the beat right BEFORE a decisive hit: a charged
+  (form 'big') bullet of hers about to land on the duel foe (< 3.6 m, < 0.35 s out) → slow 0.28× + angle on the foe, and a
+  charged / power ≥ 1.6 hostile bullet about to reach her → slow 0.35× (a chance to dodge); once per bullet, 2.2 s apart. Fran's wind-up (her 'journey:fran-aim' group is
+  visible) grows a circle at her hand in the coming bullet's element (+ a ground circle in her volley phases) that flares
+  when she throws.
+- Camera hooks in `src/player/camera.js`: `camAssist(C, P, rdt, idle)` (adds distance; swings the yaw toward the foe only
+  when the foe is > ~35° off and the mouse has been idle 0.45 s; never with a lock target or on the broom) and
+  `camShot(pos, look, rdt, cine)` (dramatic angle blend, a 12 % pull of the look point toward the duel's middle; returns a
+  FOV offset).
+
+**Where other systems should call (not wired by vfx).**
+- combat (duel patterns / wilds bosses): `G.fx.duel.engage(foe)` when a fight that is not a G.combat duel should be
+  framed (e.g. a wilds boss); `G.fx.duel.beat('finisher', pos, { color })` on the hit that ends any named fight that does
+  not go through 'enemy:killed' with `boss`/`elite`; `G.fx.circle(hand, { dir, radius: 0.9, color: el, handle: true,
+  charge })` for a foe's charged tell (release('flare') when it fires); `G.fx.duel.angle(pos)` for a boss's big move.
+- elements (fusions): `G.fx.circle(...)` with two layers in each element's colour (e.g. two circles, `layers: 3` and
+  `layers: 12`, counter-spinning) for a fusion cast; `sparkle_hang` after it.
+- spells.js: nothing required. Optional: pass `form` in 'spell:clash' so a charged clash is known exactly (today it is
+  inferred from the clash burst's scale).
+
+**Cost.** One new draw call (circles; a quad per circle, 4 texture taps per fragment; typically 0–6 live, ≤ 40). Trails,
+glints and sparkles ride the existing pools (scaled by G.quality.particles and distance LOD). No per-frame allocations:
+handles and option objects are created per event; Fran's wind-up reads `spar.stats` once per wind-up. Boot: the circle
+texture is painted once (4 × 512² canvases).
+
+**Known shortfalls.** The bullet orb itself is the spell system's sphere (spells/visuals.js): it reads as a glassy ball
+next to the comet trail. Circles are flat: on steep slopes a big ground circle sinks into the hill. Slow motion also
+slows the heroine's input-driven motion (by design: a beat, not a pause). No settings row for `cinematic` yet.

@@ -1,46 +1,69 @@
-// Where foes and creatures live. Ids + coordinates only (names are in src/locales/zh-CN/combat.js).
-// Difficulty rises eastward: paper sprites in the sunlit west, shades at dusk, the heavy ones under the Veil.
-// Camps keep clear of wards (settlements); combat streams them in within ~70 m and respawns them after `respawn` s.
+// Where foes live along the journey. Ids + coordinates only (names are in src/locales/zh-CN/combat.js).
+// Nothing at home, in Fran's forest or inside the walled city; light company on the east moor; real camps in the wilds
+// and up the high pass. combat/encounters.js streams them in (~85 m), respawns camps after `respawn` seconds of play
+// (remembered in the save) and keeps them off the road and the story's anchors.
 
-/** kinds: [[type, count], ...]   r: wander radius   respawn: seconds after the camp is cleared */
+/** kinds: [[type, count], ...]   r: wander radius   respawn: play-seconds after the camp is cleared
+ *  leader: { affixes } — the first member becomes an elite */
 export const CAMPS = [
-  // 曦光原 — mischievous paper sprites only
-  { id: 'sun_meadow', x: -500, z: -70, r: 9, kinds: [['paper', 3]], respawn: 180 },
-  { id: 'sun_road', x: -372, z: 70, r: 8, kinds: [['paper', 3]], respawn: 180 },
-  { id: 'sun_south', x: -430, z: 300, r: 10, kinds: [['paper', 4]], respawn: 180 },
-  { id: 'sun_hill', x: -300, z: -200, r: 9, kinds: [['paper', 3]], respawn: 180 },
-  // 薄暮林 — blobs, wolves, wisps, moths
-  { id: 'dusk_glade', x: -110, z: -10, r: 9, kinds: [['blob', 3]], respawn: 220 },
-  { id: 'dusk_bank', x: 60, z: 170, r: 10, kinds: [['wolf', 2], ['blob', 1]], respawn: 240 },
-  { id: 'dusk_hollow', x: -205, z: 175, r: 9, kinds: [['wisp', 2], ['blob', 2]], respawn: 220 },
-  { id: 'dusk_shore', x: 150, z: 250, r: 10, kinds: [['moth', 2], ['wolf', 1]], respawn: 240 },
-  { id: 'dusk_spring', x: -150, z: -330, r: 11, kinds: [['wolf', 3]], respawn: 260 },
-  { id: 'dusk_ridge', x: 60, z: 60, r: 9, kinds: [['wisp', 3]], respawn: 220 },
-  // 常夜原 — the heavy ones
-  { id: 'night_glow', x: 320, z: 150, r: 11, kinds: [['moth', 3], ['wisp', 2]], respawn: 300 },
-  { id: 'night_pass', x: 260, z: -262, r: 11, kinds: [['wolf', 3], ['caster', 1]], respawn: 300 },
-  { id: 'night_field', x: 470, z: 140, r: 12, kinds: [['blob', 3], ['moth', 2]], respawn: 300 },
-  { id: 'night_crystal', x: 470, z: -250, r: 12, kinds: [['golem', 1], ['caster', 1]], respawn: 360 },
-  { id: 'night_shore', x: 640, z: 40, r: 12, kinds: [['caster', 2], ['wolf', 2]], respawn: 360 },
-  { id: 'night_quarry', x: 610, z: -130, r: 12, kinds: [['golem', 2]], respawn: 420 },
-  { id: 'night_mush', x: 420, z: 330, r: 12, kinds: [['caster', 1], ['moth', 2], ['wisp', 2]], respawn: 360 },
-  { id: 'night_moat', x: 250, z: 40, r: 10, kinds: [['wolf', 2], ['blob', 2]], respawn: 300 },
+  // 东边的原野 east moor — stray pages, bog mud, a wolf pair
+  { id: 'moor_pages', x: 1390, z: -200, r: 9, kinds: [['paper', 3]], respawn: 200 },
+  { id: 'moor_bog', x: 1310, z: -10, r: 9, kinds: [['blob', 2]], respawn: 220 },
+  { id: 'moor_wolves', x: 1170, z: -235, r: 11, kinds: [['wolf', 2]], respawn: 260 },
+  { id: 'moor_west', x: 1080, z: -60, r: 9, kinds: [['paper', 2], ['blob', 1]], respawn: 220 },
+  // between the moor and the wilds
+  { id: 'brook_bats', x: 860, z: -235, r: 10, kinds: [['moth', 3]], respawn: 240 },
+  { id: 'brook_mage', x: 700, z: -40, r: 10, kinds: [['caster', 1], ['paper', 2]], respawn: 300 },
+  // 西行荒野 the wilds — real camps
+  { id: 'wilds_pack', x: 330, z: -320, r: 13, kinds: [['wolf', 4]], respawn: 300, leader: { affixes: ['pack'] } },
+  { id: 'wilds_bandits', x: 90, z: -330, r: 12, kinds: [['caster', 2], ['raider', 1]], respawn: 360 },
+  { id: 'wilds_den', x: 40, z: -40, r: 11, kinds: [['embersnake', 1], ['wisp', 2]], respawn: 320 },
+  { id: 'wilds_bog', x: 380, z: -90, r: 11, kinds: [['blob', 3], ['paper', 2]], respawn: 260 },
+  { id: 'wilds_roost', x: -40, z: -300, r: 12, kinds: [['moth', 4]], respawn: 260 },
+  // the long road west
+  { id: 'road_mages', x: -420, z: -380, r: 12, kinds: [['caster', 2]], respawn: 320 },
+  { id: 'road_snakes', x: -520, z: -130, r: 11, kinds: [['embersnake', 1], ['blob', 2]], respawn: 320 },
+  { id: 'road_pack', x: -760, z: -350, r: 12, kinds: [['wolf', 3]], respawn: 300 },
+  // 群峰隘口 the high pass — the old stone guards, frost stags and a bandit post
+  { id: 'pass_ruin_n', x: -1180, z: -410, r: 12, kinds: [['golem', 1], ['paper', 2]], respawn: 400 },
+  { id: 'pass_ruin_s', x: -1300, z: -170, r: 12, kinds: [['golem', 1]], respawn: 400 },
+  { id: 'pass_stags', x: -1400, z: -220, r: 14, kinds: [['froststag', 2]], respawn: 380 },
+  { id: 'pass_post', x: -1110, z: -150, r: 12, kinds: [['caster', 2], ['raider', 1]], respawn: 380 },
+  { id: 'pass_roost', x: -1440, z: -430, r: 12, kinds: [['moth', 4]], respawn: 300 },
 ];
 
-/** 影巢: three nests around 千年枫 (m2_dusk). Each spawns `kinds` until its core is destroyed. */
-export const NESTS = [
-  { id: 'nest_west', x: -85, z: -205, kinds: ['blob', 'wolf', 'blob'], brambles: 6 },
-  { id: 'nest_east', x: 25, z: -215, kinds: ['wolf', 'blob', 'wisp'], brambles: 6 },
-  { id: 'nest_south', x: -40, z: -105, kinds: ['blob', 'wisp', 'blob'], brambles: 6 },
+/** Named roaming elites: beaten once, remembered (G.state.combat.elites). hp = hp multiplier. */
+export const ELITES = [
+  { id: 'greymane', type: 'wolf', affixes: ['pack', 'frenzy'], x: 260, z: -430, r: 50, escorts: [['wolf', 3]], hp: 2.4 },
+  { id: 'crowfeather', type: 'raider', affixes: ['blink', 'warded'], x: 20, z: -400, r: 60, escorts: [['raider', 1]], hp: 2.2, element: 'thunder', wardEl: 'thunder' },
+  { id: 'redthroat', type: 'embersnake', affixes: ['volatile', 'bulwark'], x: -640, z: -60, r: 40, hp: 1.6 },
+  { id: 'mossback', type: 'golem', affixes: ['bulwark', 'leech'], x: -1240, z: -450, r: 40, hp: 1.5 },
+  { id: 'whitecrown', type: 'froststag', affixes: ['frenzy'], x: -1360, z: -110, r: 50, hp: 1.8 },
 ];
 
-/** Waves story can call with G.combat.spawnWave(id, pos?). pos defaults to `at`. */
-export const WAVES = {
-  training: { at: { x: -600, z: -22 }, r: 7, kinds: [['paper', 4]] },
-  training_2: { at: { x: -600, z: -22 }, r: 8, kinds: [['paper', 5]] },
-  crystal: { at: { x: 545, z: -275 }, r: 12, kinds: [['golem', 1], ['caster', 1]] },
-  village_fire: { at: { x: -455, z: 150 }, r: 10, kinds: [['paper', 3]] },
-};
+/** A light sprinkle of weak roamers along the road (x ranges of ROAD_ACROSS, west-bound). every: metres between spots. */
+export const SPRINKLE = [
+  { from: 1560, to: 1000, kinds: ['paper', 'blob', 'paper'], night: ['wisp', 'paper'], every: 70 },
+  { from: 1000, to: 500, kinds: ['paper', 'moth'], night: ['wisp', 'moth'], every: 85 },
+  { from: 500, to: -100, kinds: ['blob', 'paper', 'wisp'], night: ['wisp', 'moth'], every: 70 },
+  { from: -100, to: -1000, kinds: ['paper', 'blob', 'wolf'], night: ['wisp', 'moth'], every: 85 },
+  { from: -1000, to: -1560, kinds: ['moth', 'paper'], night: ['wisp', 'moth'], every: 75 },
+];
+/** The lake shore after the eclipse crossing: a few small roamers in a ring. */
+export const SHORE = { x: 1725, z: -48, r: 190, n: 7, kinds: ['blob', 'paper', 'wisp'] };
+
+/** No foe ever spawns, wanders or ambushes inside these circles. */
+export const NO_FOES = [
+  { x: 2220, z: 50, r: 230 },     // home
+  { x: 2080, z: -60, r: 210 },    // Fran's forest, the trial clearing, the farewell spot
+  { x: -2160, z: -520, r: 340 },  // the walled city of mages
+];
+
+/** Old engine data (kept empty: the journey has no nests). */
+export const NESTS = [];
+
+/** Waves for G.combat.spawnWave(id, pos?). The clearing trial builds its own lists. */
+export const WAVES = {};
 
 /** Default duel rings: story may pass its own position to startDuel(id, { pos }). */
 export const DUEL_RINGS = {

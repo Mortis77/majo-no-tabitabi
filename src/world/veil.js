@@ -7,6 +7,7 @@ export { VEIL };
 export const SUN_ANGULAR_RADIUS=.025;
 export const MOON_ANGULAR_RADIUS=.0258;
 export const SUN_DIR=new THREE.Vector3(.72,.59,.36).normalize();
+export const DAY_ARC=.5;
 const moon=new THREE.Vector3(0,-1,0);
 const desired=new THREE.Vector3(),tangent=new THREE.Vector3(),up=new THREE.Vector3(0,1,0);
 let separation=Math.PI, solarTransmission=1;
@@ -16,7 +17,9 @@ export function setSolarTransmission(value){solarTransmission=clamp(value,0,1);}
 // narrative time skip. The following lake scene is staged in late afternoon.
 export function advanceSky(seconds, lakeScene, age, dt, clockOffset=0) {
   const angle=lakeScene ? 2.69+.015*Math.sin(seconds/60) : .85+(seconds+clockOffset)*Math.PI*2/1440;
-  desired.set(Math.cos(angle),.80*Math.sin(angle),.42).normalize();
+  // The everyday arc peaks near 50 degrees (was 62): long raking shadows and warm side light most of the day, the
+  // anime's late-afternoon mood. The staged lake scene keeps its original sun.
+  desired.set(Math.cos(angle),(lakeScene ? .80 : DAY_ARC)*Math.sin(angle),.42).normalize();
   SUN_DIR.lerp(desired,1-Math.exp(-Math.max(dt,0)*.54)).normalize();
   if(age===null){
     separation=Math.PI;

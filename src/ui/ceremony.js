@@ -64,6 +64,7 @@ addCss(`
 .en-roll .sh::before, .en-roll .sh::after { content: ''; width: 90u; height: 1u; background: linear-gradient(90deg, transparent, var(--gold)); }
 .en-roll .sh::after { transform: scaleX(-1); }
 .en-roll .ln { font: 500 16u/2 var(--fb); letter-spacing: .08em; color: var(--paper); }
+.en-roll .ln.nm { font: 600 22u/1.8 var(--fb); letter-spacing: .12em; color: #fff8ea; }
 .en-roll .sub { font: 600 13u/1 var(--ft); letter-spacing: .4em; color: var(--paper3); margin: 18u 0 8u; }
 .en-roll .cr { display: flex; justify-content: center; gap: 18u; font: 500 15u/1.9 var(--fb); }
 .en-roll .cr .a { flex: 1; text-align: right; color: #fff8ea; }
@@ -230,6 +231,14 @@ export function createCeremony(host, stage) {
         roll = el('div', 'en-roll', R);
         el('div', 'ring', roll);
         el('div', 'gt', roll, data.title || t('core.title'));
+        // who made it
+        const staff = el('div', 'sec', roll);
+        tel('div', 'sh', staff, 'ui.credits.staff');
+        tel('div', 'sub', staff, 'ui.credits.director');
+        el('div', 'ln nm', staff, t('ui.credits.directorName'));
+        el('div', 'ln', staff, t('ui.credits.home'));
+        tel('div', 'sub', staff, 'ui.credits.ai');
+        for (const l of raw('ui.credits.aiLines') || []) el('div', 'ln', staff, l);
         // record of the journey
         if (data.stats !== false && G.state) {
           const s = G.state;
@@ -238,10 +247,14 @@ export function createCeremony(host, stage) {
           tel('div', 'sh', sec, 'ui.ending.stats.title');
           const st = el('div', 'st', sec);
           tel('span', '', st, 'ui.ending.stats.time', { time: fmtTime(s.playTime) });
-          tel('span', '', st, 'ui.ending.stats.lanterns', { n: cnt(s.lanterns) });
-          tel('span', '', st, 'ui.ending.stats.great', { n: cnt(s.greatLanterns) });
-          tel('span', '', st, 'ui.ending.stats.tears', { n: (s.inventory && s.inventory.moontear) || 0 });
+          // only the records this journey can have (the lantern / tear counts belong to the engine's first game)
+          const opt = (k, n) => { if (n > 0) tel('span', '', st, 'ui.ending.stats.' + k, { n }); };
+          opt('lanterns', cnt(s.lanterns));
+          opt('great', cnt(s.greatLanterns));
+          opt('tears', (s.inventory && s.inventory.moontear) || 0);
           tel('span', '', st, 'ui.ending.stats.kills', { n: (s.stats && s.stats.kills) || 0 });
+          opt('notes', cnt(s.elementNotes));
+          opt('dust', (s.inventory && s.inventory.stardust) || 0);
         }
         const made = el('div', 'sec', roll);
         tel('div', 'sh', made, 'ui.credits.made');

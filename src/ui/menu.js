@@ -9,6 +9,7 @@ import { navList, createSettings, confirmBox } from './panels.js';
 import { createMapTab } from './map.js';
 import { spellSlots, selectedId } from './model.js';
 import { createWardrobe } from './wardrobe.js';   // wardrobe: 衣装 page
+import { notesEntries, notesCount, noteRow, noteDetail } from './reactions.js';   // 元素笔记: the third journal page
 
 addCss(`
 .mv-menu > .mv-paper { width: 1160u; height: 640u; padding: 26u 40u 20u; display: flex; flex-direction: column; }
@@ -110,6 +111,32 @@ addCss(`
 .it-cell .n { position: absolute; right: 7u; top: 6u; font: 700 13u/1 var(--fb); color: var(--ink2); }
 .it-cell .nm { font: 600 12u/1 var(--ft); color: var(--ink2); letter-spacing: .1em; }
 .it-big { width: 96u; height: 96u; display: flex; align-items: center; justify-content: center; font-size: 60u; color: var(--ink); background: rgba(35,31,29,.06); border-radius: 50%; box-shadow: 0 0 0 1u var(--gold); margin-bottom: 8u; }
+
+/* phones and tablets: the scroll fills the screen, the side blocks shrink, long details scroll */
+.mv-ui.compact .mv-menu > .mv-paper { width: min(1160u, calc(100vw - 16px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)));
+  height: min(640u, calc(100dvh - 10px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))); padding: 10u 22u 8u; }
+.mv-ui.compact .mn-side { width: 150u; }
+.mv-ui.compact .mn-top > .mn-side:last-child { width: 40u; }
+.mv-ui.compact .mn-info { font-size: 11u; }
+.mv-ui.compact .mn-info b { font-size: 14u; }
+.mv-ui.compact .mn-tab { padding: 8u 12u 12u; letter-spacing: .14em; }
+.mv-ui.compact .mn-sub { display: none; }
+.mv-ui.compact .mn-body { margin-top: 10u; }
+.mv-ui.compact .mn-foot { margin-top: 6u; padding-top: 6u; }
+.mv-ui.compact .mn-split { gap: 18u; }
+.mv-ui.compact .mn-list { width: 36%; }
+.mv-ui.compact .mn-list.wide { width: 40%; }
+.mv-ui.compact .mn-det { padding: 4u 6u 0 18u; overflow-y: auto; touch-action: pan-y; }
+.mv-ui.compact .mn-det .big { font-size: 24u; }
+.mv-ui.compact .mn-det .txt { margin-top: 8u; line-height: 1.8; }
+.mv-ui.compact .mn-det .ghost { position: fixed; display: none; }
+.mv-ui.compact .sp-forms { gap: 12u; margin-top: 10u; }
+/* touch: no key caps or key hints, a close mark in the corner, fingertip rows */
+.mv-ui.touch .mn-tabs > .keycap, .mv-ui.touch .mn-hint { visibility: hidden; }
+.mv-ui.touch .mn-close { display: block; }
+.mn-close { display: none; z-index: 3; }
+.mv-ui.touch .mn-tab { min-height: 44px; align-items: flex-end; }
+.mv-ui.touch .mn-subtabs .st { padding: 8u 16u; }
 `);
 
 const TABS = ['map', 'journal', 'spells', 'items', 'settings'];   // wardrobe: 衣装 between items and settings
@@ -136,15 +163,17 @@ function createJournal(parent, providers) {
   const D = el('div', 'mn-det', R);
   let mode = 'quests', nav = null, data = [];
   const st = {
-    quests: el('div', 'st', sub), lore: el('div', 'st', sub),
+    quests: el('div', 'st', sub), lore: el('div', 'st', sub), notes: el('div', 'st', sub),
   };
   st.quests.addEventListener('click', () => { mode = 'quests'; render(); sfx('ui_page', 0.6); });
   st.lore.addEventListener('click', () => { mode = 'lore'; render(); sfx('ui_page', 0.6); });
+  st.notes.addEventListener('click', () => { mode = 'notes'; render(); sfx('ui_page', 0.6); });
 
   function detail(i) {
     clear(D);
     const q = data[i];
     if (!q) return;
+    if (mode === 'notes') { noteDetail(D, q); return; }
     if (mode === 'quests') {
       el('div', 'ghost', D, t(q.main ? 'ui.seal.main' : 'ui.seal.side'));
       const k = el('div', 'kick', D);
@@ -172,9 +201,11 @@ function createJournal(parent, providers) {
     const lore = callProvider(providers, 'lore');
     clear(st.quests); tel('span', '', st.quests, 'ui.journal.quests'); el('span', 'n', st.quests, String(quests.length));
     clear(st.lore); tel('span', '', st.lore, 'ui.journal.lore'); el('span', 'n', st.lore, String(lore.length));
-    st.quests.classList.toggle('on', mode === 'quests'); st.lore.classList.toggle('on', mode === 'lore');
+    const nc = notesCount();
+    clear(st.notes); tel('span', '', st.notes, 'elements.ui.tab'); el('span', 'n', st.notes, nc.n + '/' + nc.of);
+    st.quests.classList.toggle('on', mode === 'quests'); st.lore.classList.toggle('on', mode === 'lore'); st.notes.classList.toggle('on', mode === 'notes');
     // active first, main first
-    data = mode === 'quests' ? quests.slice().sort((a, b) => ((a.state === 'done') - (b.state === 'done')) || ((b.main ? 1 : 0) - (a.main ? 1 : 0))) : lore;
+    data = mode === 'quests' ? quests.slice().sort((a, b) => ((a.state === 'done') - (b.state === 'done')) || ((b.main ? 1 : 0) - (a.main ? 1 : 0))) : mode === 'notes' ? notesEntries() : lore;
     clear(listEl); clear(D);
     if (!data.length) {
       nav = null;
@@ -183,6 +214,7 @@ function createJournal(parent, providers) {
       return;
     }
     const rows = data.map((q) => {
+      if (mode === 'notes') { const r = el('div', 'mn-row rx-note' + (q.known ? '' : ' unk'), listEl); noteRow(r, q); return r; }
       const r = el('div', 'mn-row' + (mode === 'quests' && q.state === 'done' ? ' done' : ''), listEl);
       if (mode === 'quests') el('span', 'seal' + (q.main ? '' : ' side'), r, t(q.main ? 'ui.seal.main' : 'ui.seal.side'));
       else icon('ema', '', r);
@@ -195,7 +227,7 @@ function createJournal(parent, providers) {
   return {
     el: R, render, show: render,
     keys() {
-      if (K.L || K.R) { mode = mode === 'quests' ? 'lore' : 'quests'; render(); sfx('ui_page', 0.6); return; }
+      if (K.L || K.R) { const ms = ['quests', 'lore', 'notes']; mode = ms[(ms.indexOf(mode) + (K.L ? 2 : 1)) % 3]; render(); sfx('ui_page', 0.6); return; }
       nav?.keys();
     },
     hints: (h) => { hint(h, 'ui.menu.hintMove', { up: '↑', down: '↓' }); hint(h, 'ui.menu.hintSub', { key: '← →' }); },
@@ -401,6 +433,9 @@ export function createMenu(host, stage, providers) {
     const ke = keycap('E', tabs, 'sm');
     kq.style.pointerEvents = ke.style.pointerEvents = 'auto'; kq.style.cursor = ke.style.cursor = 'pointer';
     kq.addEventListener('click', () => step(-1)); ke.addEventListener('click', () => step(1));
+    // touch: a close mark in the corner (the footer's "back to the journey" does the same)
+    const xb = el('div', 'mv-x mn-close', sheet);
+    xb.addEventListener('click', () => close(true));
     sub = el('div', 'mn-sub', sheet);
     const body = el('div', 'mn-body', sheet);
     const pane = (id) => el('div', 'mn-pane', body);

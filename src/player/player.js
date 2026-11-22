@@ -431,7 +431,8 @@ function readInput(P, S) {
   let wx = fx * I.my + rx * I.mx, wz = fz * I.my + rz * I.mx;
   const l = Math.hypot(wx, wz);
   if (l > 1e-4) { wx /= l; wz /= l; }
-  I.wx = wx; I.wz = wz; I.wish = l > 1e-4 ? 1 : 0;
+  // wish = how hard she is asked to move: 1 for keys (a diagonal too), the stick's length for the touch stick (analog walk)
+  I.wx = wx; I.wz = wz; I.wish = l > 1e-4 ? Math.min(1, l) : 0;
   return I;
 }
 
@@ -505,7 +506,7 @@ function stepGround(dt, P, S, I) {
   // speed
   let maxV = I.sprint ? stats.sprint : stats.walk;
   const r = P.reactor;
-  if (r) { if (r.burning) maxV *= 1.1; if (r.wet > 0) maxV *= 0.95; }
+  if (r) { if (r.burning) maxV *= 1.1; if (r.wet > 0) maxV *= 0.95; if (!r.frozen) maxV *= Math.max(0.4, r.speedMul ?? 1); } // mud / frost fields slow her too
   if (S.wade) maxV *= 0.68;
   if (P.guarding) maxV *= 0.45;
   const air = P.state === 'air' || P.state === 'glide';

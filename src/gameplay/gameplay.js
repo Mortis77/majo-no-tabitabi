@@ -112,7 +112,7 @@ function initShops() {
   for (const id in SHOPS) {
     const S = SHOPS[id];
     const pos = G.world.anchor(S.anchor);
-    G.interact?.add({ pos: pos.clone().setY(pos.y + 1), radius: S.radius || 3, priority: 0, prompt: () => t('gameplay.prompt.shop', { name: t('gameplay.shop.' + id) }), onInteract: () => openShop(id) });
+    G.interact?.add({ pos: pos.clone().setY(pos.y + 1), radius: S.radius || 3, priority: 0, enabled: () => !S.requires || hasFlag(G, S.requires), prompt: () => t('gameplay.prompt.shop', { name: t('gameplay.shop.' + id) }), onInteract: () => openShop(id) });
   }
 }
 
@@ -259,6 +259,7 @@ export const gameplaySystem = {
     G.travelNotes=registerTravelNotes(G);
     PK = createPickups(api);
     PK.init();
+    initShops();
     if (G.ui?.providers) {
       G.ui.providers.mapMarkers = () => [];
       G.ui.providers.items = itemsProvider;

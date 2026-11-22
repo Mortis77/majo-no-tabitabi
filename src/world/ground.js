@@ -1,6 +1,6 @@
 import { TRIAL_LAKE, trialViewHeight, dryTrialHeight, floodedTrialHeight, trialLakeActive, trialLakeContains, changeTrialLake } from './trial-lake.js';
 import { CITY, JOURNEY_ANCHORS, JOURNEY_POI, journeyIndoor } from '../data/journey-map.js';
-import { bellPaving, bellRegion } from '../data/bellcrown.js';
+import { bellPaving, bellRegion, bellLevel } from '../data/bellcrown.js';
 // Ground truth of the world: analytic terrain height, walkable platforms, colliders, regions.
 // Pure logic (no meshes). Everything else — terrain mesh, flora, player physics, AI — queries this module.
 import * as THREE from 'three';
@@ -62,6 +62,12 @@ export function mountainMask(x, z) {
 
 // ---- deformation layer (craters, mounds) --------------------------------------------------------
 // A 2 m grid of height offsets laid over the analytic terrain. Spells dig craters / raise mounds through deform().
+//
+// Every edit is kept as a stamp and replayed in order on load (saves store the stamps, not the grid):
+//   v1 [x, z, r, amount, rim]          legacy saves: replayed exactly as they were made (no guard, no slump)
+//   v2 [x, z, r, amount, rim, flags]   flags: STAMP_GUARD = story places resist (carveGuard), STAMP_SLUMP = walls
+//                                      steeper than a walkable slope slump into the bowl (mass-conserving relaxation)
+// Live deform() calls make v2 stamps (flags default GUARD | SLUMP). Replaying a v2 stamp reproduces the same grid.
 const DG = 2, DHALF = WORLD.half, DN = 1 + 2 * DHALF / DG;
 let deformGrid = null;
 let deformVersion = 0;
@@ -69,6 +75,13 @@ let spellScars = [];
 let restoringScars = false;
 const deformListeners = [];
 export const DEFORM_MIN = -14, DEFORM_MAX = 10;
+export const STAMP_GUARD = 1, STAMP_SLUMP = 2;
+const STAMP_DEFAULT = STAMP_GUARD | STAMP_SLUMP;
+/** Steepest wall magic may leave, as a rise per 2 m grid step: open land ~36°, on and beside paths ~30°. */
+const SLUMP_RISE = 1.45, SLUMP_RISE_ROAD = 1.15, SLUMP_MARGIN = 4, SLUMP_PASSES = 64;
+/** Saves keep at most this many stamps (repeats merged first, then the lightest old ones dropped: the land heals). */
+export const SCAR_SAVE_CAP = 240;
+const SCAR_KEEP_RECENT = 48;
 
 function deformAt(x, z) {
   if (!deformGrid) return 0;
@@ -93,19 +106,95 @@ export function protectionAt(x,z) {
   return smoothstep(10,4,closest);
 }
 
+// Story places that magic must never reshape (on top of protectionAt's wards): the city and its fields, the hometown
+// village, Fran's cottage, her practice clearing and the farewell hill. Every story anchor keeps a wider clear ring.
+const STORY_GUARD = [
+  { x: CITY.x, z: CITY.z - 90, r: 265 },
+  { x: JOURNEY_POI.hometown.x, z: JOURNEY_POI.hometown.z, r: JOURNEY_POI.hometown.r + 12 },
+  { x: JOURNEY_POI.trial.x, z: JOURNEY_POI.trial.z, r: JOURNEY_POI.trial.r + 8 },
+  { x: JOURNEY_POI.farewell.x, z: JOURNEY_POI.farewell.z, r: JOURNEY_POI.farewell.r + 8 },
+  { x: JOURNEY_ANCHORS.franDoor.x, z: JOURNEY_ANCHORS.franDoor.z - 6, r: 26 },
+  ...Object.values(JOURNEY_ANCHORS).map((a) => ({ x: a.x, z: a.z, r: 14 })),
+];
+const GUARD_FADE = 10;
+/** 0..1: how firmly (x,z) refuses to be carved, burnt bare or wrecked by magic (1 = untouchable). */
+export function carveGuard(x, z) {
+  let g = 0;
+  for (let i = 0; i < STORY_GUARD.length; i++) {
+    const s = STORY_GUARD[i], dx = x - s.x, dz = z - s.z, R = s.r + GUARD_FADE;
+    if (dx * dx + dz * dz >= R * R) continue;
+    g = Math.max(g, smoothstep(R, s.r, Math.hypot(dx, dz)));
+    if (g >= 1) return 1;
+  }
+  return g > 0.999 ? 1 : Math.max(g, protectionAt(x, z));
+}
+const guardNear = (x, z, R) => STORY_GUARD.some((s) => Math.hypot(x - s.x, z - s.z) < R + s.r + GUARD_FADE);
+
+// slump scratch (reused between calls)
+let slBase = new Float32Array(0), slLim = new Float32Array(0), slLock = new Uint8Array(0);
+/**
+ * Let over-steep walls slide into the bowl: wherever magic made the ground between two neighbouring grid points rise
+ * more than the walkable limit (and more than the land did by itself), half the excess deform moves from the high point
+ * to the low one. Mass-conserving, deterministic (fixed order), warded points never move.
+ */
+function slump(ix0, ix1, iz0, iz1, guarded, roadsNear) {
+  const W = ix1 - ix0 + 1, H = iz1 - iz0 + 1, n = W * H;
+  if (slBase.length < n) { slBase = new Float32Array(n); slLim = new Float32Array(n); slLock = new Uint8Array(n); }
+  const g = deformGrid;
+  for (let iz = iz0, k = 0; iz <= iz1; iz++) for (let ix = ix0; ix <= ix1; ix++, k++) {
+    const wx = ix * DG - DHALF, wz = iz * DG - DHALF;
+    slBase[k] = baseHeightAt(wx, wz);
+    slLim[k] = roadsNear && roadDist(wx, wz) < 5 ? SLUMP_RISE_ROAD : SLUMP_RISE;
+    slLock[k] = (guarded ? carveGuard(wx, wz) : protectionAt(wx, wz)) >= 0.999 ? 1 : 0;
+  }
+  const pair = (ka, kb, ia, ib, span) => {
+    if (slLock[ka] || slLock[kb]) return 0;
+    const ga = g[ia], gb = g[ib];
+    if (ga === 0 && gb === 0) return 0;
+    const ba = slBase[ka], bb = slBase[kb];
+    const dh = ba + ga - bb - gb;
+    const lim = Math.max(Math.min(slLim[ka], slLim[kb]) * span, Math.abs(ba - bb));
+    const ex = Math.abs(dh) - lim;
+    if (ex <= 1e-3) return 0;
+    const t = dh > 0 ? ex * 0.5 : -ex * 0.5;
+    g[ia] = clamp(ga - t, DEFORM_MIN, DEFORM_MAX); g[ib] = clamp(gb + t, DEFORM_MIN, DEFORM_MAX);
+    return 1;
+  };
+  let passes = 0;
+  for (; passes < SLUMP_PASSES; passes++) {
+    let moved = 0;
+    for (let iz = iz0, k = 0; iz <= iz1; iz++) for (let ix = ix0; ix <= ix1; ix++, k++) {
+      const i = iz * DN + ix;
+      if (ix < ix1) moved += pair(k, k + 1, i, i + 1, 1);
+      if (iz < iz1) {
+        moved += pair(k, k + W, i, i + DN, 1);
+        if (ix < ix1) moved += pair(k, k + W + 1, i, i + DN + 1, Math.SQRT2);   // diagonals: no steep stair between cells
+        if (ix > ix0) moved += pair(k, k + W - 1, i, i + DN - 1, Math.SQRT2);
+      }
+    }
+    if (!moved) break;
+  }
+  return passes;
+}
+
 /**
  * Reshape the ground. amount < 0 digs a bowl |amount| metres deep at the centre; amount > 0 raises a mound.
  * opts.rim (default 0.22): for craters, the fraction of the depth thrown up as a raised lip just outside r.
- * Warded ground (protectionAt) resists. The total offset anywhere is clamped to [DEFORM_MIN, DEFORM_MAX].
- * Returns { x, z, r, x0, x1, z0, z1 } (the touched rectangle, world metres) or null if nothing changed.
- * Listeners registered through onDeform() (terrain mesh, physics, flora) are notified; G.events also gets 'terrain:deformed'.
+ * opts.flags (default STAMP_GUARD | STAMP_SLUMP): story places resist (carveGuard), over-steep walls slump to a slope
+ * she can walk out of. Warded ground (protectionAt) always resists. The total offset anywhere is clamped to
+ * [DEFORM_MIN, DEFORM_MAX]. Returns { x, z, r, x0, x1, z0, z1 } (the touched rectangle, world metres) or null if nothing
+ * changed. Listeners registered through onDeform() (terrain mesh, physics, flora) are notified; G.events also gets
+ * 'terrain:deformed'.
  */
 export function deform(x, z, r, amount, opts = {}) {
   const rim = opts.rim ?? 0.22;
+  const legacy = opts.legacy === true;            // a v1 stamp from an old save: exactly the old maths
+  const flags = legacy ? 0 : (opts.flags ?? STAMP_DEFAULT) & 3;
   const R = amount < 0 ? r * 1.45 : r;
   const ix0 = Math.max(0, Math.floor((x - R + DHALF) / DG)), ix1 = Math.min(DN - 1, Math.ceil((x + R + DHALF) / DG));
   const iz0 = Math.max(0, Math.floor((z - R + DHALF) / DG)), iz1 = Math.min(DN - 1, Math.ceil((z + R + DHALF) / DG));
   if (ix0 > ix1 || iz0 > iz1) return null;
+  const guarded = (flags & STAMP_GUARD) !== 0 && guardNear(x, z, R);
   let changed = false;
   for (let iz = iz0; iz <= iz1; iz++) {
     for (let ix = ix0; ix <= ix1; ix++) {
@@ -116,7 +205,7 @@ export function deform(x, z, r, amount, opts = {}) {
       if (d < r) { const k = 1 - (d / r) * (d / r); delta = amount * k * k; }
       else { const k = (d - r) / (R - r); delta = -amount * rim * Math.sin(Math.PI * k) * (1 - k * 0.5); } // lip (craters only)
       if (amount > 0 && d >= r) continue;
-      const prot = protectionAt(wx, wz);
+      const prot = guarded ? carveGuard(wx, wz) : protectionAt(wx, wz);
       if (prot >= 1) continue;
       delta *= 1 - prot;
       if (Math.abs(delta) < 0.01) continue;
@@ -127,26 +216,54 @@ export function deform(x, z, r, amount, opts = {}) {
     }
   }
   if (!changed) return null;
-  spellScars.push([x, z, r, amount, rim]);
+  let jx0 = ix0, jx1 = ix1, jz0 = iz0, jz1 = iz1;
+  if (flags & STAMP_SLUMP) {
+    jx0 = Math.max(0, ix0 - SLUMP_MARGIN); jx1 = Math.min(DN - 1, ix1 + SLUMP_MARGIN);
+    jz0 = Math.max(0, iz0 - SLUMP_MARGIN); jz1 = Math.min(DN - 1, iz1 + SLUMP_MARGIN);
+    slump(jx0, jx1, jz0, jz1, guarded, roadDist(x, z) < R + 2 * SLUMP_MARGIN * DG + 6);
+  }
+  spellScars.push(legacy ? [x, z, r, amount, rim] : [x, z, r, amount, rim, flags]);
   deformVersion++;
-  const e = { kind: restoringScars ? 'restoreSpell' : 'spell', x, z, r: R, amount, x0: ix0 * DG - DHALF, x1: ix1 * DG - DHALF, z0: iz0 * DG - DHALF, z1: iz1 * DG - DHALF, version: deformVersion };
+  const e = { kind: restoringScars ? 'restoreSpell' : 'spell', x, z, r: R, amount, x0: jx0 * DG - DHALF, x1: jx1 * DG - DHALF, z0: jz0 * DG - DHALF, z1: jz1 * DG - DHALF, version: deformVersion, source: opts.source ?? null, legacy };
   for (const fn of deformListeners) { try { fn(e); } catch (err) { console.error('[deform listener]', err); } }
   return e;
 }
-// A cast is five numbers in the save. Replaying them in order reproduces the
-// same clamped 2 m grid, including overlapping craters and their raised lips.
-export function saveSpellScars() { return spellScars.map(stamp => stamp.slice()); }
+const validStamp = (s) => Array.isArray(s) && (s.length === 5 || (s.length === 6 && Number.isInteger(s[5]) && s[5] >= 0 && s[5] <= 3)) &&
+  s.every(Number.isFinite) && Math.abs(s[0]) <= DHALF && Math.abs(s[1]) <= DHALF &&
+  s[2] > 0 && s[2] <= 120 && Math.abs(s[3]) <= 60 && s[4] >= 0 && s[4] <= 2;
+const stampWeight = (s, i, n) => Math.abs(s[3]) * s[2] * s[2] * (s.length === 5 ? 4 : 1) * (0.35 + i / n);
+/**
+ * The stamps to persist. A cast is a few numbers in the save; replaying them in order reproduces the same clamped 2 m
+ * grid, including overlapping craters and their raised lips. Bounded: v2 repeats at the same spot (same x, z, r, rim,
+ * flags and sign) are merged into the first one, and beyond SCAR_SAVE_CAP the lightest older stamps are left out (the
+ * newest SCAR_KEEP_RECENT always stay): small old scars heal while she is away.
+ */
+export function saveSpellScars() {
+  const out = [], seen = new Map();
+  for (const s of spellScars) {
+    if (s.length === 6) {
+      const k = s[0] + ',' + s[1] + ',' + s[2] + ',' + s[4] + ',' + s[5] + (s[3] < 0 ? '-' : '+');
+      const j = seen.get(k);
+      if (j !== undefined && Math.abs(out[j][3] + s[3]) <= 60) { out[j][3] = Math.round((out[j][3] + s[3]) * 1000) / 1000; continue; }
+      seen.set(k, out.length);
+    }
+    out.push(s.slice());
+  }
+  if (out.length <= SCAR_SAVE_CAP) return out;
+  const n = out.length, older = Math.max(0, n - SCAR_KEEP_RECENT);
+  const order = Array.from({ length: older }, (_, i) => i).sort((a, b) => stampWeight(out[a], a, n) - stampWeight(out[b], b, n) || a - b);
+  const gone = new Set(order.slice(0, n - SCAR_SAVE_CAP));
+  return out.filter((_, i) => !gone.has(i));
+}
 export function restoreSpellScars(saved) {
-  const stamps = Array.isArray(saved) ? saved.filter(s => Array.isArray(s) && s.length === 5 &&
-    s.every(Number.isFinite) && Math.abs(s[0]) <= DHALF && Math.abs(s[1]) <= DHALF &&
-    s[2] > 0 && s[2] <= 120 && Math.abs(s[3]) <= 60 && s[4] >= 0 && s[4] <= 2) : [];
+  const stamps = Array.isArray(saved) ? saved.filter(validStamp) : [];
   const prefix = spellScars.length <= stamps.length &&
-    spellScars.every((s,i) => s.every((v,j) => v === stamps[i][j]));
+    spellScars.every((s,i) => s.length === stamps[i].length && s.every((v,j) => v === stamps[i][j]));
   if (!prefix) {
     const old=spellScars;
     spellScars=[]; deformGrid=null;
-    for (const [x,z,radius,depth] of old) {
-      const r=radius*(depth<0 ? 1.45 : 1);
+    for (const [x,z,radius,depth,, flags] of old) {
+      const r=radius*(depth<0 ? 1.45 : 1) + ((flags ?? 0) & STAMP_SLUMP ? SLUMP_MARGIN * DG : 0);
       const e={kind:'resetSpell',x,z,r,amount:0,x0:x-r,x1:x+r,z0:z-r,z1:z+r,version:++deformVersion};
       for (const listener of deformListeners) listener(e);
     }
@@ -155,11 +272,14 @@ export function restoreSpellScars(saved) {
   restoringScars=true;
   try {
     for(let i=start;i<stamps.length;i++){
-      const [x,z,r,amount,rim]=stamps[i];
-      deform(x,z,r,amount,{rim});
+      const s=stamps[i];
+      if (s.length === 5) deform(s[0],s[1],s[2],s[3],{rim:s[4],legacy:true});
+      else deform(s[0],s[1],s[2],s[3],{rim:s[4],flags:s[5]});
     }
   } finally {restoringScars=false;}
 }
+/** Live stamps (read-only view for the destruction system: grass feed, stats). */
+export function spellScarList() { return spellScars; }
 /** Subscribe to ground reshaping. fn({ x, z, r, amount, x0, x1, z0, z1, version }). */
 export function onDeform(fn) { deformListeners.push(fn); }
 /** Net height offset currently applied at (x,z) by deformation (0 on untouched ground). */
@@ -223,11 +343,7 @@ export function baseHeightAt(x, z) {
     const dx=x-f.x,dz=z-f.z;const reach=f.r+f.blend;
     if(Math.abs(dx)<reach && Math.abs(dz)<reach)h=lerp(h,f.h,smoothstep(reach,f.r,Math.hypot(dx,dz)));
   }
-  const dx=x-CITY.x,dz=z-CITY.z;
-  if(Math.abs(dx)<159 && Math.abs(dz)<128) {
-    const edge = Math.max(Math.abs(dx)-122,dz-67+.0036*dx*dx,-dz-96+.0015*dx*dx);
-    h=lerp(h,CITY.y,smoothstep(25,1,edge));
-  }
+  h=bellLevel(x,z,h); // the Land of Mages plateau and its raised core (data/bellcrown.js)
   return trialViewHeight(x,z,dryTrialHeight(x,z,h),false);
 }
 
@@ -452,7 +568,7 @@ export const world = {
   WORLD, VEIL, POI, ANCHORS, ROADS, RIVERS, BRIDGES, SKY_ISLES, STONE_LANTERNS, GREAT_LANTERNS, MOUNTAIN, MOAT,
   seaLevel: SEA_LEVEL, SUN_DIR,
   heightAt, baseHeightAt, normalAt, slopeAt, groundAt, ceilingAt, slabAt, raycastGround, isWater, sample, isReserved,
-  deform, onDeform, deformOffsetAt, protectionAt, saveSpellScars, restoreSpellScars,
+  deform, onDeform, deformOffsetAt, protectionAt, carveGuard, saveSpellScars, restoreSpellScars, spellScarList,
   trialLake:TRIAL_LAKE, setTrialLake, trialLakeActive, trialLakeContains,
   /** True where the land is fully warded (no ground fire, no craters). */
   isProtected(x, z) { return protectionAt(x, z) >= 0.999; },

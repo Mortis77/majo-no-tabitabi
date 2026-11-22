@@ -5,6 +5,7 @@ import { K, el, tel, fmtTime, hintLine, pushModal, popModal, sfx, codeLabel, not
 import { icon } from './icons.js';
 import { addCss } from './style.js';
 import { navList, openSheet, confirmBox } from './panels.js';
+import { isIOS, standalone } from './touchenv.js';
 
 addCss(`
 .mv-title {pointer-events:auto;opacity:0;transition:opacity .55s;color:#fff7e6;background:#4d6271 url("assets/textures/journey/magic-country-title.webp") center 45% / cover no-repeat;}
@@ -29,6 +30,20 @@ addCss(`
 .tt-foot,.tt-ver {position:absolute;bottom:3.8%;font:13u/1.4 var(--fb);color:#eadfcb;}
 .tt-foot {left:7.4%;}
 .tt-ver {right:4%;}
+.tt-ios {display:none;position:absolute;left:7.4%;bottom:calc(3.8% + 22u);max-width:520u;font:13u/1.5 var(--fb);color:#f6e7c9;opacity:.85;}
+.mv-ui.touch .mv-title.ready .tt-ios.on {display:block;}
+/* phones and tablets: a smaller name higher up, the menu under it, notches kept clear */
+.mv-ui.compact .tt-name,.mv-ui.compact .tt-menu,.mv-ui.compact .tt-load,.mv-ui.compact .tt-foot,.mv-ui.compact .tt-ios {left:calc(6% + env(safe-area-inset-left,0px));}
+.mv-ui.compact .tt-ver {right:calc(4% + env(safe-area-inset-right,0px));}
+.mv-ui.compact .tt-name {bottom:57%;padding-bottom:18u;}
+.mv-ui.compact .tt-name .nm {font-size:64u;}
+.mv-ui.compact .tt-name .tag {margin-top:10u;font-size:16u;}
+.mv-ui.compact .tt-menu {top:46%;}
+.mv-ui.compact .tt-menu .btn {min-height:40u;font-size:20u;padding:6u 18u;}
+.mv-ui.compact .tt-menu .info {margin:0 0 4u 50u;}
+.mv-ui.compact .tt-load {bottom:calc(9% + env(safe-area-inset-bottom,0px));}
+.mv-ui.compact .tt-foot,.mv-ui.compact .tt-ver {bottom:calc(3% + env(safe-area-inset-bottom,0px));}
+.mv-ui.compact .tt-ios {bottom:calc(3% + 20u + env(safe-area-inset-bottom,0px));}
 `);
 
 export function createTitle(root, stage) {
@@ -69,8 +84,13 @@ export function createTitle(root, stage) {
     add('controls', 'journal', 'ui.title.controls');
 
     const foot = el('div', 'tt-foot', R);
-    const paintFoot = () => hintLine(foot, 'ui.title.hint', { up: '↑', down: '↓', ok: codeLabel('Enter') });
+    // keys on a desktop; on a touch screen just "tap where you want to go"
+    const paintFoot = () => { if (G.input?.touch) foot.textContent = t('ui.touch.titleHint'); else hintLine(foot, 'ui.title.hint', { up: '↑', down: '↓', ok: codeLabel('Enter') }); };
     paintFoot();
+    // iPhone Safari cannot go fullscreen from a page: say how (home-screen launch) once, quietly
+    const ios = tel('div', 'tt-ios', R, 'ui.touch.ios');
+    ios.classList.toggle('on', isIOS() && !standalone() && !document.fullscreenElement && !document.webkitFullscreenElement && !(G.params && G.params.autostart));
+    const offRebound = G.events.on('input:rebound', paintFoot);
     tel('div', 'tt-ver', R, 'ui.title.version', { v: G.version });
 
     // boot (docs/api/perf.md "Boot and loading"): the title can open while the world still loads behind it; then
@@ -115,6 +135,7 @@ export function createTitle(root, stage) {
       popModal(modal);
       await stage.fade(1, 0.55, '#07060e');
       R.remove();
+      offRebound?.();
       const o = open; open = null;
       o.resolve(id);
     }

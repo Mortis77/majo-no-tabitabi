@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { G } from '../core/game.js';
 import { PAL } from '../core/mats.js';
 import { clamp } from '../core/util.js';
+import { affixEvent } from './wards.js';
 
 const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _d = new THREE.Vector3();
 export const DARK = 0x8a3cff;
@@ -44,7 +45,13 @@ export function campK(e) { return e && e.camp && !e.boss ? CAMP_K : 1; }
 export function hurtPlayer(e, amount, o = {}) {
   if (!playerAlive()) return 0;
   const m = e ? (e.atkMul ?? 1) * campK(e) : 1;
-  return G.player.takeDamage?.(Math.round(amount * m), { element: o.element, from: o.from || (e ? e.pos : null), knock: o.knock ?? 0, source: e }) || 0;
+  let a = Math.round(amount * m);
+  // ambushers want the purse, not her life: they never take her below their mercy floor
+  if (e && e.mercyFloor != null) a = Math.min(a, Math.max(0, Math.floor(G.player.hp - e.mercyFloor)));
+  if (!(a > 0)) return 0;
+  const dealt = G.player.takeDamage?.(a, { element: o.element, from: o.from || (e ? e.pos : null), knock: o.knock ?? 0, source: e }) || 0;
+  if (dealt > 0 && e) { e._hitPlayerT = G.time.t; if (e.affixes) affixEvent(e, 'onHitPlayer'); }
+  return dealt;
 }
 
 /** Melee: hits if the player is in the arc. */

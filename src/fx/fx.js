@@ -26,6 +26,8 @@ import { Ambient } from './ambient.js';
 import { Shapes } from './shapes.js';
 import { makeKit } from './kit.js';
 import { installMagic } from './magic.js';
+import { Circles, makeCircleTexture, CIRCLE, WARD, BURST } from './circles.js';
+import { installDuel } from './duel.js';
 import { clamp, smoothstep, TAU } from '../core/util.js';
 
 const GLOW_CAP = 4600, SOFT_CAP = 3400;          // 8000 particles in all (DESIGN §8)
@@ -55,6 +57,18 @@ function hexOf(c) {
 /** linear THREE.Color from hex (scratch `out`). */
 const lin = (hex, out = _c) => out.setHex(hex);
 
+/** Pale tint for the crisp lines of a circle (its colour lifted toward white). */
+function coreOf(hex) { return _c2.setHex(hex).lerp(_c.setRGB(1, 1, 1), 0.6).getHex(); }
+// one scratch options object for ground circles (circles.add reads it at once)
+const CO = { pos: null, normal: null, ref: null, radius: 1, color: 0, core: 0, intensity: 1.4, spin: 0.8, layers: 15, dur: 1, outDur: 0.3, out: 'fade',
+  draw: 0.3, style: CIRCLE, fill: 1, delay: 0, handle: false, charge: -1, tracked: false };
+function circleOpts(pos, normal, radius, hex, dur, I, spin, delay = 0, tracked = false) {
+  CO.pos = pos; CO.normal = normal; CO.ref = null; CO.radius = radius; CO.color = hex; CO.core = coreOf(hex); CO.intensity = I; CO.spin = spin;
+  CO.layers = radius < 1.2 ? 13 : 15; CO.dur = Math.max(0.1, dur); CO.outDur = Math.min(0.45, CO.dur * 0.3); CO.out = 'fade';
+  CO.draw = Math.min(0.4, Math.max(0.12, CO.dur * 0.28)); CO.style = CIRCLE; CO.fill = 1; CO.delay = delay; CO.handle = false; CO.charge = -1; CO.tracked = tracked;
+  return CO;
+}
+
 function warnOnce(kind, name) {
   const k = kind + ':' + name;
   if (warned.has(k)) return;
@@ -64,7 +78,7 @@ function warnOnce(kind, name) {
 
 // ---- the system ---------------------------------------------------------------------------------------------------
 let now = 0;
-let pools, ribbons, bolts, decals, lights, texts, ambient, R, shapes, K;
+let pools, ribbons, bolts, decals, lights, texts, ambient, R, shapes, K, circles;
 const emitters = [];       // live handles
 const laterQ = [];         // pooled delayed bursts
 const beams = [];          // live beam handles
@@ -82,6 +96,7 @@ function groundY(x, z, y) {
   if (!W) return y;
   return W.groundAt ? W.groundAt(x, z, y + 0.5) : W.heightAt(x, z);
 }
+const groundAtXZ = (x, z) => G.world.groundAt(x, z);
 function windAt(x, y, z, out) {
   const el = G.elements;
   if (el?.windAt) {
@@ -127,6 +142,16 @@ const X = {
   E,
   get K() { return K; },
   get combustion() { return api.magic?.combustion; },
+  get magic() { return api.magic; },
+  get duel() { return api.duel; },
+  /** unit vector from the current burst centre toward the camera (out) */
+  toCam(out) { const cp = G.camera.position; out.set(cp.x - ctx.x, cp.y - ctx.y, cp.z - ctx.z); const l = out.length(); return l > 1e-4 ? out.divideScalar(l) : out.set(0, 1, 0); },
+  /** vfx: a camera-facing starburst at the burst centre (circles.js BURST) */
+  star(radius, hex, dur = 0.3, delay = 0) {
+    if (E.dist > 120 || E.k < 0.12) return;
+    _v2.set(ctx.x, ctx.y, ctx.z);
+    circles.add({ pos: _v2, normal: UP, radius, color: hex, core: 0xffffff, intensity: 1.5, dur, outDur: dur * 0.75, out: 'fade', style: BURST, delay });
+  },
   fireLight(p) {
     if (G.quality?.particles >= 0.6 && p.pos.distanceToSquared(G.camera.position) < 45 * 45) lights.trackProjectile(p, lin(0xff7527));
   },
@@ -150,7 +175,15 @@ const X = {
   // final-duel: power no longer pushes ground rings / discs past the displayable range (big impacts flooded the ground)
   ring(radius, hex, dur, delay = 0) { X._decal(RING, radius, hex, dur, 1.8 * Math.min(1.2, Math.sqrt(E.power)), delay, 0.16, 0); },
   disc(radius, hex, dur, I = 1) { X._decal(DISC, radius, hex, dur, I * Math.min(1.2, E.power), 0, 0, 0); },
-  sigil(radius, hex, dur, I = 1) { X._decal(SIGIL, radius, hex, dur, I, 0, Math.random() * TAU, 0.7); },
+  sigil(radius, hex, dur, I = 1) {   // vfx: the layered rune circle (circles.js) instead of the flat sigil decal
+    const c = ctx;
+    let y = c.y, nx = c.nx, ny = c.ny, nz = c.nz;
+    if (E.grounded) { y = groundY(c.x, c.z, y) + 0.07; nx = 0; ny = 1; nz = 0; }
+    _v2.set(c.x, y, c.z); _w.set(nx, ny, nz);
+    circles.add(circleOpts(_v2, _w, radius * E.scale, hex, dur, I * 1.3, 0.7, c.delay));
+  },
+  /** circle at the burst centre facing the normal (or flat on the ground when grounded) — recipes use it */
+  circle(o) { if (E.dist > 140) return null; o.pos = o.pos || _v2.set(ctx.x, ctx.y, ctx.z); return circles.add(o); },
   light(hex, intensity, dur, distance) {
     if (E.dist > 160) return;
     const s = E.scale;
@@ -203,7 +236,12 @@ class Emitter {
     this.removed = false;
   }
   stop() { this.active = false; this.dropShapes(); }
-  dropShapes() { if (this.shapes) { for (const h of this.shapes) h?.kill?.(0.2); this.shapes = null; } }
+  dropShapes() {
+    if (this.shapes) { for (const h of this.shapes) h?.kill?.(0.2); this.shapes = null; }
+    // vfx: held circles (a charge) linger a moment so a cast can flare them, then fold away; gusts stop
+    if (this.circles) { for (const h of this.circles) api.magic?.lingerCircle?.(h) || h?.release?.('collapse', 0.22); this.circles = null; }
+    if (this.gust) { this.gust.remove?.(); this.gust = null; }
+  }
   remove() { this.active = false; this.dropShapes(); if (!this.removed) { this.removed = true; const i = emitters.indexOf(this); if (i >= 0) emitters.splice(i, 1); } }
 }
 
@@ -295,7 +333,7 @@ const api = {
     opts = opts || NO;
     const h0 = hexOf(opts.color ?? 0xfff3c4), h1 = hexOf(opts.color2 ?? opts.color ?? 0xffd27a);
     lin(h0 < 0 ? 0xfff3c4 : h0, _c); lin(h1 < 0 ? 0xffd27a : h1, _c2);
-    const st = opts.style === 'band' ? 1 : opts.style === 'streaks' ? 2 : typeof opts.style === 'number' ? opts.style : 0;
+    const st = opts.style === 'band' ? 1 : opts.style === 'streaks' ? 2 : opts.style === 'comet' ? 3 : typeof opts.style === 'number' ? opts.style : 0;
     const tr = ribbons.create(_c, _c2, opts.width ?? 0.35, opts.life ?? 0.45, opts.add ?? 1, opts.intensity ?? 2.2, opts.taper ?? 1, st);
     if (!tr) return NULL_TRAIL;
     if (opts.pos) tr.push(opts.pos);
@@ -311,13 +349,52 @@ const api = {
       opts.intensity ?? 1.8, 0, opts.thickness ?? 0.16, opts.tracked);
   },
 
-  /** Spinning magic circle on the ground (extra). opts { color, radius, dur, intensity, y } */
+  /** Spinning magic circle on the ground (extra). opts { color, radius, dur, intensity, spin, y, tracked } — vfx: drawn as the
+   *  layered rune circle (circles.js): it draws itself on, turns layer against layer and fades. tracked → a kill function. */
   sigil(pos, opts = NO) {
     if (!pos) return;
     opts = opts || NO;
-    const hex = hexOf(opts.color ?? 0xffd98a);
-    const y = opts.y ?? groundY(pos.x, pos.z, pos.y) + 0.06;
-    return decals.add(SIGIL, pos.x, y, pos.z, 0, 1, 0, lin(hex < 0 ? 0xffd98a : hex), opts.radius ?? 2, now, opts.dur ?? 1.5, opts.intensity ?? 1, opts.spin ?? 0.7, Math.random() * TAU, opts.tracked);
+    const h0 = hexOf(opts.color ?? 0xffd98a), hex = h0 < 0 ? 0xffd98a : h0;
+    _v2.set(pos.x, opts.y ?? groundY(pos.x, pos.z, pos.y) + 0.07, pos.z);
+    const r = circles.add(circleOpts(_v2, UP, opts.radius ?? 2, hex, opts.dur ?? 1.5, (opts.intensity ?? 1) * 1.3, (opts.spin ?? 0.7) * 1.1, 0, !!opts.tracked));
+    return opts.tracked ? (typeof r === 'function' ? r : () => {}) : undefined;
+  },
+
+  /**
+   * vfx: a layered magic circle anywhere, facing `normal` (default up). opts { normal | dir, ref, radius = 1, color (hex / element),
+   * core, intensity = 1.4, spin = 0.9, layers (mask: 1 outer band, 2 star, 4 inner ring, 8 core; 15 = all), dur = 0.8,
+   * outDur, out: 'flare' | 'collapse' | 'fade', draw (seconds to draw on), fill, delay, handle, charge (0..1, held only), ground (bool:
+   * flat on the ground below pos), tracked }. Returns a handle { pos, normal, radius, charge, release(style, dur), kill(),
+   * setColor(), setIntensity(), setLayers(), alive } with opts.handle, a kill function with opts.tracked, else true; null when full.
+   */
+  circle(pos, opts = NO) {
+    if (!pos || !circles) return null;
+    opts = opts || NO;
+    const h0 = hexOf(opts.color ?? 0xffd98a), hex = h0 < 0 ? 0xffd98a : h0;
+    const n = opts.normal || opts.dir || UP;
+    let p = pos;
+    if (opts.ground) { p = _v2.set(pos.x, groundY(pos.x, pos.z, pos.y) + 0.07, pos.z); }
+    try {
+      return circles.add({ pos: p, normal: opts.ground ? UP : n, ref: opts.ref, radius: opts.radius ?? 1, color: hex, core: opts.core ?? coreOf(hex),
+        intensity: opts.intensity ?? 1.4, spin: opts.spin ?? 0.9, layers: opts.layers ?? 15, dur: opts.dur ?? 0.8, outDur: opts.outDur, out: opts.out ?? 'flare',
+        draw: opts.draw ?? 0.22, style: CIRCLE, fill: opts.fill ?? 1, delay: opts.delay, handle: !!opts.handle, charge: opts.charge, tracked: opts.tracked });
+    } catch (e) { G.reportError('fx.circle', e); return null; }
+  },
+  /** vfx: hexagonal shield-lattice flash facing `normal` (a guard taking a blow). opts { radius = 1.4, color, core, intensity = 1.6, dur = 0.32 } */
+  ward(pos, normal, opts = NO) {
+    if (!pos || !circles) return;
+    opts = opts || NO;
+    const h0 = hexOf(opts.color ?? 0xffd98a), hex = h0 < 0 ? 0xffd98a : h0;
+    circles.add({ pos, normal: normal || UP, radius: opts.radius ?? 1.4, color: hex, core: opts.core ?? coreOf(hex), intensity: opts.intensity ?? 1.6,
+      dur: opts.dur ?? 0.32, outDur: (opts.dur ?? 0.32) * 0.7, out: 'fade', style: WARD, delay: opts.delay });
+  },
+  /** vfx: camera-facing starburst (perfect parry, decisive hit). opts { radius = 2, color, core, intensity = 1.6, dur = 0.34, delay } */
+  starburst(pos, opts = NO) {
+    if (!pos || !circles) return;
+    opts = opts || NO;
+    const h0 = hexOf(opts.color ?? 0xfff0c0), hex = h0 < 0 ? 0xfff0c0 : h0;
+    circles.add({ pos, normal: UP, radius: opts.radius ?? 2, color: hex, core: opts.core ?? 0xffffff, intensity: opts.intensity ?? 1.6,
+      dur: opts.dur ?? 0.34, outDur: (opts.dur ?? 0.34) * 0.75, out: 'fade', style: BURST, delay: opts.delay });
   },
 
   beam(opts = NO) {
@@ -335,10 +412,14 @@ const api = {
     const hex0 = hexOf(opts.color ?? 0xc9a0ff), hex = hex0 < 0 ? 0xc9a0ff : hex0;
     const dur = opts.dur ?? 0.28, br = opts.branches ?? 3, w = opts.width ?? 0.36;
     lin(hex);
+    // vfx: the channel glows on after the strike and cools away (opts.afterglow 0..1; short arcs get a little)
+    bolts.after = clamp(opts.afterglow ?? (dur >= 0.2 ? 0.6 : 0.2), 0, 1);
     bolts.bolt(from.x, from.y, from.z, to.x, to.y, to.z, _c, w, opts.intensity ?? 1.6, now, dur, br);
     if (opts.groundRadius > 0 && G.world && Math.abs(to.y - G.world.groundAt(to.x, to.z)) < .85) {
-      bolts.ground(to, opts.groundRadius, _c, now + .035, (x,z) => G.world.groundAt(x,z), Math.min(8, br + 1));
+      bolts.after *= 0.7;
+      bolts.ground(to, opts.groundRadius, _c, now + .035, groundAtXZ, Math.min(8, br + 1));
     }
+    bolts.after = 0;
     if (opts.impact !== false) {
       prime(to, NO, false);
       ctx.c0 = hex; E.color = hex;
@@ -377,7 +458,7 @@ const api = {
 
   /** Kill everything on screen (scene changes, tests). */
   clear() {
-    pools[0].clear(); pools[1].clear(); decals.clear(); shapes.clear(); api.magic?.clear?.(); texts.clear(); lights.clear(); ribbons.clear();
+    pools[0].clear(); pools[1].clear(); decals.clear(); shapes.clear(); circles.clear(); api.magic?.clear?.(); api.duel?.clear?.(); texts.clear(); lights.clear(); ribbons.clear();
     for (const b of beams) { bolts.freeBeam(b.slot); b.removed = true; }
     beams.length = 0;
     for (const it of laterQ) it.on = false;
@@ -389,7 +470,7 @@ const api = {
     return {
       glow: pools[0].live(now), soft: pools[1].live(now), live: pools[0].live(now) + pools[1].live(now), cap: GLOW_CAP + SOFT_CAP,
       trails: ribbons.activeCount, beams: beams.length, bolts: bolts.live(now) - beams.length, decals: decals.live(now),
-      lights: lights.active, emitters: emitters.length, shapes: shapes.live, texts: texts.live(now), time: +now.toFixed(2),
+      lights: lights.active, emitters: emitters.length, shapes: shapes.live, circles: circles.live(now), texts: texts.live(now), time: +now.toFixed(2),
       spawned: pools[0].spawned + pools[1].spawned,
     };
   },
@@ -535,13 +616,14 @@ function flushAll() {
   if (!pools) return;
   pools[0].flush(); pools[1].flush();
   shapes.update(now, 0, G.camera.position);
-  ribbons.mesh.onBeforeRender(); bolts.mesh.onBeforeRender(); decals.mesh.onBeforeRender();
+  circles.update(now);
+  ribbons.mesh.onBeforeRender(); bolts.mesh.onBeforeRender(); decals.mesh.onBeforeRender(); circles.flush();
   texts.flush();
 }
 
 function rebase() {
   const d = REBASE_BY;
-  pools[0].rebase(d); pools[1].rebase(d); shapes.rebase(d); api.magic?.rebase?.(d); ribbons.rebase(d); bolts.rebase(d); decals.rebase(d); texts.rebase(d);
+  pools[0].rebase(d); pools[1].rebase(d); shapes.rebase(d); circles.rebase(d); api.magic?.rebase?.(d); ribbons.rebase(d); bolts.rebase(d); decals.rebase(d); texts.rebase(d);
   for (const it of laterQ) it.at -= d;
   for (const h of emitters) h.tick -= d;
   for (const b of beams) { b.lastLight -= d; b.tick -= d; }
@@ -562,13 +644,14 @@ export const fxSystem = {
     texts = new FloatText(60);
     ambient = new Ambient(pools);
     shapes = new Shapes(G.quality?.particles < 0.6 ? 96 : 192, 22);
+    circles = new Circles(G.quality?.particles < 0.6 ? 24 : 40, makeCircleTexture(512), 24);
     K = makeKit({
       add: (o) => { try { return shapes.add(o, now); } catch (e) { G.reportError('fx.kit', e); return null; } },
       ground: (x, z, y) => groundY(x, z, y),
       quality: () => Math.min(1, G.quality?.particles ?? 1),
     });
     R = makeRecipes(X);
-    G.scene.add(decals.mesh, shapes.mesh, pools[SOFT].mesh, ribbons.mesh, pools[GLOW].mesh, bolts.mesh, texts.mesh);
+    G.scene.add(decals.mesh, shapes.mesh, circles.mesh, pools[SOFT].mesh, ribbons.mesh, pools[GLOW].mesh, bolts.mesh, texts.mesh);
     api.ambient = ambient;
     api._atlas = atlas; api._sigil = sigil;
     G.fx = api;
@@ -577,6 +660,7 @@ export const fxSystem = {
     scene.onBeforeRender = function (...a) { if (prev) prev.apply(this, a); flushAll(); };
     G.events.on('mode:changed', ({ mode }) => { if (mode === 'title') api.clear(); });
     api.magic = installMagic(G, api, X);
+    api.duel = installDuel(G, api, X);
   },
 
   start() { api.clear(); },
@@ -585,6 +669,8 @@ export const fxSystem = {
     now += dt;
     if (now > REBASE_AT) rebase();
     shared.uTime.value = now; texts.uTime.value = now;
+    circles.update(now);
+    circles.material.uniforms.uGain.value = 1 - 0.3 * Math.min(1, Math.max(0, G.env?.veil ?? 0));
     ribbons.update(now, dt);
     lights.update(dt);
     bolts.releaseExpired(now);
@@ -603,6 +689,7 @@ export const fxSystem = {
     runBeams(dt);
     if (dt > 0) shapes.update(now, dt, G.camera.position);
     api.magic?.update?.(dt, now);
+    api.duel?.update?.(dt, rdt, now);
   },
 
   lateUpdate() { flushAll(); },

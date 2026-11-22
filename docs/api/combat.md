@@ -150,3 +150,85 @@ Screenshots: .tmp/play/combat-t1 … combat-t8.
   and per animal kind (`wildlife.warmList()`), compiles it and releases it to the pool, one per frame. First spawns then
   reuse a compiled, already-built creature instead of a 25–60 ms compile hitch. `?nowarm=1` / `?perf=0` turn it off.
   If you change the options `Enemy` passes to `acquireCreature`, change them in the warm list too (pool key).
+
+## Journey bestiary & duels (play-upgrade, 2026-11-22)
+The old shrine-maiden encounters are gone from the journey; the engine (Enemy, damage, duels, bosses) is reused for the
+Wandering-Witch borderlands. Nothing spawns before the heroine has left home (quest `apprentice` done), nothing ever in
+NO_FOES (home, Fran's forest + clearing, the walled city), on warded ground, or within 35 m of a story anchor.
+
+### Bestiary (type id → name, answer)
+| id | 名 | what it asks for |
+|---|---|---|
+| paper | 流浪书页 | stray grimoire pages (procedural booklet), darts + paper-cut volleys; fire ×3, wind ×2 |
+| blob / blob_small | 泥沼团 | bog mud: splits on hits; fire bakes a crust (8 s, slow), then earth / thunder / heavy ×2.6; water heals it |
+| wolf | 荒原狼 | packs: the lowest-id wolf baits in front, the rest flank behind her facing and lunge faster from behind; fire (hit or a blaze at their paws) scares them; wind shoves; an elite leader howls (haste) and calls two more at 50 % |
+| moth | 啄星蝠 | harries broom riders at her height (13 m/s, a cruising broom outruns them), dives and nibbles mana (never below 30); wind / thunder tumbles it out of the air; conductive |
+| wisp | 迷路的灯火 | warm lantern flame; drifts in and bursts; water ×4, wind ×2 |
+| golem | 隘口石卫 | stone shell (thunder / earth / heavy), slams, rock barrages |
+| froststag | 霜角鹿 | ice ward (fire breaks it, earth secondary), charge down a marked lane, frost stomp, ice-lance volleys |
+| embersnake | 余烬蛇 | fire ward (water breaks it, ice secondary), lobbed fire, coiled bite, ring of flame |
+| caster | 拦路魔法使 | bandit mage (one element each): volleys, element signature (fire seal, ice lance stream, lightning call, water bubbles, gust, rock barrage), counter-casts that meet her spells mid-air, shield against a barrage, sidesteps; 破绽 after big casts |
+| raider | 黑帚强盗 | the same kit on a broom: orbits, strafes, swoops; wind / thunder / heavy / a stagger knocks him off the broom (exposed 3.5 s), he fights on foot and remounts after ~9 s |
+| thief | 扒手魔女 | sneaks up on a walker, lifts ~22 % of the stardust (or a dango), flees on a broom at 17.5 m/s; every hit returns 30 % of the loot, wind / thunder / <45 % hp knocks her down; caught = loot + 15; escapes after 45 s / 150 m |
+
+### Shared mechanics (src/combat/wards.js)
+- **Ward** `e.ward = { el, hp, max, regen, downT }` — counter (COUNTER[el][0]) ×3, secondary ×1.6, a matching reaction ×2, else
+  ×0.25 to the shell; HP takes 15 % chip while it holds. Break: stun 2.4 s, `exposedT` 4 s, starburst + duel beat; reforms after
+  `regen` s. Events `'enemy:ward' { enemy, state: 'break'|'reform', el }`. `addWard(e, el, max, { regen })`, `counterOf(el)`.
+- **Poise** `e.poise / poiseMax` (def.poise, default 40 % hp, 70 % heavy) — heavy ×1.8, countered ×1.5, shatter ×2; at 0 →
+  stagger (stun def.staggerT, exposed), `'enemy:stagger' { enemy }`.
+- **Exposed** `e.exposedT > 0` → every hit ×1.5 (the gold number); the plate shows 破绽.
+- **Affixes** (elites) `frenzy warded bulwark blink leech volatile pack` — `makeElite(e, list)`; camps roll an elite 18 %.
+- Movement honours `reactor.speedMul` (muddy / chilled / frozen) — `e.handlesSlow = true` (enemy.js step). Inside a steam
+  cloud (`G.elements.concealedAt(G.player.pos)`) foes drop her, walk to where she was last seen (±2.5 m) and search for 4 s;
+  nobody new picks her up until she steps out. `hurtPlayer` respects `e.mercyFloor` (ambushers never take her below 25).
+- Volleys lead a moving target (`intercept(from, p, v, speed)` in patterns.js); against a target faster than 6 m/s the shot
+  does not home (homing would drag it back behind a broom) — a rider dodges by turning.
+
+### Duel moves (src/combat/patterns.js) — used by Fran, bandits, raiders, stags, golems
+`volley(c, target, o)` luminous bullets (fan / stream), `lightning(c, points, o)` marked strikes, `rockBarrage(c, target, o)`
+rocks torn from the ground that hang then fly (real projectiles + rock meshes; she can shoot them down), `starRain(c, center, o)`
+bombardment from above, `seal(c, at, o)` rune that a counter element dispels, `counterCast(c, proj, o)` the answering element
+sent to meet her spell mid-air (clash), `incomingAt(pos, r)`, `bolt(c, from, dir, o)`. c = `{ owner, team, alive(), hand(out),
+data, power, dmgK, onShot }`; each returns `{ cancel() }`. `updatePatterns(dt)` (combat calls it).
+
+### Encounters (src/combat/encounters.js, data in src/data/camps.js)
+CAMPS (19: moor light, wilds / high pass real), ELITES (灰鬃 greymane, 鸦羽 crowfeather, 赤喉 redthroat, 苔背 mossback, 白冠
+whitecrown — beaten once, remembered), SPRINKLE (42 roadside spots of 1–2 weak roamers, density × G.quality.density, ≤ 8 alive,
+respawn 150–210 s), SHORE (lake ring after the eclipse), air ambushes (bats / raiders on a low broom between x 1000 and −1600,
+cooldown 110–170 s, they leave when outrun 4 s, after 70 s or at hp ≤ 28), the pickpocket (on foot, x 600 … −1100, 7–10 min).
+Spawn 88 m (120 m on the broom), despawn 150 m, SLEEP_R 62 m. Calm (`G.combat.calm`): any non-play mode, story busy / dialogue /
+spar / meteor, the lake step near the lake, an eclipse → foes stand down, nothing new spawns, ambushers leave.
+`G.combat.encounters`: `{ camps, elites, sprinkles, ambush, thief, update, clear, armed(), calm(), stats(), forceAmbush(kind),
+forceThief() }`. Test switches: `G.combat.forceArmed = true` or `?foes=1`.
+Save `G.state.combat = { cleared: {campId: playTime}, elites: {id: playTime}, seen: {type: true}, trials: { best, clears } }`.
+
+### Combo & rating (src/combat/combo.js) — `G.combat.combo`
+`{ count, style, rank 0..5, best, t, fightStyle, kills, rankName(r) }`. Hits within 3 s chain; style from new elements (+2),
+reactions (+3), counters, exposed hits, ward breaks (+5), staggers (+3), riders knocked off (+4), perfect reflects (+4), clashes;
+a hit on her resets the chain. The fight is rated 3 s after it ends (利落 漂亮 华丽 惊艳 星尘般); 漂亮 and up pays
+stardust (22 % of the style). Events `'combat:rank' { rank }`, `'combat:rated' { rank, style, kills, bonus }`.
+
+### Fran's spar (src/story/fran-spar.js)
+Three movements: 0 读杖尖 (single stardust bolts — shield to reflect), 1 星尘乱舞 at hp ≤ 28 or 3 casts (fan of bullets 星尘连射,
+bombardment 星落, homing water bubbles 水泡, frost seal 冰阵), 2 流星掠空 at hp ≤ 12 or 6 casts (circles at 6 m; diving passes
+that rake the ground then land = opening; volleys from the air; a wind hit throws her off the broom). From movement 1 she
+counter-casts her spells mid-air and raises a shield against a barrage. The answer element mid-windup (or a reflected bolt)
+scatters the spell (long opening, duel beat). Openings have a damage budget (12 / 13 / 15, +8 on a break / tumble), outside
+them hits graze (×0.1 bullets, ×0.2 elements). Outcomes unchanged ('break' / 'yield' / 'hold' at 10 casts); the replay has 60 hp.
+Events `'spar:phase' { phase }`, `'spar:broken' { pattern }`, `'spar:tumble'`, `'spar:end' { result, story, phase }`.
+
+### Clearing trial (src/combat/trials.js) — `G.combat.trials`
+After quest `mages`, a chalk ring 9 m from Fran's spot (E: 「踏入试炼圈」): five rounds of stardust phantoms (pages + mud, a pack,
+two mages, a warded stag under bats, rider + ember serpent + stone guard). Timed, best time + clears in the save; first clear 80
+stardust + dango, a record 40, else 20. HP floor 1 (fails instead of dying), leaving the ring (34 m) aborts. Events
+`'trial:start'`, `'trial:end' { result: 'clear'|'fail'|'left', time, best }`.
+
+### UI (src/ui/foes.js, created by ui.js)
+Plates over up to 6 engaged foes (+ the lock target): name (elites gold with title), brush hp bar with ghost, ward bar in the
+element colour with 「要用X才破得开」, affix chips, 破绽. Anchored at top + 1.05 m (elements' status pips sit just below).
+`G.ui.foePlates = true` hides enemy.js's old 3D bars. Combo meter right of centre (count, 连击, rank word that pops).
+
+### Broom combat
+Player projectiles cast from a flying broom inherit 80 % of the broom's velocity (src/spells/spells.js cast(); lobbed shots only
+when homing), so bullets leave her hand at speed. Lock-on (T / middle mouse) works on the broom; auto-aim homes charms.

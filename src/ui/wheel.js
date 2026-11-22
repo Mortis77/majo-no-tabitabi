@@ -1,6 +1,8 @@
 // The 灵诀 wheel: hold the 'wheel' action, flick the mouse toward one of the eight elements, release to select.
 // The world keeps running in slow motion underneath. Mode stays 'play'; while the wheel is up it swallows the look input
 // (the UI updates before the player) so the camera holds still.
+// Touch (src/ui/touch.js): holding the swap orb opens it; a flick from the orb chooses on release, otherwise it stays
+// open and a slot is tapped (a tap on the empty ring closes it).
 import { G } from '../core/game.js';
 import { t, has } from '../core/i18n.js';
 import { UI, el, clear, key, keycap, setText, sfx } from './dom.js';
@@ -13,8 +15,8 @@ const R_SLOT = 182;   // design px from the centre to a slot
 addCss(`
 .mv-wheel { opacity: 0; visibility: hidden; transition: opacity .14s, visibility 0s .14s; background: radial-gradient(circle at 50% 50%, rgba(8,8,22,.5) 0%, rgba(8,8,22,.62) 38%, rgba(8,8,22,.3) 100%); }
 .mv-wheel.on { opacity: 1; visibility: visible; transition: opacity .14s; }
-.wh-disc { position: absolute; left: 50%; top: 50%; width: 0; height: 0; transform: scale(.86) rotate(-10deg); transition: transform .26s cubic-bezier(.2,.9,.2,1.25); }
-.mv-wheel.on .wh-disc { transform: none; }
+.wh-disc { position: absolute; left: 50%; top: 50%; width: 0; height: 0; transform: scale(calc(var(--whs, 1) * .86)) rotate(-10deg); transition: transform .26s cubic-bezier(.2,.9,.2,1.25); }
+.mv-wheel.on .wh-disc { transform: scale(var(--whs, 1)); }
 .wh-ring { position: absolute; left: -256u; top: -256u; width: 512u; height: 512u; border-radius: 50%;
   background: radial-gradient(circle, rgba(14,13,30,.35) 0, rgba(14,13,30,.35) 39.5%, rgba(14,13,30,.8) 40%, rgba(18,17,40,.84) 72%, rgba(14,13,30,.55) 99%, rgba(14,13,30,0) 100%);
   box-shadow: inset 0 0 0 1.2u rgba(255,226,160,.4); }
@@ -48,8 +50,11 @@ addCss(`
 .wh-mid .ds { position: relative; margin-top: 4u; font: 500 13u/1.5 var(--fb); letter-spacing: .06em; color: var(--paper); max-width: 180u; }
 .wh-mid .ds .ic { color: #9fd6ff; font-size: 13u; margin: 0 2u 0 6u; }
 .wh-mid .ds b { color: #9fd6ff; font-weight: 700; }
-.wh-hint { position: absolute; left: 0; right: 0; top: calc(50% + 292u); text-align: center; font: 500 14u/22u var(--fb); letter-spacing: .14em; color: var(--paper); text-shadow: 0 1u 3u rgba(0,0,0,.9); }
+.wh-hint { position: absolute; left: 0; right: 0; top: calc(50% + 292u * var(--whs, 1)); text-align: center; font: 500 14u/22u var(--fb); letter-spacing: .14em; color: var(--paper); text-shadow: 0 1u 3u rgba(0,0,0,.9); }
 .wh-hint .keycap { margin: 0 6u; }
+.mv-wheel.touch { pointer-events: auto; touch-action: none; }
+.mv-wheel.touch .wh-slot { pointer-events: auto; cursor: pointer; }
+.mv-wheel.touch .wh-slot .num { display: none; }
 `);
 
 export function createWheel(root) {
@@ -72,9 +77,11 @@ export function createWheel(root) {
     const lk = el('span', 'lk', n);
     icon('lock', '', lk);
     slotEls.push({ n, ic, nm });
+    n.addEventListener('click', (e) => { if (!touchOpen) return; e.stopPropagation(); setHover(i); touchOpen = false; closeWheel(true); });
   }
+  R.addEventListener('click', () => { if (touchOpen) { touchOpen = false; closeWheel(false); sfx('ui_close', 0.5); } });
 
-  let open = false, hover = -1, vx = 0, vy = 0, prevScale = 1, shownKey = '';
+  let open = false, hover = -1, vx = 0, vy = 0, prevScale = 1, shownKey = '', touchOpen = false;
 
   function fill() {
     const slots = spellSlots(true);
@@ -88,6 +95,7 @@ export function createWheel(root) {
       setText(e.nm, s.level > 0 ? s.name : t('core.element.' + s.id));
     }
     clear(hint);
+    if (touchOpen) { el('span', '', hint, t('ui.touch.wheelHint')); return; }
     const parts = t('ui.wheel.hint', { key: '\u0001' }).split('\u0001');
     if (parts[0]) el('span', '', hint, parts[0]);
     keycap(key('wheel'), hint, 'sm');
@@ -136,13 +144,17 @@ export function createWheel(root) {
     fill();
     setHover(-1);
     showMid(-1);
+    // a short screen (a phone held sideways) gets a smaller wheel: names and the hint stay on screen
+    R.style.setProperty('--whs', Math.min(1, (UI.h - 16) / (600 * UI.u)).toFixed(3));
     prevScale = G.time.scale;
     G.time.scale = Math.min(prevScale, 0.12);
+    R.classList.toggle('touch', touchOpen);
     R.classList.add('on');
     sfx('ui_open', 0.6);
   }
   function closeWheel(commit) {
-    open = false;
+    open = false; touchOpen = false;
+    R.classList.remove('touch');
     if (G.time.scale <= 0.1201) G.time.scale = prevScale || 1;
     R.classList.remove('on');
     if (commit && hover >= 0) {
@@ -154,17 +166,40 @@ export function createWheel(root) {
 
   return {
     get open() { return open; },
+    /** opened by the touch swap orb (stays up until a slot or the empty ring is tapped) */
+    get touchOpen() { return open && touchOpen; },
     refresh() { if (open) { fill(); shownKey = ''; showMid(hover); } },
     close() { if (open) closeWheel(false); },
+    /** touch: open the wheel (true if it is up now) */
+    openTouch() {
+      if (open) return touchOpen;
+      if (G.mode !== 'play' || UI.modals.length) return false;
+      touchOpen = true; openWheel();
+      return true;
+    },
+    /** touch: the orb's finger moved by (dx, dy) px — steers the needle like the mouse does */
+    touchVec(dx, dy) {
+      if (!open || !touchOpen) return;
+      const lim = 150 * UI.u;
+      vx += dx; vy += dy;
+      const l = Math.hypot(vx, vy);
+      if (l > lim) { vx *= lim / l; vy *= lim / l; }
+    },
+    /** touch: the orb's finger lifted. A flick (commit) chooses the slot under the needle; otherwise the wheel stays for a tap. */
+    touchRelease(commit) {
+      if (!open || !touchOpen) return;
+      if (commit && hover >= 0) { touchOpen = false; closeWheel(true); }
+    },
     update() {
       const inp = G.input;
-      const want = G.mode === 'play' && inp.held('wheel') && UI.modals.length === 0;
+      const want = G.mode === 'play' && (inp.held('wheel') || touchOpen) && UI.modals.length === 0;
       if (want && !open) openWheel();
       else if (!want && open) closeWheel(G.mode === 'play');
       if (!open) return;
       // direction: with a captured pointer we integrate its motion, otherwise we read where the cursor is
       const lim = 150 * UI.u;
-      if (inp.locked || inp.lookX !== 0 || inp.lookY !== 0) {
+      if (touchOpen) { /* the orb's finger steers through touchVec(); other fingers do not */ }
+      else if (inp.locked || inp.lookX !== 0 || inp.lookY !== 0) {
         vx += inp.lookX; vy += inp.lookY;
         const l = Math.hypot(vx, vy);
         if (l > lim) { vx *= lim / l; vy *= lim / l; }

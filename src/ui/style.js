@@ -131,6 +131,72 @@ const TYPE = `
 .mv-ui .mv-toast { font-size: 15u; }
 `;
 
+// Small screens (docs/api/ui.md "Touch and small screens"). Two rules, appended last:
+// SAFE — HUD corners and the dialogue keep clear of notches / the home bar (env() is 0 on a desktop, so nothing moves there);
+// COMPACT — .mv-ui.compact is set by applyScale when the screen holds less than ~1180x660 design units (phones and tablets,
+// where --u is kept large enough to read): every full-screen sheet is clamped to the screen and loosened inside.
+const SL = 'env(safe-area-inset-left, 0px)', SR = 'env(safe-area-inset-right, 0px)', ST = 'env(safe-area-inset-top, 0px)', SB = 'env(safe-area-inset-bottom, 0px)';
+const FITW = (max, pad) => `min(${max}u, calc(100vw - ${pad}px - ${SL} - ${SR}))`;
+const FITH = (max, pad) => `min(${max}u, calc(100dvh - ${pad}px - ${ST} - ${SB}))`;
+const SAFE = `
+.mv-ui .hud-vit { left: calc(26u + ${SL}); top: calc(22u + ${ST}); }
+.mv-ui .hud-tr { right: calc(26u + ${SR}); top: calc(22u + ${ST}); }
+.mv-ui .hud-hints { left: calc(26u + ${SL}); bottom: calc(22u + ${SB}); }
+.mv-ui .hud-spell { right: calc(30u + ${SR}); bottom: calc(24u + ${SB}); }
+.mv-ui .hud-compass { top: calc(16u + ${ST}); }
+.mv-ui .mv-toasts { left: calc(26u + ${SL}); }
+.mv-ui .mv-saved { right: calc(30u + ${SR}); }
+.mv-ui .mvs-skip { right: calc(28px + ${SR}); bottom: calc(22px + ${SB}); }
+`;
+const COMPACT = `
+/* shop */
+.mv-ui.compact .mv-shop > .mv-paper { width: ${FITW(940, 20)}; height: ${FITH(560, 12)}; padding: 0 26u 12u; }
+.mv-ui.compact .sh-noren { height: 58u; margin: 0 -26u 10u; }
+.mv-ui.compact .sh-noren .tt { font-size: 26u; }
+.mv-ui.compact .sh-noren .seal { top: 14u; }
+.mv-ui.compact .sh-list { width: 46%; overflow-y: auto; }
+.mv-ui.compact .sh-det { padding-left: 20u; }
+.mv-ui.compact .sh-det .ico { width: 70u; height: 70u; font-size: 42u; }
+.mv-ui.compact .sh-det .nm { font-size: 22u; margin-top: 6u; }
+.mv-ui.compact .sh-det .ds { margin-top: 4u; line-height: 1.7; overflow-y: auto; min-height: 0; }
+.mv-ui.compact .sh-foot { margin-top: 6u; padding-top: 8u; }
+/* title sheets (settings / controls) and the confirm slip */
+.mv-ui.compact .mv-sheet > .mv-paper { width: ${FITW(1000, 20)}; max-height: ${FITH(640, 12)}; padding: 18u 30u 14u; }
+.mv-ui.compact .mv-sheet .hd { margin-bottom: 8u; }
+.mv-ui.compact .mv-sheet .ft { margin-top: 8u; padding-top: 8u; }
+.mv-ui.compact .mv-set, .mv-ui.compact .mv-ctl { column-gap: 34u; }
+.mv-ui.compact .mv-set .trk { width: 140u; }
+.mv-ui.compact .mv-set .trk .fil { -webkit-mask-size: 140u 100%; mask-size: 140u 100%; }
+.mv-ui.compact .mv-confirm > .mv-paper { width: ${FITW(520, 24)}; padding: 26u 32u 20u; }
+.mv-ui.compact .mv-confirm .tx { margin: 10u 0 16u; }
+/* learning a magic */
+.mv-ui.compact .ln-rays, .mv-ui.compact .ln-emb { top: 32%; }
+.mv-ui.compact .ln-emb { transform: scale(.72); }
+.mv-ui.compact .ln-ghost { top: 32%; font-size: 380u; }
+.mv-ui.compact .ln-txt { top: calc(32% + 104u); }
+.mv-ui.compact .ln-name { margin-top: 8u; font-size: 44u; }
+.mv-ui.compact .ln-desc { margin-top: 16u; max-width: ${FITW(620, 40)}; font-size: 15u; line-height: 1.75; }
+.mv-ui.compact .ln-go { bottom: calc(14u + ${SB}); }
+/* the ending */
+.mv-ui.compact .en-line { width: ${FITW(900, 40)}; font-size: 21u; }
+.mv-ui.compact .en-line.v { width: auto; max-height: calc(100dvh - 70px); font-size: 24u; }
+.mv-ui.compact .en-roll .sec { width: ${FITW(640, 40)}; }
+.mv-ui.compact .en-go { bottom: calc(10u + ${SB}); }
+/* the place-name card: a size down, and the quest tracker steps aside while it is up (they share the top on a phone) */
+.mv-ui.compact .mv-banner .tt { font-size: 50u; }
+.mv-ui.compact .mv-banner .sub { font-size: 18u; }
+.mv-ui.compact .hud-tracker.on:not(.lb) { opacity: var(--mv-yield, 1); }
+/* touch: rows, options and buttons are fingertip-sized */
+.mv-ui.touch .mv-set .row { min-height: 44px; }
+.mv-ui.touch .mv-set .opt { padding: 6px 12px; }
+.mv-ui.touch .mv-set .trk { height: 34px; }
+.mv-ui.touch .mv-x { width: 44px; height: 44px; right: 10px; top: 8px; }
+.mv-ui.touch .mv-x::before, .mv-ui.touch .mv-x::after { left: 12px; right: 12px; }
+.mv-ui.touch :is(.mn-row, .sh-row) { min-height: 42px; }
+.mv-ui.touch .btn { min-height: 40px; }
+.mv-ui.touch .scroll { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; touch-action: pan-y; }
+`;
+
 let styleEl = null;
 const parts = [BASE];
 
@@ -144,7 +210,7 @@ export function installStyle(root) {
     styleEl.id = 'mv-ui-style';
     document.head.appendChild(styleEl);
   }
-  styleEl.textContent = compileCss(parts.join('\n') + '\n' + TYPE);
+  styleEl.textContent = compileCss(parts.join('\n') + '\n' + TYPE + '\n' + SAFE + '\n' + COMPACT);
   root.classList.add('mv-ui');
   const s = root.style;
   s.setProperty('--tex-paper', paperTexture(11));
@@ -169,10 +235,17 @@ export function applyFonts(root) {
   loadFonts();   // a new locale brings its own faces (idempotent per locale)
 }
 
-/** --u: px per design unit. 1 at 1280×720, 1.5 at 1920×1080; never so small that text turns to dust. */
+/** --u: px per design unit. 1 at 1280×720, 1.5 at 1920×1080; never so small that text turns to dust.
+ *  With the touch controls (phones, tablets) it is kept large enough to read at arm's length: about 470 design units of
+ *  height on a phone held sideways (0.83 at 844×390), 0.9 on a tablet. A screen that then holds less than ~1180×660 units
+ *  gets .compact (sheets clamped to the screen). A desktop window keeps the scale it always had. */
 export function applyScale(root) {
   const w = window.innerWidth, h = window.innerHeight;
   UI.w = w; UI.h = h;
-  UI.u = Math.max(0.6, Math.min(w / 1280, h / 720));
-  root.style.setProperty('--u', UI.u.toFixed(4) + 'px');
+  let u = Math.max(0.6, Math.min(w / 1280, h / 720));
+  if (UI.touch) u = Math.max(u, Math.min(0.9, h / 470, w / 820));
+  UI.u = u;
+  root.style.setProperty('--u', u.toFixed(4) + 'px');
+  const compact = w / u < 1180 || h / u < 660;
+  if (root._compact !== compact) { root._compact = compact; root.classList.toggle('compact', compact); }
 }

@@ -546,6 +546,8 @@ export function createHud(root) {
         if (!tracked) { if (p.st !== 'off') { p.st = 'off'; p.pin.classList.remove('on'); } continue; }
         const k = Math.max(Math.abs(nx) / 0.9, ny > 0 ? ny / 0.82 : -ny / 0.72, 1e-6);
         nx /= k; ny /= k;
+        // touch controls (src/ui/touch.js): the thumbs' buttons fill the lower corners and the right edge; edge pins stay above them
+        if (UI.touch) { nx = clamp(nx, -0.74, 0.74); if (ny < 0.2) ny = 0.2; }
       }
       const sx = Math.round((nx * 0.5 + 0.5) * w);
       let sy = Math.round((-ny * 0.5 + 0.5) * h);

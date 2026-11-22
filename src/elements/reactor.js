@@ -36,6 +36,7 @@ export class Reactor {
     this._src = this.getPos ? null : (o.pos && o.pos.isVector3 ? o.pos : null); // a live vector we may re-read
     // status timers (seconds left, 0 = off)
     this.burning = 0; this.wet = 0; this.frozen = 0; this.shocked = 0; this.lit = 0;
+    this.muddy = 0; this.chilled = 0;  // 元素交织: slowed by mud / frost (seconds left)
     this.fuel = this.burnTime;        // seconds of burning left in it
     this.charred = false;             // burnt out (won't burn again)
     this.dead = false;
@@ -45,7 +46,15 @@ export class Reactor {
   get y0() { return this.center ? this.pos.y - this.height * 0.5 : this.pos.y; }
   get cy() { return this.center ? this.pos.y : this.pos.y + this.height * 0.5; }
 
-  /** Status check: is('burning'|'wet'|'frozen'|'shocked'|'lit'|'charred'). */
+  /** Movement factor the owner should apply: 0 frozen, × T.MUD_SLOW muddy, × T.CHILL_SLOW chilled, else 1. */
+  get speedMul() {
+    if (this.frozen > 0) return 0;
+    let k = 1;
+    if (this.muddy > 0) k = T.MUD_SLOW;
+    if (this.chilled > 0) k = Math.min(k, T.CHILL_SLOW);
+    return k;
+  }
+  /** Status check: is('burning'|'wet'|'frozen'|'shocked'|'lit'|'muddy'|'chilled'|'charred'). */
   is(s) { return s === 'charred' ? this.charred : !!this[s]; }
   ignite(power = 1, info) { return E ? E.ignite(this, power, info) : false; }
   extinguish(info) { return E ? E.extinguish(this, info) : false; }

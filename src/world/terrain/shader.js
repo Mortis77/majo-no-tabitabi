@@ -180,6 +180,8 @@ float wNight = smoothstep(0.56, 0.86, trV);
 float wDusk = max(0.0, 1.0 - wSun - wNight);
 float trSlope = 1.0 - trN.y;
 float trDefo = vTrDef;
+// fine noise (2.7 m) that frays the edges of magic's marks, so a pit or a heave is never a vertex polygon
+float trNF = texture2D(trNoise, trP.xz / 2.7 + 0.37).g;
 // detail strength by distance: full near, fading into the painted far look (no ring: a long smooth ramp)
 float trDetK = 1.0 - smoothstep(TR_FAR * 0.42, TR_FAR, trDist);
 float trNK = 1.0 - smoothstep(TR_NEAR * 0.5, TR_NEAR * 0.95, trDist);
@@ -238,7 +240,7 @@ float floralDrift = meadowRibbon(trP.xz,floralBroad,floralDetail);
 float floralWet = 1.0 - smoothstep(17.0,33.0,trRiver);
 float floralShade = smoothstep(.47,.70,floralBroad);
 float floralPick = smoothstep(.38,.62,texture2D(trNoise,trP.xz/52.0+.12).r);
-vec3 flowerTone = meadowDayPetal(floralPick, floralShade, floralWet);
+vec3 flowerTone = meadowDayPetalAt(floralPick, floralShade, floralWet, trP.xz); // map round: regional meadow colours
 flowerTone = mix(flowerTone,mix(vec3(.91,.22,.18),vec3(.96,.54,.15),floralPick),wDusk*(1.-.83*floralWet));
 flowerTone = mix(flowerTone,vec3(.43,.65,.79),wNight);
 float meadowRoom = smoothstep(3.15,5.5,trRoad)*smoothstep(9.5,13.,trRiver);
@@ -358,7 +360,7 @@ float snowZ = smoothstep(snowL, snowL + 9.0, trH) * smoothstep(0.12, 0.3, mm);
 // running down from the ledges low on the mountain, snow sitting on the ledges above the snow line. Lines are
 // antialiased by their own screen footprint (fwidth) so the far mountain stays calm.
 float rock = smoothstep(0.16, 0.27, trSlope + (n2 - 0.5) * 0.1);
-rock = max(rock, smoothstep(0.7, 2.0, trDefo));
+rock = max(rock, smoothstep(0.75, 1.7, trDefo + (trNF - 0.5) * 0.5));
 vec3 trNW = trN;
 float rLip = 0.0, bhS = 0.0;
 if (rock > 0.01) {
@@ -472,7 +474,7 @@ vec3 dirt = trLand(mix(${C.dirtB}, ${C.dirtA}, n3 * 0.7 + n2 * 0.3), wDusk, wNig
 vec3 stone = trLand(mix(${C.stoneB}, ${C.stoneA}, 0.5 + (n3 - 0.5) * 0.6), wDusk, wNight);
 vec4 dirtN = vec4(0.5, 0.5, 1.0, 0.0), stoneN = dirtN;
 float dirtH = 0.5, stoneH = 0.5, moss = 0.0;
-bool needGround = (path + plaza + max(0.0, -trDefo)) > 0.002;
+bool needGround = (path + plaza + abs(trDefo)) > 0.002;
 if (needGround && trNear) {
   TrS er = trSamp(trP.xz, 3.2, 3.0, kq);
   dirt *= mix(vec3(1.0), er.a.rgb * 2.0, trDetK * 0.6);
@@ -623,16 +625,28 @@ trCol *= 1.0 + 0.1 * ucut * smoothstep(0.8, 1.1, trH) * (1.0 - smoothstep(1.3, 1
 float wetB = (1.0 - smoothstep(0.12, 0.55 + n2 * 0.5, trH)) * smoothstep(-0.2, 0.05, trH);
 trCol = mix(trCol, trCol * vec3(0.66, 0.69, 0.72), wetB * 0.85);
 
-// ---- craters (bare earth, darker when deep)
-float earth = smoothstep(0.25, 1.3, -trDefo);
+// ---- craters (bare earth, darker when deep). Destruction round: even a lightning pit half a metre deep shows its earth.
+float earth = smoothstep(0.1, 0.62, -trDefo + (trNF - 0.5) * 0.24);
 vec3 ce = trLand(mix(${C.craterB}, ${C.craterA}, n3), wDusk, wNight) * mix(1.0, 0.7, smoothstep(1.0, 6.0, -trDefo));
 ce *= mix(vec3(1.0), dirt / max(trLand(mix(${C.dirtB}, ${C.dirtA}, n3 * 0.7 + n2 * 0.3), wDusk, wNight), vec3(0.01)), 0.8);
 trCol = mix(trCol, ce, earth);
 dAcc = mix(dAcc, dirtN, earth);
+// thrown earth: crater lips and heaved ground (small positive offsets) are loose soil lying over the grass in clumps,
+// thinning to scattered clods at the edge; taller heaps turn to rock above (see rock)
+float ejecta = smoothstep(0.12, 0.42, trDefo + (trNF - 0.5) * 0.5 + (n3 - 0.5) * 0.2) * (1.0 - smoothstep(0.85, 1.7, trDefo));
+trCol = mix(trCol, ce * (0.92 + 0.16 * n2), ejecta * 0.9);
+dAcc = mix(dAcc, dirtN, ejecta);
+earth = max(earth, ejecta);
 
 // ---- scorch layer: burn / wet / frost
-float burnK = smoothstep(0.02, 0.55, trS.r * (0.75 + 0.5 * n3));
-trCol = mix(trCol, mix(${C.charA}, ${C.charB}, n3) * (0.85 + 0.3 * dH), burnK * 0.92);
+// the burn channel falls 1 -> 0 over 6 min (textures.js FADE): char stays black for about a minute, then thins out in
+// patches and is gone by ~4 min (the grass blades come back over it from 2.5 to 6 min)
+float burnK = smoothstep(0.3, 0.8, trS.r * (0.85 + 0.3 * n3));
+// bare earth (craters, thrown soil) only browns under a burn: a blasted pit stays readable inside the black of a grass fire
+trCol = mix(trCol, mix(${C.charA}, ${C.charB}, n3) * (0.85 + 0.3 * dH), burnK * (0.92 - 0.5 * earth));
+// mud: water on bare or burnt earth turns it dark, warm and glossy (the sheen is added with the emission below)
+float trMud = trS.g * max(earth, burnK * 0.7) * (1.0 - uw);
+trCol *= mix(vec3(1.0), vec3(0.62, 0.5, 0.42), trMud);
 trCol *= mix(vec3(1.0), vec3(0.58, 0.64, 0.74), trS.g * (1.0 - uw));
 trCol = mix(trCol, ${C.frost} * (1.0 - 0.5 * wNight), smoothstep(0.0, 0.6, trS.b) * 0.85); // HDR: the night ambient is strong, frost must not glare
 
@@ -671,6 +685,7 @@ float trFres = pow(clamp(1.0 - max(dot(trNW, trVd), 0.0), 0.0, 1.0), 4.0);
 totalEmissiveRadiance += ${lin(0xa9c4ff)} * trFres * wNight * 0.05 * (0.6 + 0.4 * dH) * (1.0 - uw);   // moonlit sheen
 totalEmissiveRadiance += gFlowerC * 0.12 * noVein;
 totalEmissiveRadiance += ${lin(0xe0a888)} * puddle * (0.06 + 0.3 * pow(clamp(1.0 - max(trVd.y, 0.0), 0.0, 1.0), 3.0)) * (1.0 - smoothstep(30.0, 90.0, trDist));
+totalEmissiveRadiance += ${lin(0xbfc6cc)} * trMud * (0.03 + 0.22 * pow(clamp(1.0 - max(trVd.y, 0.0), 0.0, 1.0), 3.0)) * (1.0 - wNight * 0.6) * (1.0 - smoothstep(25.0, 80.0, trDist));
 if (wNight > 0.05 && trDist < 40.0) {
   // faintly glowing lichen rosettes on the ash-blue night soil, in patches
   vec2 lq = trP.xz / 0.9, lc = floor(lq);

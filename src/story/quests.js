@@ -4,6 +4,7 @@
 // (ctx.restore = true), so a save made at any step rebuilds its world state.
 import { G } from '../core/game.js';
 import { t } from '../core/i18n.js';
+import { fill } from './dialogue.js';
 
 export function createQuests(story, DEFS) {
   const ORDER = Object.keys(DEFS);
@@ -18,7 +19,8 @@ export function createQuests(story, DEFS) {
     return { id, q: d, s, step: d?.steps?.[s?.step ?? 0], index: s?.step ?? 0, vars: s ? (s.vars ||= {}) : {}, restore, S: story };
   }
   function title(id) { return t('story.quests.' + id + '.title'); }
-  function objective(id, stepDef) { return stepDef ? t('story.quests.' + id + '.steps.' + stepDef.id) : ''; }
+  // {guard} / {cast} … name the player's own key, or the touch button on a phone (fill → G.input.keyLabel)
+  function objective(id, stepDef) { return stepDef ? fill(t('story.quests.' + id + '.steps.' + stepDef.id)) : ''; }
 
   function enter(id, restore) {
     const c = ctxOf(id, restore);

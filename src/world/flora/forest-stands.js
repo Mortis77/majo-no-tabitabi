@@ -3,6 +3,7 @@
 import { mulberry32, noise2, smoothstep } from '../../core/util.js';
 import { JOURNEY_POI } from '../../data/journey-map.js';
 import { WAYSIDES } from '../../data/waysides.js';
+import { landmarkAt } from '../../data/landmarks.js';
 import { trialShoreDistance, trialViewOpening } from '../trial-lake.js';
 import { treeCommunity } from './travel-canopy.js';
 
@@ -15,6 +16,16 @@ const stands = [
   [-715,-591,232,135,.38], [-2041,-846,234,113,.07], [-123,326,241,155,-.27],
   [897,345,205,137,.17], [491,-692,272,148,-.19], [-1515,246,261,141,.40],
 ];
+/** 0..1+: elliptical distance to the nearest stand centre line (below ~1.1 the stand may plant trees here). */
+export function standEllipse(x, z) {
+  let best = 9;
+  for (const [cx,cz,rx,rz,angle] of stands) {
+    if (Math.abs(x-cx) > Math.max(rx,rz)*1.4 || Math.abs(z-cz) > Math.max(rx,rz)*1.4) continue;
+    const cs=Math.cos(angle), sn=Math.sin(angle), dx=x-cx, dz=z-cz;
+    best = Math.min(best, Math.hypot((dx*cs+dz*sn)/rx,(dz*cs-dx*sn)/rz));
+  }
+  return best;
+}
 const pitch = 4.04;
 const stemBin = 2;
 const binKey = (x,z) => x*4096+z;
@@ -62,7 +73,7 @@ export function plantForestStands(world, result, stride, plantTree, plantFloor) 
         if(Math.hypot(x-hometown.x,z-hometown.z)<175 ||
            Math.hypot(x-trial.x,z-trial.z)<44 || trialViewOpening(x,z) ||
            Math.hypot(x-forest.x,z-forest.z)<22 || trialShoreDistance(x,z)<1.16 ||
-           WAYSIDES.some(p=>Math.abs(x-p.x)<p.radius+4&&Math.abs(z-p.z)<p.radius+4))continue;
+           WAYSIDES.some(p=>Math.abs(x-p.x)<p.radius+4&&Math.abs(z-p.z)<p.radius+4) || landmarkAt(x,z,3,['flowerValley']))continue;
         const h=world.heightAt(x,z);
         if(h<1.5 || h>207 || world.roadDist(x,z)<4.9 || world.isReserved(x,z,1.2) || !canGrow(x,z))continue;
         visited.add(key);remember(x,z);

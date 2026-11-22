@@ -78,3 +78,12 @@ the cells within 130 m draw hi), ~45–80 draw calls added in a busy view. Init 
   instance per cell, per-instance frustum culling); near cells stay one mesh each. `c.meshLo` is a handle with the same
   `visible` behaviour. shift / kill write into the cell's range of the batch and drop its cached bounds. Cliff draws
   20–38 → 2–3 at the town and village scenes. Tested: `tools/devkit/draws-world/cliftest.js` (shift both LODs, kill, LOD swap).
+
+## Map round: rock set pieces (2026-11-22)
+The journey's landforms system builds only the countryside set pieces (`landforms/setpieces.js`, `G.landforms.setpieces`):
+granite tors (stacked rounded slabs + outliers), the crag falls (an arc of stratified masses, a falling-water ribbon with
+the landforms fall material, a rock-held plunge pool), the quarry face (blocky lime tiers) and the tarn rim. Pools
+(`landforms/pools.js`, `poolOf(W, landmark)`) are flat discs at a level just above the highest ground under them; their
+rock rims are built tall enough all round, so water never hangs over a slope (shared with the flora reeds / lily pads).
+One mesh per piece (vertex colours, `lfMats().rock`), medium pieces hidden past 1100 m, cylinder colliders on the big
+blocks (tag `landmark_rock`). `?nolandforms=1` skips them.

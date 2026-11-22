@@ -8,6 +8,8 @@ import * as THREE from 'three';
 import { G } from '../core/game.js';
 import { buildLifeMeshes } from './life/meshes.js';
 import { KINDS, GROUPS, CAPS, landWeights } from './life/kinds.js';
+import { createHerds } from './life/herds.js';
+import { createCityLife } from './life/city-flyers.js'; // citylife round: witches on brooms + townsfolk in the City of Magic
 
 const _o = new THREE.Object3D();
 const _p = new THREE.Vector3(), _w = new THREE.Vector3();
@@ -44,12 +46,17 @@ export const lifeSystem = {
     G.scene.add(root);
     S = { on: true, tier, root, meshes, groups: [], threats: [], spawnT: 0, time: 0, offs: [], fail: new Map() };
     api.root = root; api.meshes = meshes; api.groups = S.groups; api.enabled = true;
+    // map round: deer, foxes, rabbits and sheep (instanced skinned herds, life/herds.js)
+    try { S.herds = createHerds(G, root, tier); api.herds = S.herds; } catch (e) { G.reportError('life:herds', e); }
+    // citylife round: the City of Magic (life/city-flyers.js, life/city-crowds.js); `?nocity=1` = off
+    if (G.params?.nocity !== '1') { try { S.city = createCityLife(G, root, tier); api.city = S.city; } catch (e) { G.reportError('life:city', e); } }
     const ev = G.events;
     if (ev) {
       S.offs.push(ev.on('element:applied', (e) => e?.pos && addThreat(e.pos.x, e.pos.y, e.pos.z, 6 + (e.radius || 2) * 2.5, 1)));
       S.offs.push(ev.on('element:reaction', (e) => e?.pos && addThreat(e.pos.x, e.pos.y, e.pos.z, 14, 1.2)));
       S.offs.push(ev.on('spell:cast', (e) => e?.pos && addThreat(e.pos.x, e.pos.y, e.pos.z, 7, 0.7)));
       S.offs.push(ev.on('physics:impact', (e) => e?.pos && e.speed > 4 && addThreat(e.pos.x, e.pos.y, e.pos.z, 9, 1)));
+      S.offs.push(ev.on('spell:meteor', (e) => e?.pos && addThreat(e.pos.x, e.pos.y, e.pos.z, 40, 1.5)));
       S.offs.push(ev.on('enemy:killed', (e) => e?.pos && addThreat(e.pos.x, e.pos.y, e.pos.z, 10, 1)));
       S.offs.push(ev.on('prop:broken', (e) => e?.pos && addThreat(e.pos.x, e.pos.y, e.pos.z, 8, 1)));
       S.offs.push(ev.on('player:land', (e) => { const p = G.player?.pos; if (p && e?.speed > 8) addThreat(p.x, p.y, p.z, 10, 1); }));
@@ -65,7 +72,7 @@ export const lifeSystem = {
     // the heroine is a moving threat: bigger when she runs, flies on the broom or glides past
     const pl = G.player;
     const fast = pl ? (pl.onBroom || pl.gliding || pl.sprinting || (pl.speed || 0) > 6) : false;
-    S.player = { x: P.x, y: P.y, z: P.z, yaw: pl?.yaw || 0, fast, speed: pl?.speed || 0 };
+    S.player = { x: P.x, y: P.y, z: P.z, yaw: pl?.yaw || 0, fast, speed: pl?.speed || 0, broom: !!pl?.onBroom };
     // threats age out
     for (let i = S.threats.length - 1; i >= 0; i--) if ((S.threats[i].t -= dt) <= 0) S.threats.splice(i, 1);
     // spawn / recycle
@@ -86,6 +93,8 @@ export const lifeSystem = {
       if (g.leaving && !alive) g.dead = true;
       if (g.dead) { S.groups.splice(i, 1); }
     }
+    if (S.herds) { try { S.herds.update(dt, S.player, S.threats); } catch (e) { G.reportError('life:herds', e); S.herds = null; } }
+    if (S.city) { try { S.city.update(dt, S.player, S.threats); } catch (e) { G.reportError('life:city', e); S.city.clear(); S.city = null; } } // citylife round
     write();
     S.ms = S.ms ? S.ms * 0.95 + (performance.now() - t0) * 0.05 : performance.now() - t0;
   },
@@ -167,7 +176,7 @@ function trySpawn(def, px, pz, forced, exact = false) {
 // ---- write instance buffers -------------------------------------------------------------------------------------------
 const _e = new THREE.Euler(0, 0, 0, 'YXZ');
 function write() {
-  const counts = { bird: 0, insect: 0, frog: 0, fish: 0, jelly: 0 };
+  const counts = { bird: 0, insect: 0, frog: 0, fish: 0, jelly: 0, leaper: 0 };
   for (const g of S.groups) for (const a of g.agents) {
     if (a.hide || a.s <= 0.001) continue;
     const mesh = S.meshes[a.body];
@@ -202,7 +211,7 @@ function stats() {
   if (!S) return { enabled: false };
   const by = {};
   for (const g of S.groups) by[g.def.id] = (by[g.def.id] || 0) + g.agents.length;
-  return { enabled: S.on, groups: S.groups.length, counts: S.counts, by, ms: +(S.ms || 0).toFixed(3), drawCalls: Object.values(S.meshes).filter((m) => m.visible).length, threats: S.threats.length };
+  return { enabled: S.on, groups: S.groups.length, counts: S.counts, by, herds: S.herds?.stats(), city: S.city?.stats(), ms: +(S.ms || 0).toFixed(3), drawCalls: Object.values(S.meshes).filter((m) => m.visible).length, threats: S.threats.length };
 }
 
 export { KINDS };

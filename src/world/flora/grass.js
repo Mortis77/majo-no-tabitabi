@@ -24,7 +24,8 @@ import { createSlipstream } from './slipstream.js';
 import { meadowPattern } from './meadowPattern.js';
 
 const lin = (hex, k = 1) => { const c = new THREE.Color().setHex(hex); return `vec3(${(c.r * k).toFixed(4)}, ${(c.g * k).toFixed(4)}, ${(c.b * k).toFixed(4)})`; };
-const MAXC = 16;
+const MAXC = 24;      // grass-free discs: transient clears (≤ MAXT) + the persistent scars nearest the camera
+const MAXT = 12;
 const MAXB = 6;
 
 // patch geometry: B blades, each `segs` segments (verts: 2 per level + tip). position.x = side (-1..1), position.y = t;
@@ -176,7 +177,9 @@ GG gGround(vec2 root, bool flower) {
   float woodFloor=smoothstep(.24,.85,sc.a);
   amt *= 1.-woodFloor*(flower ? .80 : .65);
   col *= mix(vec3(1.),vec3(.75,.81,.72),woodFloor);
-  amt *= 1.0 - smoothstep(0.04, 0.3, sc.r);
+  // burnt ground: no blades until the burn has faded to 0.58 (~2.5 min), then they grow back (shortest at the heart of
+  // the burn, from its edges inward) until it is gone (~6 min; textures.js FADE.burn = 360 s)
+  amt *= 1.0 - smoothstep(0.0, 0.58, sc.r);
   col *= mix(vec3(1.0), vec3(0.62, 0.68, 0.78), sc.g);
   // farm plots (same plot hash as the terrain)
   float crop = 0.0, cropK = 0.0;
@@ -212,7 +215,7 @@ GG gGround(vec2 root, bool flower) {
     hgt = reach * lane * (1.0 - .30*wNight) * (1.0-.22*hillW);
     amt *= 1.0-smoothstep(.12,.40,farm);
   }
-  vec2 cityEdge=abs(root-vec2(${BELL.x.toFixed(2)},${BELL.z.toFixed(2)}))-vec2(${BELL.halfW.toFixed(2)},${BELL.halfD.toFixed(2)});
+  vec2 cityEdge=abs(root-vec2(${(BELL.boxX ?? BELL.x).toFixed(2)},${(BELL.boxZ ?? BELL.z).toFixed(2)}))-vec2(${BELL.halfW.toFixed(2)},${BELL.halfD.toFixed(2)});
   amt*=smoothstep(-.2,1.2,max(cityEdge.x,cityEdge.y));
   vec2 homeEdge=abs(root-vec2(2220.,48.))-vec2(9.,9.);
   vec2 cabinEdge=abs(root-vec2(2055.,-35.))-vec2(9.,9.);
@@ -648,6 +651,8 @@ export function createGrass(G) {
   });
 
   const craters = []; // { x, z, r, t, life }
+  const scars = [];   // persistent bare discs from api.scarFeed
+  let scarAge = Infinity, scarX = 0, scarZ = 0;
   let trailI = 0;
   const _f = new THREE.Vector3(), _f2 = new THREE.Vector3(), _sd = new THREE.Vector3();
   const lowerBound = (a, v) => { let l = 0, h = a.length; while (l < h) { const m = (l + h) >> 1; if (a[m] < v) l = m + 1; else h = m; } return l % a.length; };
@@ -656,9 +661,14 @@ export function createGrass(G) {
     refreshField() {fieldAge=Infinity;},
     /** Remove grass inside a radius for `life` seconds (it grows back from the edge over the last third). */
     clear(x, z, r, life = 90) {
-      if (craters.length >= MAXC) craters.shift();
+      if (craters.length >= MAXT) craters.shift();
       craters.push({ x, z, r, t: 0, life });
     },
+    /** Persistent bare ground (craters, mounds) the destruction system feeds in: fn(camX, camZ, out) fills out with
+     *  { x, z, r, k } nearest first and returns the count. Set by world/destruction.js; null = none. */
+    scarFeed: null,
+    /** Ask for the persistent scars to be fetched again (after a deform). */
+    refreshScars() { scarAge = Infinity; },
     update(dt, cam, push, wind) {
       shared.gTime.value += dt;
       if (wind) shared.gWind.value.lerp(wind, Math.min(1, dt * 2));
@@ -713,12 +723,23 @@ export function createGrass(G) {
       for (const m of meshes) m.visible = show;
       for (let i = craters.length - 1; i >= 0; i--) { craters[i].t += dt; if (craters[i].t > craters[i].life) craters.splice(i, 1); }
       const cv = shared.gCraters.value;
-      for (let i = 0; i < MAXC; i++) {
-        const c = craters[i];
-        if (!c) { cv[i].set(0, 0, 0, 0); continue; }
+      let ci = 0;
+      for (; ci < craters.length && ci < MAXT; ci++) {
+        const c = craters[ci];
         const k = c.t / c.life;
-        cv[i].set(c.x, c.z, c.r * (k < 0.66 ? 1 : 1 - (k - 0.66) / 0.34 * 0.9), 1);
+        cv[ci].set(c.x, c.z, c.r * (k < 0.66 ? 1 : 1 - (k - 0.66) / 0.34 * 0.9), 1);
       }
+      if (api.scarFeed) {
+        scarAge += dt;
+        if (scarAge > 0.6 || Math.abs(cam.position.x - scarX) + Math.abs(cam.position.z - scarZ) > 24) {
+          scarAge = 0; scarX = cam.position.x; scarZ = cam.position.z;
+          let n = 0;
+          try { n = api.scarFeed(scarX, scarZ, scars) | 0; } catch (e) { G.reportError?.('grass:scars', e); }
+          scars.length = Math.min(n, scars.length);
+        }
+        for (let j = 0; j < scars.length && ci < MAXC; j++, ci++) { const c = scars[j]; cv[ci].set(c.x, c.z, c.r, c.k ?? 1); }
+      }
+      for (; ci < MAXC; ci++) cv[ci].set(0, 0, 0, 0);
       const bv = shared.gBlast.value;
       for (let i = 0; i < MAXB; i++) if (bv[i].w > 0 && shared.gTime.value - bv[i].z > 3.5) bv[i].w = 0;
     },

@@ -20,6 +20,12 @@ const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _c = new THREE.Vector3
 const UP = new THREE.Vector3(0, 1, 0);
 const COL = { fire: 0xff7a2a, water: 0x58c6ff, ice: 0xbfefff, wind: 0xb6f5d0, thunder: 0xb98cff, earth: 0xc49a6c, sun: 0xffd27a, moon: 0xb9a8ff, charm: 0xfff0c8 };
 const RIVAL = 0xc87bff;
+// vfx: comet trails of magic bullets — hot head colour, tail colour — by element
+const CPAL = { fire: [0xffe2a0, 0xff6a1e], water: [0xeefaff, 0x2f9cf0], ice: [0xffffff, 0x6fd0ff], wind: [0xf4fff8, 0x46d69a], thunder: [0xffffff, 0x8f5cff],
+  earth: [0xfff0d0, 0xc98a40], sun: [0xfff8e0, 0xffb648], moon: [0xffffff, 0x9a8cff], dark: [0xf0d8ff, 0x8a3cff] };
+const _cA = new THREE.Color(), _cB = new THREE.Color();
+const GLINT = { color: 0xffffff, scale: 1, grounded: false, count: 1 };
+const LINGER = 0.45;      // a released charge circle waits this long for its cast before it folds away
 
 export function installMagic(G, fx, X) {
   const kit = () => fx.kit;
@@ -40,10 +46,20 @@ export function installMagic(G, fx, X) {
     const K = kit(); if (!K || !e?.pos) return;
     const el = e.spell === 'charm' || e.spell === 'guard' || e.spell === 'shikigami' || e.spell === 'kinkan' ? 'sun' : e.spell;
     const big = e.form === 'big' || e.spell === 'shikigami' || e.spell === 'kinkan';
+    if (e.spell === 'guard' && e.pos && camD(e.pos) < 60) {   // vfx: the ward snaps open in a ring of runes
+      _d.copy(e.dir || UP).setY(0); if (_d.lengthSq() < 1e-4) _d.set(0, 0, 1); _d.normalize();
+      _e.copy(e.pos).addScaledVector(_d, 0.55);
+      fx.ward?.(_e, _d, { radius: 1.3, dur: 0.24, intensity: 1.1 });
+      fx.circle?.(_e, { normal: _d, radius: 1.05, color: COL.sun, layers: 9, dur: 0.32, draw: 0.07, outDur: 0.16, out: 'flare', spin: 3, intensity: 1.15 });
+      return;
+    }
     if (e.spell === 'guard' || e.spell === 'charm') return;           // too frequent: they keep their own look
     const P = _a.copy(e.pos), D = _b.copy(e.dir || UP).normalize();
     if (camD(P) > 90) return;
     const col = COL[el] ?? 0xffffff;
+    // vfx: the magic circle at the wand — a quick small one on a tap; on a charged cast the circle that grew there
+    // flares out, or (no charge: rivals, scripted casts) a barrel of three circles blooms down the line of the cast
+    if (!flareLinger(P, big)) castCircles(P, D, col, big);
     // release: a shock ring around the hand, facing the cast, and a short light
     K.shock(P, big ? 1.1 : 0.6, col, { up: D, dur: big ? 0.35 : 0.22, width: 0.3, I: 2 });
     fx.flash(P, col, big ? 40 : 14, big ? 0.3 : 0.16, big ? 9 : 5);
@@ -60,11 +76,17 @@ export function installMagic(G, fx, X) {
     // gather / sigil: a ring of glyphs under her for the big casts (and for every earth cast: it rises from the ground)
     if (big || el === 'earth') {
       const F = feetOf(e.caster, _c);
-      if (F) {
-        K.glyphs(F, big ? 1.9 : 1.2, col, { dur: big ? 1.3 : 0.8, spin: 1.2, I: 1.8 });
+      const cp = e.caster?.pos || e.caster?.group?.position;
+      if (F && (!cp || cp.y - F.y < 2.5)) {      // vfx: no ground circle far below a flier
+        // vfx: the layered circle on the ground under her (the charge's own ground circle already flared, if any)
+        if (!groundFlared) fx.circle(F, { radius: big ? 2.3 : 1.25, color: col, layers: big ? 15 : 9, dur: big ? 1.35 : 0.8, draw: big ? 0.22 : 0.14, out: 'fade', spin: big ? 1.1 : 1.6, intensity: big ? 1.15 : 1.0 });
         if (big) {
-          K.glyphs(F, 1.25, 0xffffff, { dur: 1.1, spin: -1.8, I: 1.2, width: 0.18, delay: 0.05 });
           K.shock(F, 2.6, col, { dur: 0.45, width: 0.1, I: 1.6, delay: 0.08 });
+          fx.burst('dust_ring', F, { scale: 0.9 });          // vfx: the release kicks a ring of dust off the ground
+          // hair and robe lift in the rush of the release; sparkle hangs in the air after it
+          fx.duel?.gust(_e.set(F.x, F.y + 1, F.z), _d.set(-D.x * 0.55, 0.85, -D.z * 0.55), 11, 0.9, 3.2);
+          fx.burst('sparkle_hang', P, { color: col, scale: 1 });
+          if (e.caster === G.player) fx.duel?.shake('light');
           // a column of light rising through her
           fx.shape({ kind: 'cyl', pos: F, r0: 0.8, r1: 0.5, h: 2.2, dur: 0.5, grow: [0.6, 1.1], erode: [0.2, 0.95], tex: 'streak', tile: [6, 1], scroll: [0, -2.2],
             color: col, color2: 0xffffff, mode: 'glow', add: 0.8, I: 0.8, soft: 0.12, body: 0.3 });
@@ -74,10 +96,100 @@ export function installMagic(G, fx, X) {
     }
   }
 
+  // ---- 1b. magic circles: the charge, its linger, the cast ----------------------------------------------------------
+  // The charge emitter (spells.js) drives a circle growing at her wand (its layers drawing on one by one as the charge
+  // builds), a ground circle under her from a third of the way, and a visual-only updraft that lifts her hair and robe.
+  // When the charge ends the circles linger LINGER s: the cast that follows flares them out; otherwise they fold away.
+  const LG = [];             // { h, ground, t }
+  let groundFlared = false;
+  function charge(em, dt, hex) {
+    if (!em || !(dt > 0) || !fx.circle) return;
+    const P = G.player;
+    em.chargeT = (em.chargeT || 0) + dt;
+    const k = Math.min(1, em.chargeT / 0.9);
+    const col = hex >= 0 ? hex : 0xffe6a8;
+    const D = _d;
+    if (P?.aim?.dir && em.pos.distanceToSquared(P.pos) < 9) D.copy(P.aim.dir); else G.camera.getWorldDirection(D);
+    if (D.lengthSq() < 1e-6) D.set(0, 0, 1);
+    D.normalize();
+    if (!em.circles) {     // once per charge
+      const v = fx.circle(em.pos, { normal: D, radius: 0.45, color: col, handle: true, charge: 0, spin: 1.7, intensity: 1.45, layers: 15 });
+      const onFoot = P && !P.onBroom && P.pos.y - ground(P.pos) < 1.5;
+      const g = onFoot && em.pos.distanceToSquared(P.pos) < 9 ? fx.circle(P.pos, { ground: true, radius: 1.3, color: col, handle: true, charge: 0, spin: 0.8, intensity: 0.95, layers: 15 }) : null;
+      em.circles = [v && v !== true ? v : null, g && g !== true ? g : null];
+      if (P) em.gust = fx.duel?.gust(P.pos, UP, 2, Infinity, 2.6) || null;
+    }
+    const e = 1 - (1 - k) * (1 - k);
+    const v = em.circles[0], g = em.circles[1];
+    if (v) { v.pos.copy(em.pos).addScaledVector(D, 0.62 + 0.18 * e); v.pos.y += 0.06; v.normal.copy(D); v.radius = 0.42 + 0.48 * e; v.charge = k * 1.04; }
+    if (g && P) { g.pos.set(P.pos.x, ground(P.pos) + 0.07, P.pos.z); g.radius = 1.25 + 1.05 * e; g.charge = Math.max(0, (k - 0.3) / 0.7) * 1.04; }
+    if (em.gust) { em.gust.pos.copy(P ? P.pos : em.pos); em.gust.strength = 2 + 7 * e; }
+    if (k >= 1 && !em.vfxFull) { em.vfxFull = true; v?.setIntensity(1.85); g?.setIntensity(1.15); }
+  }
+  function lingerCircle(h) {
+    if (!h || h === true || !h.alive) return false;
+    LG.push({ h, ground: h.normal.y > 0.97 && h.radius > 1, t: LINGER });
+    return true;
+  }
+  /** A cast at P: flare the lingering charge circles near it. True when the wand circle flared (no new one needed). */
+  function flareLinger(P, big) {
+    let wand = false; groundFlared = false;
+    for (let i = LG.length - 1; i >= 0; i--) {
+      const it = LG[i];
+      if (!it.h.alive) { LG.splice(i, 1); continue; }
+      if (it.h.pos.distanceTo(P) > (it.ground ? 3.5 : 2.2)) continue;
+      if (it.ground) { it.h.release('fade', 0.7); groundFlared = true; }
+      else { it.h.release('flare', big ? 0.42 : 0.26); wand = true; }
+      LG.splice(i, 1);
+    }
+    return wand;
+  }
+  function updateLinger(dt) {
+    for (let i = LG.length - 1; i >= 0; i--) {
+      const it = LG[i];
+      it.t -= dt;
+      if (!it.h.alive) { LG.splice(i, 1); continue; }
+      if (it.t <= 0) { it.h.release('collapse', 0.22); LG.splice(i, 1); }
+    }
+  }
+  /** Circles of an uncharged cast: one quick small circle, or (big) three down the line of the cast, largest first. */
+  function castCircles(P, D, col, big) {
+    if (!fx.circle) return;
+    if (!big) {
+      fx.circle(_e.copy(P).addScaledVector(D, 0.3), { normal: D, radius: 0.5, color: col, layers: 9, dur: 0.38, draw: 0.08, outDur: 0.17, out: 'flare', spin: 2.6, intensity: 1.5 });
+      return;
+    }
+    for (let i = 0; i < 3; i++) {
+      fx.circle(_e.copy(P).addScaledVector(D, 0.35 + i * 0.7), { normal: D, radius: [1.15, 0.8, 0.52][i], color: col, layers: [15, 3, 9][i], dur: 0.8 - i * 0.08,
+        draw: 0.16, outDur: 0.32, out: 'flare', spin: i === 1 ? -2.2 : 1.6, intensity: 1.45, delay: i * 0.05 });
+    }
+  }
+
+  // ---- 1c. comet trails: every magic bullet streams a long bright trail with a soft core, and sheds glints ----------------
+  const GL = new Map();      // projectile -> { next, own trail | null }
+  function comet(p) {
+    const pal = CPAL[p.el]; if (!pal) return;
+    const s = p.size || 0.4;
+    const tr = p.trail;
+    let own = null;
+    const tail = typeof p.color === 'number' ? p.color : pal[1];     // the caster's own colour streams behind the hot head
+    _cA.setHex(pal[0]); _cB.setHex(tail);
+    if (tr && tr.restyle) {
+      if (p.el !== 'fire' || p.shape !== 'orb') {    // the fireball keeps its own streaks under the flame tail
+        tr.restyle({ style: 3, c0: _cA, c1: _cB, width: Math.max(tr.width || 0.2, s * 1.05), life: Math.min(0.75, Math.max(0.36, (tr.life || 0.25) * 2.6)), intensity: 1.7, taper: 0.7 });
+      }
+    } else if (!tr && fx.trail) {
+      own = fx.trail({ style: 3, color: pal[0], color2: tail, width: s * 1.05, life: 0.45, intensity: 1.6, taper: 0.7, pos: p.pos });
+    }
+    GL.set(p, { next: 0, own, glint: tail });
+  }
+
   // ---- 2. projectile bodies ----------------------------------------------------------------------------------------
   const PB = new Map();    // projectile -> [handles]
   function projStart(p) {
-    if (!p || !fx.shape || PB.has(p)) return;
+    if (!p) return;
+    try { if (!GL.has(p)) comet(p); } catch (e) { G.reportError('fx.magic.comet', e); }
+    if (!fx.shape || PB.has(p)) return;
     let hs = [];
     const s = p.size || 0.4;
     const base = { pos: p.pos, dur: 1, grow: [1, 1], handle: true };
@@ -97,6 +209,16 @@ export function installMagic(G, fx, X) {
     if (list.length) PB.set(p, list);
   }
   function projDraw(p) {
+    const gl = GL.get(p);
+    if (gl) {
+      gl.own?.push(p.pos);
+      const t = G.time.t;
+      if (t >= gl.next && p.pos.distanceToSquared(G.camera.position) < 2025) {
+        gl.next = t + 0.045;
+        GLINT.color = gl.glint; GLINT.scale = Math.max(0.6, (p.size || 0.4) * 2);
+        fx.burst('bullet_glints', p.pos, GLINT);
+      }
+    }
     const hs = PB.get(p); if (!hs) return;
     const v = p.vel, l = v.length();
     if (l > 1e-4) _d.copy(v).divideScalar(l); else _d.set(0, 0, 1);
@@ -111,6 +233,8 @@ export function installMagic(G, fx, X) {
     }
   }
   function projEnd(p) {
+    const gl = GL.get(p);
+    if (gl) { gl.own?.stop(); GL.delete(p); }
     const hs = PB.get(p); if (!hs) return;
     for (const h of hs) h.kill?.(0.06);
     PB.delete(p);
@@ -399,14 +523,14 @@ export function installMagic(G, fx, X) {
   G.events.on('beam:struggle', (e) => { try { onStruggle(e); } catch (err) { G.reportError('fx.magic.struggle', err); } });
 
   return {
-    combustion, hasBody: (p) => PB.has(p), projStart, projDraw, projEnd,
+    combustion, hasBody: (p) => PB.has(p), projStart, projDraw, projEnd, charge, lingerCircle,
     update(dt) {
       if (!(dt > 0)) return;
-      try { updateBeams(); updateStruggle(dt); } catch (err) { G.reportError('fx.magic.update', err); }
+      try { updateBeams(); updateStruggle(dt); updateLinger(dt); } catch (err) { G.reportError('fx.magic.update', err); }
     },
     clear() {
       if (st) { for (const h of st.balls) h.kill?.(0.01); dropGusts(); }
-      PB.clear(); st = null; after = null;
+      PB.clear(); GL.clear(); LG.length = 0; st = null; after = null;
       tint.k = 0; if (tint.on) { tint.on = false; G.sky?.setGrade?.(tint.prev || 'auto'); }
     },
     rebase() {},

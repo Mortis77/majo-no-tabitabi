@@ -18,7 +18,8 @@ function front(x,z,t) {
     +.31*Math.sin(x*.0039-z*.0015+t*.0075+.4)
     +.18*Math.cos(z*.006+t*.016+x*.0008);
 }
-function naturalRain(x,z,t) {return smoothstep(.33,.77,front(x,z,t));}
+// Showers only where a front is strong: most of the road is clear or fair-weather cumulus.
+function naturalRain(x,z,t) {return smoothstep(.5,.88,front(x,z,t));}
 
 export function createJourneyWeather(G) {
   const state={
@@ -90,7 +91,10 @@ export function createJourneyWeather(G) {
       const f=front(p.x,p.z,time),blend=localWeight(p.x,p.z);
       const rain=naturalRain(p.x,p.z,time);
       const sky=smoothstep(-.63,.73,f);
-      const fields={cover:.22+.55*sky,rain,warmth:.17+.38*(1-sky),wind:.8+.76*sky+.32*rain};
+      // cover by share of the time along the road: ~30% clear (<.25), ~40% fair cumulus (.25-.42: drifting cloud
+      // shadows and sunbeams), ~20% cloudy, ~10% showers (rain pushes the sky to overcast by itself)
+      const span=Math.min(1,Math.max(0,(f+1)/2.05));
+      const fields={cover:.13+.6*Math.pow(span,1.5),rain,warmth:.17+.38*(1-sky),wind:.8+.76*sky+.32*rain};
       if(lakeScene){
         // The approaching front opens a window over the western horizon.
         const clearing=lakeClearing(p.x,p.z);

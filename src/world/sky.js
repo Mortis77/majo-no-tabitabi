@@ -17,8 +17,9 @@ import { createSkyDome } from '../render/skydome.js';
 import { veilHook, refreshLook, LOOK_DEFAULTS, setHookDebug, HOOK_DEBUG_BITS, setGpuHook } from '../render/veilhook.js';
 import { SURFACES } from '../render/surfaces.js';
 import { setupSunShadow } from '../render/shadows.js';
-import { createPipeline, GRADES } from '../render/post.js';
+import { createPipeline, GRADES, LOOKS, lookOf } from '../render/post.js';
 import { clamp, smoothstep, damp } from '../core/util.js';
+import { BELL, CORE, CITY_Y, CORE_Y, BELL_SQUARES } from '../data/bellcrown.js';
 
 const SUN_INTENSITY = 3.45;
 const PRESETS = {
@@ -187,6 +188,7 @@ function lerpGrade(a, b, t, o) {
   }
   o.sat = a.sat + (b.sat - a.sat) * t; o.vib = (a.vib || 0) + ((b.vib || 0) - (a.vib || 0)) * t; o.knee = (a.knee || 0) + ((b.knee || 0) - (a.knee || 0)) * t; o.contrast = a.contrast + (b.contrast - a.contrast) * t; o.vig = a.vig + (b.vig - a.vig) * t;
   o.midLift = a.midLift + (b.midLift - a.midLift) * t;
+  o.hiRoll = (a.hiRoll || 0) + ((b.hiRoll || 0) - (a.hiRoll || 0)) * t;
   return o;
 }
 
@@ -207,6 +209,12 @@ export const skySystem = {
     addMaterialHook(veilHook);
     // look tiers: detail on, fine detail scale, cloud shadows (docs/api/look.md)
     U.mvQ.value.set(1, q.name === 'low' ? 0 : 1, 1, 0);
+    // the City of Magic's street canyons (veilhook mvCanyonSky): the tall-house streets keep ~1/3 of the sky fill
+    // at the bottom, full again by balcony height; the squares stay open
+    U.mvCanyonBox.value.set(BELL.boxX, BELL.boxZ, BELL.halfW, BELL.halfD);
+    U.mvCanyonY.value.set(CITY_Y, CORE_Y, 0.68, 24);
+    U.mvCanyonCore.value.set(BELL.x + CORE.x, BELL.z + CORE.z, CORE.r, 0);
+    BELL_SQUARES.slice(0, 5).forEach((s, i) => U.mvCanyonOpen.value[i].set(BELL.x + s.x, BELL.z + s.z, s.r, 0));
 
     // ---- sky dome ----
     const dome = createSkyDome(q.name);
@@ -310,6 +318,8 @@ export const skySystem = {
         u.uFocus.value = Math.max(0.5, focusDist);
         u.uFocusRange.value = Math.max(2, focusDist * 0.6);
       },
+      /** The look presets and grades (look tuning / tests only; G.settings.look picks the look). */
+      looks: LOOKS, grades: GRADES,
       /** Force a colour grade: 'sun' | 'dusk' | 'night' | 'neutral'; null / 'auto' = follow the Veil. */
       setGrade(name) { st.grade = name && name !== 'auto' && GRADES[name] ? name : null; },
       /** Toggle one stage: 'ao' | 'bloom' | 'shafts' | 'grade' | 'aa'. */
@@ -442,18 +452,21 @@ export const skySystem = {
     st.sun.color.b *= 1 - weather.warmth*.18;
     // The cloud column already attenuates direct sun per surface. Keep the key
     // in an opening (or above the deck) and apply only broad atmospheric loss here.
-    st.sun.intensity=SUN_INTENSITY*(1-overcast*.24)*weather.sunlight;
+    const look = lookOf(G.settings?.look); // the chosen look (settings): light ratio here, haze / grade below
+    st.sun.intensity=SUN_INTENSITY*(1-overcast*.24)*weather.sunlight*look.key;
     // In clear daylight the sky fills the shaded facade. When the sun disappears
     // into stratus or below the horizon, the sky supplies a larger share of its light.
     const daylightFill = .74 + .31 * overcast;
-    st.hemi.intensity=(daylightFill+(1-daylightFill)*dark)*(1-.72*dark);
+    st.hemi.intensity=(daylightFill+(1-daylightFill)*dark)*(1-.72*dark)*(1+(look.fill-1)*(1-dark)*(1-overcast));
     U.mvHemiMul.value = st.hemi.intensity;
     pal('hemiSky', v, st.hemi.color);
     pal('hemiGnd', v, st.hemi.groundColor);
     pal('fog', v, U.mvFogCam.value);
     U.mvFogCam.value.lerp(_c2.setRGB(.34,.415,.50),overcast*.75);
     U.mvFogCam.value.lerp(_c2.setRGB(.095,.144,.205),dark*.89);
-    const fogD = _sc.fogDensity * (.74 + overcast*1.04 + rain*1.45);
+    // the chosen look (settings): soft = a paler, thicker daylight haze so distant land falls back into the air
+    U.mvFogCam.value.lerp(_c2.setRGB(.62,.75,.86),look.haze*(1-dark)*(1-overcast*.6));
+    const fogD = _sc.fogDensity * (.74 + overcast*1.04 + rain*1.45) * (1 + (look.fog - 1) * (1 - dark));
     U.mvFogDensity.value = fogD;
     G.scene.fog.color.copy(U.mvFogCam.value);
     G.scene.fog.density = Math.sqrt(fogD * 600) / 600;
@@ -494,13 +507,14 @@ export const skySystem = {
     // the dome's own bright cloud tops and dark shadows carry the contrast.
     const underCloud=1-smoothstep(du.uCloudH.value-2,du.uCloudH.value+19,cam.position.y);
     const sunAboveHorizon=smoothstep(.025,.14,SUN_DIR.y);
-    sp.shaftK=post.flags.shafts ? st.sunVis*(1-weather.night)*(1-overcast*.91)
-      *underCloud*sunAboveHorizon*(1+weather.warmth*.19) : 0;
+    // capped: facing a low sun, stronger beams turned the whole frame milky
+    sp.shaftK=post.flags.shafts ? Math.min(1.0, look.shafts*st.sunVis*(1-weather.night)*(1-overcast*.91)
+      *underCloud*sunAboveHorizon*(1+weather.warmth*.19)) : 0;
     sp.compMat.uniforms.uShaftCol.value.setRGB(1, .93-weather.warmth*.10, .82-weather.warmth*.24);
     sp.compMat.uniforms.uExposure.value = st.exposure;
     // bloom by place
     pipe.bloom.threshold = _sc.bloomThreshold;
-    pipe.bloom.strength = _sc.bloomStrength * (1 + (st.ringBoost - 1) * 0.12);
+    pipe.bloom.strength = _sc.bloomStrength * (1 + (st.ringBoost - 1) * 0.12) * look.bloom;
     pipe.bloom.radius = 0.15; // light r3 (was 0.3): less spread, so glows do not bleed over edges and lettering
     // grading
     const gu = pipe.grade.material.uniforms;
@@ -508,10 +522,14 @@ export const skySystem = {
     const gradePhase = Math.max(v,twilight,weather.night,.8*weather.eclipse);
     let g;
     if (st.grade) g = GRADES[st.grade];
-    else g = gradePhase < .5 ? lerpGrade(GRADES.sun, GRADES.dusk, smoothstep(.05,.5,gradePhase), _grade) : lerpGrade(GRADES.dusk, GRADES.night, smoothstep(.5,.92,gradePhase), _grade);
+    else {
+      const gs = GRADES[look.sun], gd = GRADES[look.dusk], gn = GRADES[look.night];
+      g = gradePhase < .5 ? lerpGrade(gs, gd, smoothstep(.05,.5,gradePhase), _grade) : lerpGrade(gd, gn, smoothstep(.5,.92,gradePhase), _grade);
+    }
+    gu.uToneExp.value = look.tone.exp; gu.uToneCt.value = look.tone.ct; gu.uToneSat.value = look.tone.sat;
     gu.uLift.value.fromArray(g.lift); gu.uGain.value.fromArray(g.gain); gu.uVigCol.value.fromArray(g.vigCol); gu.uShTint.value.fromArray(g.sh || [1, 1, 1]);
     gu.uMidLift.value = g.midLift;
-    gu.uSat.value = g.sat; gu.uVib.value = g.vib || 0; gu.uSatKnee.value = g.knee || 0; gu.uContrast.value = g.contrast; gu.uVig.value = g.vig;
+    gu.uSat.value = g.sat; gu.uVib.value = g.vib || 0; gu.uSatKnee.value = g.knee || 0; gu.uHiRoll.value = g.hiRoll || 0; gu.uContrast.value = g.contrast; gu.uVig.value = g.vig;
     gu.uGradeOn.value = post.flags.grade ? 1 : 0;
     gu.uFlash.value.copy(st.flashCol).multiplyScalar(fk * 0.45);
 

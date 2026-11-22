@@ -41,6 +41,10 @@ addCss(`
 .mp-zoom { position: absolute; right: 12u; bottom: 12u; display: flex; flex-direction: column; gap: 6u; pointer-events: auto; }
 .mp-zoom div { width: 28u; height: 28u; border-radius: 50%; background: rgba(243,233,212,.92); color: var(--ink); font: 700 18u/28u var(--fb); text-align: center; cursor: pointer; box-shadow: 0 2u 5u rgba(0,0,0,.4); }
 .mp-zoom div:hover { background: var(--red); color: var(--paper); }
+.mv-ui.touch .mp-zoom { gap: 10px; right: 10px; bottom: 10px; }
+.mv-ui.touch .mp-zoom div { width: 40px; height: 40px; font-size: 22px; line-height: 40px; }
+.mv-ui.compact .mp { gap: 14u; }
+.mv-ui.compact .mp-side { width: 190u; overflow-y: auto; touch-action: pan-y; }
 .mp-side { width: 232u; flex: none; display: flex; flex-direction: column; gap: 5u; color: var(--ink); }
 .mp-side .here { padding: 8u 14u; margin-bottom: 4u; background: rgba(35,31,29,.06); border-left: 3u solid var(--red); }
 .mp-side .here .k { font-size: 12u; color: var(--ink3); letter-spacing: .3em; }
@@ -170,6 +174,7 @@ const BIG = new Set(['wilds']);
 // broad regions are rings or wide fields: their centroid is a poor place for a name, so they get a hand-picked spot
 const SPOT = { sunmeadow: { x: -300, z: 330 }, duskwood: { x: 40, z: 250 }, evernight: { x: 300, z: 70 } };
 const view = { cx: -40, cz: 0, zoom: 1 };   // zoom 1 = whole island fits the height
+UI.mapView = view;                         // tests read the map's pan / zoom (G.ui.debug.UI.mapView)
 
 export function createMapTab(parent, providers) {
   const R = el('div', 'mp', parent);
@@ -241,7 +246,7 @@ export function createMapTab(parent, providers) {
     const env = G.env || {};
     setText(hereV, env.region && has('world.place.' + env.region) ? t('world.place.' + env.region) : t('world.name'));
     setText(hereS, env.region && has('world.sub.' + env.region) ? t('world.sub.' + env.region) : '');
-    hintLine(foot, 'ui.menu.hintMap', { ok: codeLabel('Enter') });
+    if (G.input?.touch) foot.textContent = t('ui.touch.mapHint'); else hintLine(foot, 'ui.menu.hintMap', { ok: codeLabel('Enter') });
   }
 
   function focusPlayer() {
@@ -250,6 +255,7 @@ export function createMapTab(parent, providers) {
   }
 
   const toScreen = (x, z) => [(x - view.cx) * scale + W / 2, (z - view.cz) * scale + H / 2];
+  const toWorld = (sx, sy) => [(sx - W / 2) / scale + view.cx, (sy - H / 2) / scale + view.cz];
 
   // play-test: around the shrine and the village a handful of names printed over each other. Keep the first of any
   // overlapping text — quest labels, then place names, then the rest — and hide the others until the view separates them.
@@ -319,11 +325,45 @@ export function createMapTab(parent, providers) {
   }
   const _dir = new G.THREE.Vector3();
 
-  // mouse: drag to pan, wheel to zoom
-  let drag = null;
-  vw.addEventListener('pointerdown', (e) => { drag = { x: e.clientX, y: e.clientY, cx: view.cx, cz: view.cz }; vw.setPointerCapture?.(e.pointerId); vw.classList.add('drag'); });
-  vw.addEventListener('pointermove', (e) => { if (!drag) return; view.cx = drag.cx - (e.clientX - drag.x) / scale; view.cz = drag.cz - (e.clientY - drag.y) / scale; clampView(); });
-  vw.addEventListener('pointerup', () => { drag = null; vw.classList.remove('drag'); });
+  // mouse / one finger: drag to pan; wheel or two fingers (pinch): zoom about the point under them
+  const ptrs = new Map();   // pointerId -> { x, y }
+  let drag = null, pinch = null;
+  const startDrag = () => { const p = ptrs.values().next().value; drag = p ? { x: p.x, y: p.y, cx: view.cx, cz: view.cz } : null; };
+  const pinchState = () => {
+    const [a, b] = [...ptrs.values()];
+    return { d: Math.max(8, Math.hypot(a.x - b.x, a.y - b.y)), mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2 };
+  };
+  vw.addEventListener('pointerdown', (e) => {
+    ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    vw.setPointerCapture?.(e.pointerId); vw.classList.add('drag');
+    if (ptrs.size === 1) startDrag();
+    else if (ptrs.size === 2) { drag = null; pinch = { ...pinchState(), zoom: view.zoom }; }
+  });
+  vw.addEventListener('pointermove', (e) => {
+    const p = ptrs.get(e.pointerId);
+    if (!p) return;
+    p.x = e.clientX; p.y = e.clientY;
+    if (pinch && ptrs.size >= 2) {
+      const s2 = pinchState();
+      // keep the map point under the fingers' midpoint where it is while the spread zooms
+      const r = vw.getBoundingClientRect();
+      const [wx, wz] = toWorld(pinch.mx - r.left, pinch.my - r.top);
+      view.zoom = Math.min(12, Math.max(0.8, pinch.zoom * (s2.d / pinch.d)));
+      scale = Math.min(W / (2 * EXT + 200), H / 2450) * view.zoom;
+      const [sx2, sy2] = toScreen(wx, wz);
+      view.cx += (sx2 - (s2.mx - r.left)) / scale; view.cz += (sy2 - (s2.my - r.top)) / scale;
+      pinch.mx = s2.mx; pinch.my = s2.my; pinch.d = s2.d; pinch.zoom = view.zoom;
+      clampView();
+    } else if (drag) { view.cx = drag.cx - (e.clientX - drag.x) / scale; view.cz = drag.cz - (e.clientY - drag.y) / scale; clampView(); }
+  });
+  const lift = (e) => {
+    ptrs.delete(e.pointerId);
+    if (ptrs.size < 2) pinch = null;
+    if (ptrs.size === 1) startDrag();
+    if (ptrs.size === 0) { drag = null; vw.classList.remove('drag'); }
+  };
+  vw.addEventListener('pointerup', lift);
+  vw.addEventListener('pointercancel', lift);
   vw.addEventListener('wheel', (e) => { e.preventDefault(); zoomBy(e.deltaY < 0 ? 1.2 : 1 / 1.2); }, { passive: false });
   zIn.addEventListener('pointerdown', (e) => { e.stopPropagation(); zoomBy(1.3); });
   zOut.addEventListener('pointerdown', (e) => { e.stopPropagation(); zoomBy(1 / 1.3); });

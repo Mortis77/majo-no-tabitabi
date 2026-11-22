@@ -60,10 +60,18 @@ void main() {
   } else if (style < 1.5) {     // flat band with a soft edge (cloth, wing membranes, wind blades)
     prof = 1.0 - smoothstep(0.72, 1.0, x);
     core = 0.0;
-  } else {                      // streaked: several fine lines
+  } else if (style < 2.5) {     // streaked: several fine lines
     float lines = 0.55 + 0.45 * sin(vUv.x * 9.0 + v * 6.0);
     prof = pow(max(1.0 - x, 0.0), 1.2) * lines;
     core = 1.0 - smoothstep(0.0, 0.25, x);
+  } else {                      // vfx comet: a hot thin core, a wide soft halo, beads of light running down it
+    float beads = 0.72 + 0.28 * sin(v * 38.0 - uTime * 26.0);
+    float coreL = exp(-x * x * 46.0) * (1.0 - smoothstep(0.7, 1.0, v));
+    float fadeC = pow(max(1.0 - v, 0.0), 1.05);
+    vec3 colC = mix(vC0, vC1, smoothstep(0.0, 0.55, v));
+    vec3 addC = (colC * exp(-x * x * 3.0) * 0.62 * beads + mix(colC, vec3(1.0), 0.65) * coreL * 1.35) * vMix.y * fadeC;
+    gl_FragColor = fxOut(addC, vec3(0.0), 0.0);
+    return;
   }
   float fade = pow(max(1.0 - v, 0.0), 1.25);
   vec3 col = mix(vC0, vC1, smoothstep(0.0, 0.8, v));
@@ -88,6 +96,18 @@ class Trail {
   reset() { if (this.active) { this.n = 0; this.owner._blank(this); } return this; }
   setColor(c0, c1) { if (this.active) this.owner._params(this, c0, c1 ?? c0); return this; }
   setWidth(w) { if (this.active) { this.width = w; this.owner._params(this); } return this; }
+  /** vfx: change the look of a live trail { style, width, life, add, intensity, taper, c0, c1 (linear THREE.Color) }; keeps its points */
+  restyle(o) {
+    if (!this.active || !o) return this;
+    if (o.style !== undefined) this.style = o.style;
+    if (o.width !== undefined) this.width = o.width;
+    if (o.life !== undefined) { this.life = o.life; this.interval = o.life / (POINTS - 3); }
+    if (o.add !== undefined) this.add = o.add;
+    if (o.intensity !== undefined) this.intensity = o.intensity;
+    if (o.taper !== undefined) this.taper = o.taper;
+    this.owner._params(this, o.c0, o.c1 ?? o.c0);
+    return this;
+  }
   remove() { this.stopped = true; }
 }
 

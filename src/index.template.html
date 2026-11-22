@@ -2,7 +2,15 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#05060d">
+<meta name="color-scheme" content="dark">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="魔女之旅">
+<meta name="format-detection" content="telephone=no">
+<link rel="apple-touch-icon" href="assets/textures/journey/elaina-icon.png">
 <title>魔女之旅</title>
 <link rel="icon" type="image/png" href="assets/textures/journey/elaina-icon.png">
 <meta name="description" content="扮演伊蕾娜，接受芙兰的试炼，骑扫帚穿过星痕湖与云海。免费在浏览器中游玩的《魔女之旅》非官方同人游戏。">
@@ -13,7 +21,10 @@
   html, body { margin: 0; height: 100%; overflow: hidden; background: #05060d; color: #f3ead8;
     font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
     -webkit-user-select: none; user-select: none; }
-  #game { position: fixed; inset: 0; width: 100%; height: 100%; display: block; outline: none; }
+  /* phones / tablets: no pull-to-refresh, no double-tap zoom, no long-press callouts or tap flashes */
+  html, body { overscroll-behavior: none; touch-action: manipulation; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  #game { position: fixed; inset: 0; width: 100%; height: 100%; display: block; outline: none; touch-action: none; }
   #ui { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 1; }
   #boot { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
     gap: 22px; background: linear-gradient(90deg,#172a3ed9,#20374678),url("assets/textures/journey/magic-country-title.webp") center / cover; z-index: 1000; transition: opacity .8s; }

@@ -121,7 +121,7 @@ export function createFranMeteor(S) {
     const teacher = n.pos,
       close = teacher.clone().add(vector(-2.65, 1.6, 3.5));
     G.cam.cinematic({ pos: close, look: teacher.clone().add(vector(0, 1.38, 0)), dur: 0.36 });
-    G.ui?.toast?.(t('story.spar.valley'), { dur: 3.3, icon: 'earth' });
+    G.ui?.toast?.(t('story.spar.valley', { skip: t(G.input?.touch ? 'story.spar.skipTouch' : 'story.spar.skipKey') }), { dur: 3.3, icon: 'earth' });
     G.audio?.sfx?.('cast_earth', { pos: teacher, vol: 0.7 });
   }
   function hit() {

@@ -69,7 +69,9 @@ float cloudDensityFiltered(vec3 p, float footprint) {
   float billow=textureLod(uVolume,v+vec3(0.,mvCloudShape.w*.30,0.),max(0.,log2(footprint*(48./330.)))).r;
   float detail=textureLod(uVolume,v*3.13+vec3(.17,mvCloudShape.w,.45),max(0.,log2(footprint*(3.13*48./330.)))).r;
   float shape=mix(.31,.22,mvCloudShape.y);
-  float ruffle=mix(.35,.23,mvCloudShape.y);
+  // fair-weather cumulus: the 330 m billow carries more of the shape than the continental moisture, so a dry or
+  // middling sky breaks into separate heaps with blue gaps (and patchy shadows / sunbeams below); humid sheets stay joined
+  float ruffle=mix(.55,.26,mvCloudShape.y);
   float body=weather-mvCloudShape.x+ruffle*(billow-.45)+.105*(detail-.5);
   float heightLoss=shape*h*h;
   float density=smoothstep(-.022,.115,body-heightLoss);
@@ -128,7 +130,8 @@ vec4 traceCloud(vec3 dir, float veil, vec3 horizon, out vec4 profile) {
       shadow=exp(-opticalSun);
       lastLit=t;
     }
-    float facing=clamp(.16+.43*h+.51*shadow,0.,1.);
+    // anime cumulus: bright crowns over grey-blue bellies even when the sun is behind the viewer
+    float facing=clamp(.05+.58*h+.46*shadow,0.,1.);
     vec3 pigment=mix(shade,light,smoothstep(.12,.93,facing));
     // Sunlit tops sit above the dark body of a rain cloud.
     float grey=uWeather.x*(1.-.72*smoothstep(.38,.92,h)*shadow);

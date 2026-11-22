@@ -361,6 +361,23 @@ function jellyGeo() {
   return build(parts);
 }
 
+// ---- leaper (map round): a lit fish that jumps out of lakes and rivers -----------------------------------------------
+// unit length along +z. parts: 0 body, 1 tail. iAnim: x tail phase, y tail amplitude, z —, w glow. colA back, colB belly
+const LEAP_V = `
+void lifeBend(inout vec3 p, inout vec3 n) {
+  float k = smoothstep(0.1, -0.5, p.z) * iAnim.y;
+  p.x += sin(iAnim.x - p.z * 4.0) * k * 0.18;
+}
+`;
+function leaperGeo() {
+  const parts = [];
+  parts.push({ geo: new THREE.SphereGeometry(1, 12, 8), m: M(0, 0, 0.05, 0.11, 0.16, 0.45), part: 0, col: (x, y) => [smooth(0.02, -0.08, y), 0.85 + 0.15 * smooth(-0.1, 0.12, y), 0] });
+  const tail = new THREE.ConeGeometry(0.16, 0.3, 4, 1); tail.rotateX(-Math.PI / 2); tail.scale(0.25, 1, 1);
+  parts.push({ geo: tail, m: M(0, 0, -0.48), part: 1, col: [0, 0.8, 0] });
+  for (const s of [1, -1]) parts.push({ geo: new THREE.SphereGeometry(0.03, 5, 4), m: M(s * 0.075, 0.04, 0.38), part: 0, col: [0, 0.1, 0] });
+  return build(parts);
+}
+
 /** Build the five meshes (caps = max instances each). Returns { bird, insect, frog, fish, jelly }. */
 export function buildLifeMeshes(caps) {
   const bird = instanced(birdGeo(), litMaterial('bird', BIRD_V, 'mix(vec3(0.95, 0.62, 0.22), vec3(0.12, 0.1, 0.12), iShape.w)'), caps.bird, 'bird');
@@ -370,5 +387,6 @@ export function buildLifeMeshes(caps) {
   fish.renderOrder = -5; // after the water (-10)
   const jelly = instanced(jellyGeo(), jellyMaterial(), caps.jelly, 'jelly');
   jelly.renderOrder = 5;
-  return { bird, insect, frog, fish, jelly };
+  const leaper = instanced(leaperGeo(), litMaterial('leaper', LEAP_V, 'vec3(0.9, 0.85, 0.6)'), caps.leaper || 6, 'leaper');
+  return { bird, insect, frog, fish, jelly, leaper };
 }

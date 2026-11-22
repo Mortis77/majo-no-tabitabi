@@ -205,7 +205,7 @@ const P = {
   bdRise: motes(GOLD, { r: 3, up: [0.6, 2.2], speed: [0.2, 1.5], life: [2, 3.5], turb: [0.5, 1.5], I: [3.5, 0], size: [0.08, 0.16], delay: [0, 0.4], tint: false }),
   bdShock: shock(0xffffff, 1.5, 12, 0.5, 3.5),
   // clash
-  clFlash: flash(0xffffff, 2.4, 0.1, 8, { tint: false }), clStar: star(0xffffff, 1, 0.16, 6, { grow: [2.6, 3.2], tint: false }),
+  clFlash: flash(0xffffff, 1.4, 0.09, 3, { tint: false }), clStar: star(0xffffff, 0.9, 0.14, 3, { grow: [2.4, 3], tint: false }),   // vfx: dimmer — the starburst carries the hit
   clShock: shock(0xffffff, 0.6, 7.5, 0.28, 3, { tint: false }),
   clSparks: sparks(0xfff0c0, undefined, { speed: [6, 15], g: -6, drag: 2, life: [0.3, 0.7], I: [7, 2] }),
   clMotes: motes([0xffffff, 0xfff3c4], { r: 0.4, speed: [1, 3] }),
@@ -301,6 +301,18 @@ const P = {
   bmEndStar: star(0xffffff, 1.2, 0.1, 3.5, { grow: [1.4, 1.9], tint: false }),
   bmEndSparks: sparks(0xfff0c0, undefined, { cone: 1.25, speed: [5, 13], g: -6, drag: 2, life: [0.25, 0.55], I: [7, 2] }),
   bmStartGlow: spec({ sprite: S.GLOW, col: 0xffffff, size: [0.9, 1.3], life: [0.08, 0.13], I: [3.5, 1.5], fadeIn: 0.1, fadeOut: 0.4, tint: false, rot: 0 }),
+  // vfx: anime sparkle — glints that hang in the air after a big moment, glitter thrown off a clash or a parry,
+  // the glints a bullet leaves behind it, the glitter of shattered rock
+  hangTwinkle: twinkle(GOLD, { r: 1.3, speed: [0.3, 1.4], up: [0.1, 0.6], drag: 2.4, g: 0.12, life: [1.5, 2.8], size: [0.18, 0.34], I: [3.2, 0.4], flicker: [0.85, 7],
+    turb: [0.25, 1.1], fadeIn: 0.1, fadeOut: 0.55, delay: [0, 0.35] }),
+  hangDot: motes(GOLD, { r: 1.5, speed: [0.1, 0.8], up: [0.05, 0.5], drag: 1.8, life: [1.6, 3.0], size: [0.06, 0.11], I: [3, 0.3], flicker: [0.7, 6], turb: [0.3, 1.3], delay: [0, 0.4] }),
+  glintStar: star(0xffffff, 0.9, 0.16, 3, { grow: [1.4, 1.9] }),
+  glintRays: spec({ sprite: S.SPARK, mode: STRETCH, col: GOLD, size: [0.05, 0.09], stretch: 0.6, aspect: 0.45, speed: [7, 15], cone: 1.05, drag: 4.5, g: -1, life: [0.16, 0.32],
+    I: [4, 0.5], fadeIn: 0, fadeOut: 0.5 }),
+  glintDust: twinkle(GOLD, { r: 0.25, speed: [1.5, 4.5], drag: 3.4, g: -0.5, life: [0.6, 1.3], size: [0.08, 0.15], I: [2.8, 0], flicker: [0.85, 16] }),
+  bgTwinkle: twinkle(0xffffff, { r: 0.12, speed: [0.05, 0.4], drag: 3, g: 0.1, life: [0.35, 0.8], size: [0.07, 0.13], I: [2.4, 0], flicker: [0.8, 16] }),
+  bgDot: motes(0xffffff, { r: 0.1, speed: [0.05, 0.5], drag: 2.5, life: [0.3, 0.7], size: [0.035, 0.06], I: [2.4, 0], up: [-0.1, 0.2] }),
+  rockGlitter: twinkle([0xfff2d6, 0xffe2a8, 0xffffff], { r: 0.5, speed: [2, 6], cone: 1.0, g: -4, drag: 1.6, life: [0.6, 1.3], size: [0.08, 0.15], I: [2.2, 0], tint: false }),
   // lightning strike point
   ltSparks: sparks([0xffffff, 0xe6d8ff], 0x8a5cff, { cone: 1.2, speed: [5, 12], drag: 3, g: -8, life: [0.2, 0.45], I: [7, 2] }),
   ltGlow: flash(0xe6d8ff, 2.2, 0.14, 6),
@@ -320,11 +332,15 @@ export function makeRecipes(X) {
   const KD = () => _kd.set(ctx.dx, ctx.dy, ctx.dz);
   const KN = () => _kn.set(ctx.nx, ctx.ny, ctx.nz);
   const near = () => Math.abs(ctx.y - X.ground(ctx.x, ctx.z, ctx.y)) < 1.6 * Math.max(1, E.scale);
+  const KC = () => X.toCam(_kn);       // unit vector from the burst toward the camera
+  /** vfx: glitter thrown off a hit in a colour (and left hanging when `hang`) */
+  const glitter = (hex, n, hang = 0) => { const c0 = ctx.c0; ctx.c0 = hex; p(P.glintDust, n); if (hang) p(P.hangTwinkle, hang); ctx.c0 = c0; };
 
   // ---- elemental hits (nominal radius 1) ---------------------------------------------------------------------------
   B.hit_sun = () => {
     p(P.sunFlash, 1); p(P.sunStar, 1); p(P.sunRays, 5); p(P.sunSparks, 8); p(P.sunMotes, 5);
     X.light(C(0xffd27a), 30, 0.18, 8);
+    glitter(C(0xffd27a), 3);
     const K = kit(); if (K) { const sc = E.scale; K.petals(KP(), 1.1 * sc, { up: KN(), n: 8, dur: 0.5 }); K.shock(KP(), 1.5 * sc, 0xffd27a, { up: KN(), dur: 0.35, width: 0.18 });
       if (near()) K.glyphs(KG(), 1.4 * sc, 0xffc24a, { dur: 0.9, I: 1.6 }); }
   };
@@ -347,6 +363,7 @@ export function makeRecipes(X) {
   };
   B.hit_ice = () => {
     p(P.iceStar, 1); p(P.iceShards, 5); p(P.iceGlitter, 4); p(P.iceMist, 2); p(P.iceFlakes, 2);
+    glitter(0xe6fbff, 4, 2);
     X.light(C(0xaee9ff), 30, 0.2, 8);
     const K = kit(); if (K) { const sc = E.scale; const g = near() ? KG() : KP(); K.frostBloom(g,.60*sc,1.12*sc,{dur:1.06});
       if (near()) { K.coldMist(g, 1.6 * sc); K.mark(g, 1.4 * sc, 'frost', 7); } }
@@ -356,19 +373,19 @@ export function makeRecipes(X) {
     const K = kit(); if (K) K.strokes(KP(), KD(), 1.3 * E.scale, 3, { dur: 0.45 });
   };
   B.hit_thunder = () => {
-    p(P.thFlash, 1); p(P.thCrackle, 1); p(P.thSparks, 9);
+    p(P.thFlash, 1); p(P.thCrackle, 1); p(P.thSparks, 9); glitter(0xe6d8ff, 4);
     X.arc(3, 1.5, C(0xc9a0ff), 0.16);
     X.light(C(0xb98cff), 60, 0.2, 12);
     const K = kit(); if (K) { const sc = E.scale; K.shock(KP(), .95 * sc, 0xbda1ff, { up: KN(), dur: 0.18, width: 0.09, I: 1.35 });
       if (near()) { const g = KG(); K.shock(g, 2.2 * sc, 0xb98cff, { dur: 0.4, width: 0.12, I: 2.2 }); K.mark(g, 0.9 * sc, 'scorch', 5); } }
   };
   B.hit_earth = () => {
-    p(P.earthFlash, 1); p(P.earthChunks, 8); p(P.earthPebbles, 8); p(P.earthDust, 6); p(P.earthDustRing, 6);
+    p(P.earthFlash, 1); p(P.earthChunks, 8); p(P.earthPebbles, 8); p(P.earthDust, 6); p(P.earthDustRing, 6); p(P.rockGlitter, 5);
     const K = kit(); if (K) { const sc = E.scale; const g = near() ? KG() : KP(); K.shards(g, 4, 0.6 * sc, 0.9 * sc, { dur: 1.0 });
       if (near()) { K.dustSkirt(g, 1.4 * sc, { dur: 1.3, h: 0.9 * sc }); K.mark(g, 1.2 * sc, 'crack', 6); } }
   };
   B.hit_moon = () => {
-    p(P.moonFlash, 1); p(P.moonRing, 1); p(P.moonCrescents, 6); p(P.moonMotes, 8); p(P.moonStars, 2);
+    p(P.moonFlash, 1); p(P.moonRing, 1); p(P.moonCrescents, 6); p(P.moonMotes, 8); p(P.moonStars, 2); glitter(0xe6eeff, 3, 3);
     X.light(C(0xa9c4ff), 30, 0.22, 8);
     const K = kit(); if (K) { const sc = E.scale; K.crescents(KP(), 1.0 * sc, { n: 2, dir: KD(), dur: 0.5 }); K.mirrors(KP(), 3, 1.2 * sc, { dur: 0.9 }); }
   };
@@ -396,11 +413,13 @@ export function makeRecipes(X) {
   B.shatter_rock = () => {   // radius 1.8
     p(P.earthFlash, 1); p(P.earthChunks, 16); p(P.earthPebbles, 10);
     ctx.scale *= 1.5; p(P.earthDust, 9); p(P.earthDustRing, 8); ctx.scale /= 1.5;
+    p(P.rockGlitter, 12); p(P.glintStar, 1);     // vfx: shattered rock bursts into glittering dust
     X.shake(0.15, 0.25);
     const K = kit(); if (K) { const sc = E.scale; K.shards(KP(), 5, 0.9 * sc, 1.0 * sc, { dur: 0.8 }); if (near()) K.dustSkirt(KG(), 2.0 * sc, { dur: 1.5, h: 1.2 * sc }); }
   };
   B.wood_break = () => { p(P.splinters, 12); p(P.woodChips, 6); p(P.woodDust, 5); };
   B.dust = () => { p(P.earthDust, 6); p(P.earthPebbles, 3); };
+  B.dust_ring = () => { p(P.exDustRing, 9); p(P.landSpecks, 5); };   // vfx: a ring of dust rolling out over the ground (big releases, finishers)
   B.land = () => { p(P.landRing, 10); p(P.landSpecks, 5); };
   B.jump = () => { p(P.jumpPuff, 5); p(P.landSpecks, 2); };
   B.dash = () => { p(P.dashStreaks, 10); p(P.dashMotes, 6); if (groundOnly()) p(P.jumpPuff, 4); };
@@ -492,7 +511,7 @@ export function makeRecipes(X) {
     p(P.sumStar, 1); p(P.sumPillar, 8); p(P.sumPaper, 10); p(P.sumPoof, 8); p(P.sumTwinkle, 10);
     X.light(C(0xfff8e6), 40, 0.35, 10);
   };
-  B.charge_done = () => { p(P.cdRing, 1); p(P.cdStar, 1); p(P.cdTwinkle, 6); };
+  B.charge_done = () => { p(P.cdRing, 1); p(P.cdStar, 1); p(P.cdTwinkle, 6); glitter(C(0xffffff), 8); X.star(1.1 * E.scale, C(0xfff0c0), 0.26); };
   B.lantern_ignite = () => {
     p(P.lanGlow, 1); p(P.fireLick, 3); p(P.lanSparks, 10); p(P.lanMotes, 8); p(P.lanRing, 1);
     X.light(C(0xffb155), 50, 0.5, 10);
@@ -537,6 +556,12 @@ export function makeRecipes(X) {
   };
   B.clash = () => {   // radius 1.5
     p(P.clFlash, 1); p(P.clStar, 1); p(P.clShock, 1); clashSparks(16); p(P.clMotes, 6);
+    // vfx: a two-colour starburst, a shock ring of each side facing the camera, glitter of both left hanging
+    const a = C(0xffffff), b = E.color2 >= 0 ? E.color2 : 0xbfe9ff, sc = E.scale;
+    X.star(1.7 * sc, a, 0.32); X.star(1.2 * sc, b, 0.26, 0.03);
+    glitter(a, 7, 4); glitter(b, 6, 3);
+    const K = kit(); if (K) { KC(); K.shock(KP(), 1.9 * sc, a, { up: _kn, dur: 0.3, width: 0.12, I: 1.7 }); K.shock(KP(), 2.7 * sc, b, { up: _kn, dur: 0.4, width: 0.08, I: 1.5, delay: 0.04 }); }
+    if (sc > 1.55) X.duel?.beat('clash', KP(), { big: true, color: a, color2: b });
     X.light(0xffffff, 90, 0.15, 14);
     X.shake(0.2, 0.2);
   };
@@ -549,6 +574,8 @@ export function makeRecipes(X) {
       K.shock(KP(), 8 * sc, E.color2 >= 0 ? E.color2 : 0xc87bff, { up: KD(), dur: 0.6, width: 0.1, I: 1.8, delay: 0.08 }); if (near()) { K.dustSkirt(KG(), 4 * sc, { dur: 2, h: 1.6 * sc }); K.mark(KG(), 3.5 * sc, 'crack', 10); } }
       if (E.dist < 45) X.hitstop(0.07); }
     if (groundOnly()) X.ring(9, C(0xffffff), 0.6);
+    X.star(4 * E.scale, C(0xfff3d0), 0.4); glitter(C(0xffffff), 14, 10); glitter(E.color2 >= 0 ? E.color2 : 0xc87bff, 10, 8);
+    X.duel?.beat('clash', KP(), { big: true, color: C(0xffffff), color2: E.color2 >= 0 ? E.color2 : 0xc87bff });
     X.light(0xffffff, 220, 0.4, 36);
     X.shake(0.7, 0.5);
   };
@@ -599,6 +626,12 @@ export function makeRecipes(X) {
   };
   // final-duel: what rains down after a struggle breaks, by the loser's element (color = that element's colour)
   B.remains = () => { p(P.rmMote, 34); };
+  // vfx: sparkle that hangs in the air after a big spell / a parry / a finisher (color = the moment's colour)
+  B.sparkle_hang = () => { p(P.hangTwinkle, 18); p(P.hangDot, 26); };
+  // vfx: a sharp glint: a small star, short rays, glitter dust (dir = the way it sprays)
+  B.glint_burst = () => { p(P.glintStar, 1); p(P.glintRays, 10); p(P.glintDust, 8); };
+  // vfx: the glints a magic bullet sheds as it flies (called every few frames along its path)
+  B.bullet_glints = () => { p(P.bgTwinkle, 1); p(P.bgDot, 2); };
   B.remains_drops = () => { p(P.rmDrop, 28); p(P.rmMote, 12); };
   EM.waterfall_mist = () => { const a = X.area(3); q(P.eFallMist, 10 * a); q(P.eFallSpray, 16 * a); q(P.eFallRipple, 3 * a); };
   EM.miasma = () => { const a = X.area(6); q(P.eMiasma, 7 * a); q(P.eMiasmaGlint, 3 * a); q(P.eMiasmaWisp, 1 * a); };
@@ -614,6 +647,7 @@ export function makeRecipes(X) {
   };
   EM.charge = () => {   // motes streaming into a point while a spell is being charged
     q(P.chMotes, 30); q(P.chStreak, 14); q(P.chRing, 2.5); q(P.chGlow, 12);
+    X.magic?.charge?.(E.em, E.dt, E.color);   // vfx: the magic circle growing at the wand, the ground circle, the updraft
   };
 
   return { bursts: B, emitters: EM, P };

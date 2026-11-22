@@ -1,0 +1,522 @@
+// Landmarks of the open countryside (map round, 2026-11-22): the built pieces of src/data/landmarks.js.
+// Every landmark is one Site (baked into a few meshes, far LOD by structures.js). Far versions stop at a distance that
+// follows the scale (small 320 m, medium 1100 m, large: never) so the far tier stays a handful of draws.
+// Rock set pieces (tors, crag falls, quarry face, tarn rim) are built by world/landforms/setpieces.js and the plants
+// (giant tree, flower valley, dead wood, rockfalls) by the flora countryside planting; their builders here only add the
+// made things around them (a stone ring, a crane, a bench...).
+// Style: the anime's European countryside — limestone and granite, lime-washed plaster, red tile and grey slate,
+// thatch, weathered timber. Nothing is placed on a road or near a story anchor (the data keeps them clear).
+import * as THREE from 'three';
+import { G } from '../../core/game.js';
+import { box, cyl, cone, torus, sphere } from '../../core/geo.js';
+import { mulberry32 } from '../../core/util.js';
+import { Site, mat, M, beam, rod } from './kit.js';
+import { LANDMARKS } from '../../data/landmarks.js';
+
+// ---------------------------------------------------------------- materials (shared by every landmark)
+const ST = {
+  lime: mat.stone(0xbab29c), grey: mat.stone(0xa5a199), sand: mat.stone(0xc8b090), dark: mat.stone(0x7f7a71),
+  mossy: mat.stone(0x98a084), old: mat.stone(0x9e978a), white: mat.stone(0xe6e1d4),
+};
+const WD = { wood: mat.wood(0x7d5e44), dark: mat.wood(0x4f3f31), old: mat.wood(0x8e7c66), light: mat.wood(0xa58660) };
+const RF = { tile: mat.tile(0xb9634b), tileDark: mat.tile(0x94503f), slate: mat.tile(0x60707c), thatch: mat.thatch(0xc6a464), moss: mat.tile(0x7d8a5c) };
+const plaster = mat.plaster(0xece2c9), plasterWarm = mat.plaster(0xe6cfa9), glass = mat.paint(0x3f4b56), iron = mat.metal(0x3d3b3a);
+const red = mat.paint(0xb5473d), cream = mat.paint(0xf1eadb), straw = mat.thatch(0xd6b768), canvas = mat.cloth(0xe3d6b4);
+const ivy = mat.paint(0x5f8a46), earth = mat.paint(0x6a5844), ember = mat.paint(0x40302a);
+let lamp = null;
+
+const rockGeo = new THREE.DodecahedronGeometry(1, 0);
+function add(site, mesh, rx = 0, rz = 0) { mesh.rotation.x += rx; mesh.rotation.z += rz; return site.add(mesh); }
+function B(site, w, h, d, m, x, y, z, ry = 0, rx = 0, rz = 0) { const o = box(w, h, d, m, x, y, z); o.rotation.set(rx, ry, rz); return site.add(o); }
+function stone(site, x, y, z, sx, sy, sz, m, ry = 0, rx = 0, rz = 0) {
+  const o = new THREE.Mesh(rockGeo, m); o.scale.set(sx, sy, sz); o.position.set(x, y, z); o.rotation.set(rx, ry, rz);
+  o.castShadow = o.receiveShadow = true; return site.add(o);
+}
+/** gable end (triangle) as an extruded shape, apex up, in the local x/y plane at z, thickness t */
+function gableEnd(site, w, h, t, m, x, y, z, ry = 0) {
+  const s = new THREE.Shape(); s.moveTo(-w / 2, 0); s.lineTo(w / 2, 0); s.lineTo(0, h); s.lineTo(-w / 2, 0);
+  const g = new THREE.ExtrudeGeometry(s, { depth: t, bevelEnabled: false }); g.translate(0, 0, -t / 2);
+  const o = new THREE.Mesh(g, m); o.position.set(x, y, z); o.rotation.y = ry; o.castShadow = o.receiveShadow = true; return site.add(o);
+}
+/** a pitched roof (two slabs) over a w x d footprint, ridge along local z, eaves at y */
+function pitched(site, w, d, rise, m, x, y, z, ry = 0, over = 0.45, t = 0.16) {
+  const half = w / 2 + over, len = Math.hypot(half, rise), a = Math.atan2(rise, half);
+  const g = new THREE.Group(); g.position.set(x, y, z); g.rotation.y = ry;
+  for (const s of [-1, 1]) {
+    const slab = box(len + 0.1, t, d + over * 2, m, s * half / 2, rise / 2, 0); slab.rotation.z = -s * a; g.add(slab);
+  }
+  g.add(box(0.22, 0.2, d + over * 2 + 0.05, m, 0, rise + 0.05, 0));
+  return site.add(g);
+}
+/** cottage / farmhouse: walls, gable ends, roof, door, windows, chimney. Returns the eave height. */
+function house(site, o) {
+  const { x, z, w, d, wallH, rise, ry = 0, walls = plaster, roof = RF.tile, base = ST.grey, chimney = true, timber = false, seed = 1 } = o;
+  const r = mulberry32(seed);
+  const g = new THREE.Group(); g.rotation.y = ry;
+  let y0 = Infinity;
+  for (const [a, b] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+    const lx = x + (a * w / 2) * Math.cos(ry) + (b * d / 2) * Math.sin(ry), lz = z - (a * w / 2) * Math.sin(ry) + (b * d / 2) * Math.cos(ry);
+    y0 = Math.min(y0, site.h(lx, lz));
+  }
+  const yb = y0 - 0.3;
+  let gy = 0;
+  const hi = Math.max(...[[-1, -1], [1, -1], [-1, 1], [1, 1]].map(([a, b]) => site.h(x + (a * w / 2) * Math.cos(ry) + (b * d / 2) * Math.sin(ry), z - (a * w / 2) * Math.sin(ry) + (b * d / 2) * Math.cos(ry))));
+  gy = hi + 0.25;
+  g.position.set(x, 0, z);
+  g.add(box(w + 0.3, gy - yb, d + 0.3, base, 0, (gy + yb) / 2, 0));
+  g.add(box(w, wallH, d, walls, 0, gy + wallH / 2, 0));
+  if (timber) for (const s of [-1, 1]) {
+    for (let k = -2; k <= 2; k++) g.add(box(0.14, wallH, 0.06, WD.dark, k * w / 5, gy + wallH / 2, s * (d / 2 + 0.02)));
+    g.add(box(w, 0.14, 0.06, WD.dark, 0, gy + wallH * 0.52, s * (d / 2 + 0.02)));
+  }
+  site.add(g);
+  const ge = new THREE.Group(); ge.position.set(x, 0, z); ge.rotation.y = ry; site.add(ge);
+  for (const s of [-1, 1]) {
+    const tri = new THREE.Shape(); tri.moveTo(-d / 2, 0); tri.lineTo(d / 2, 0); tri.lineTo(0, rise); tri.lineTo(-d / 2, 0);
+    const tg = new THREE.ExtrudeGeometry(tri, { depth: 0.2, bevelEnabled: false }); tg.translate(0, 0, -0.1);
+    const m = new THREE.Mesh(tg, walls); m.position.set(s * (w / 2 - 0.1), gy + wallH, 0); m.rotation.y = Math.PI / 2; m.castShadow = m.receiveShadow = true; ge.add(m);
+  }
+  // roof: ridge along local x (long side)
+  const half = d / 2 + 0.5, len = Math.hypot(half, rise), a = Math.atan2(rise, half);
+  for (const s of [-1, 1]) { const slab = box(w + 0.9, 0.18, len + 0.1, roof, 0, gy + wallH + rise / 2, s * half / 2); slab.rotation.x = s * a; ge.add(slab); }
+  ge.add(box(w + 0.95, 0.22, 0.26, roof, 0, gy + wallH + rise + 0.04, 0));
+  // door + windows on the +z side
+  ge.add(box(1.0, 2.0, 0.12, WD.dark, -w * 0.18, gy + 1.0, d / 2 + 0.04));
+  for (const wx of [w * 0.12, w * 0.34]) if (wx + 0.5 < w / 2) {
+    ge.add(box(0.85, 0.95, 0.1, glass, wx, gy + wallH * 0.58, d / 2 + 0.04));
+    ge.add(box(1.0, 0.1, 0.16, WD.wood, wx, gy + wallH * 0.58 - 0.52, d / 2 + 0.08));
+    ge.add(box(0.26, 1.0, 0.06, red, wx - 0.6, gy + wallH * 0.58, d / 2 + 0.05)); ge.add(box(0.26, 1.0, 0.06, red, wx + 0.6, gy + wallH * 0.58, d / 2 + 0.05));
+  }
+  for (const wx of [-w * 0.25, w * 0.25]) ge.add(box(0.8, 0.9, 0.1, glass, wx, gy + wallH * 0.58, -d / 2 - 0.04));
+  if (chimney) ge.add(box(0.7, rise + 1.4, 0.7, ST.grey, w * 0.32 * (r() < 0.5 ? -1 : 1), gy + wallH + rise * 0.6, 0));
+  site.colBox(x, z, w / 2 + 0.1, d / 2 + 0.1, ry, yb, gy + wallH + rise);
+  site.footprint(x, z, ry, w / 2, d / 2, gy + wallH);
+  return gy;
+}
+function barn(site, x, z, w, d, h, ry, seed) {
+  const gy = house(site, { x, z, w, d, wallH: h, rise: d * 0.42, ry, walls: WD.old, roof: RF.slate, chimney: false, seed });
+  const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = ry; site.add(g);
+  g.add(box(2.6, 2.8, 0.14, WD.dark, w * 0.15, gy + 1.4, d / 2 + 0.06));
+  for (let k = -3; k <= 3; k++) g.add(box(0.06, h, 0.05, WD.dark, k * w / 7, gy + h / 2, d / 2 + 0.03));
+  return gy;
+}
+function fenceRun(site, x0, z0, x1, z1, m = WD.old, post = 2.4) {
+  const L = Math.hypot(x1 - x0, z1 - z0), n = Math.max(1, Math.round(L / post));
+  const ry = Math.atan2(x1 - x0, z1 - z0);
+  for (let k = 0; k <= n; k++) {
+    const x = x0 + (x1 - x0) * k / n, z = z0 + (z1 - z0) * k / n, y = site.h(x, z);
+    site.add(box(0.13, 1.15, 0.13, m, x, y + 0.5, z));
+    if (k < n) {
+      const xn = x0 + (x1 - x0) * (k + 1) / n, zn = z0 + (z1 - z0) * (k + 1) / n, yn = site.h(xn, zn);
+      for (const hy of [0.45, 0.88]) site.add(beam(x, y + hy, z, xn, yn + hy, zn, 0.07, 0.09, m));
+    }
+  }
+}
+function stack(site, x, z, ry, n, len, m = WD.wood) { // log pile
+  const y = site.h(x, z);
+  const g = new THREE.Group(); g.position.set(x, y, z); g.rotation.y = ry; site.add(g);
+  let k = 0;
+  for (let row = 0; row < 3; row++) for (let i = 0; i < n - row; i++) {
+    const log = cyl(0.17, 0.19, len, m, (i - (n - row - 1) / 2) * 0.38, 0.19 + row * 0.33, 0, 7); log.rotation.x = Math.PI / 2; g.add(log); k++;
+  }
+  return g;
+}
+function hay(site, x, z, s = 1) { const y = site.h(x, z); site.add(cone(1.6 * s, 2.6 * s, straw, x, y + 1.25 * s, z, 9)); site.add(cyl(1.6 * s, 1.5 * s, 1.0 * s, straw, x, y + 0.1, z, 9)); }
+
+// ---------------------------------------------------------------- large
+function watchtower(site, r) {
+  const y = site.h(0, 0) - 0.6, R = 3.4, H = 21;
+  site.add(cyl(R + 0.5, R + 0.9, 1.4, ST.dark, 0, y + 0.6, 0, 14));
+  site.add(cyl(R, R + 0.35, H, ST.old, 0, y + H / 2, 0, 14));
+  for (const by of [6.5, 13.5]) site.add(cyl(R + 0.22, R + 0.22, 0.32, ST.lime, 0, y + by, 0, 14));
+  // broken crown: merlons of uneven height, a bite out of the west side
+  for (let k = 0; k < 14; k++) {
+    const a = k / 14 * Math.PI * 2, bite = Math.cos(a - 2.4) > 0.55;
+    const h = bite ? 0.6 + r() * 1.2 : 1.6 + r() * 1.8 - (k % 2) * 0.9;
+    B(site, 1.25, h, 0.9, ST.old, Math.sin(a) * (R - 0.25), y + H + h / 2 - (bite ? 2.2 : 0), Math.cos(a) * (R - 0.25), a);
+  }
+  // windows, door, ivy
+  for (const [a, wy] of [[0.3, 4], [2.1, 9], [4.2, 12], [1.2, 16.5], [3.4, 18.5]]) B(site, 0.6, 1.3, 0.5, glass, Math.sin(a) * (R + 0.02), y + wy, Math.cos(a) * (R + 0.02), a);
+  B(site, 1.3, 2.4, 0.5, WD.dark, 0, y + 1.9, R + 0.12, 0);
+  for (let k = 0; k < 7; k++) { const a = 3.5 + r() * 1.6; B(site, 1.2 + r(), 2 + r() * 4, 0.2, ivy, Math.sin(a) * (R + 0.15), y + 2 + r() * 12, Math.cos(a) * (R + 0.15), a); }
+  // fallen blocks
+  for (let k = 0; k < 9; k++) { const a = 2 + r() * 1.4, d = R + 1.5 + r() * 6; stone(site, Math.sin(a) * d, site.h(Math.sin(a) * d, Math.cos(a) * d) + 0.2, Math.cos(a) * d, 0.5 + r() * 0.4, 0.35, 0.45 + r() * 0.3, ST.old, r() * 3); }
+  site.colCyl(0, 0, R + 0.4, y - 1, y + H);
+  site.platDisc(0, 0, R - 0.6, y + H - 0.4, 1.0);
+}
+function windmill(site, ctx, x, z, ry, s, r) {
+  const y = site.h(x, z) - 0.4, H = 8.6 * s;
+  site.add(cyl(2.2 * s, 2.95 * s, H, plaster, x, y + H / 2, z, 12));
+  site.add(cyl(2.35 * s, 2.4 * s, 0.3, WD.dark, x, y + H, z, 12));
+  site.add(cone(2.8 * s, 3.2 * s, RF.thatch, x, y + H + 1.6 * s, z, 12));
+  B(site, 1.0, 1.9, 0.2, WD.dark, x + Math.sin(ry) * 2.9 * s, y + 1.0, z + Math.cos(ry) * 2.9 * s, ry);
+  const hubX = x + Math.sin(ry) * 2.8 * s, hubZ = z + Math.cos(ry) * 2.8 * s, hubY = y + H - 1.2 * s;
+  const sails = new THREE.Group();
+  for (let i = 0; i < 4; i++) {
+    const arm = new THREE.Group(); arm.rotation.z = i * Math.PI / 2;
+    arm.add(box(0.14, 6.2 * s, 0.16, WD.dark, 0, 3.05 * s, 0));
+    arm.add(box(1.05 * s, 3.6 * s, 0.05, canvas, 0.5 * s, 4.1 * s, 0));
+    for (let j = 0; j < 7; j++) arm.add(box(1.2 * s, 0.05, 0.08, WD.wood, 0.5 * s, 2.4 * s + j * 0.55 * s, 0.05));
+    sails.add(arm);
+  }
+  const holder = new THREE.Group(); holder.rotation.y = ry; holder.add(sails);
+  site.addDynamic(holder, hubX, hubY, hubZ, 0);
+  const speed = 0.25 + r() * 0.2;
+  ctx.tick((dt) => { sails.rotation.z += dt * speed * (G.journeyWeather?.state.wind || 1); });
+  site.colCyl(x, z, 2.9 * s, y - 1, y + H);
+}
+function windmills(site, ctx, r) {
+  windmill(site, ctx, 0, 0, 0.6, 1.15, r);
+  windmill(site, ctx, -17, 9, 0.3, 0.92, r);
+  windmill(site, ctx, 14, 13, 0.9, 0.85, r);
+  house(site, { x: -4, z: 17, w: 6, d: 4.4, wallH: 2.8, rise: 2, ry: 0.5, roof: RF.thatch, seed: 3 });
+  stack(site, 3, 18, 0.4, 4, 2.2);
+  for (let k = 0; k < 4; k++) hay(site, -12 + k * 3.6, -9 + r() * 3, 0.8);
+}
+function beaconKeep(site, ctx, r) {
+  const y = site.h(0, 0) - 0.8;
+  // curtain wall: ring of thick segments with breaches
+  const R = 20;
+  for (let k = 0; k < 18; k++) {
+    if (k === 4 || k === 5 || k === 12) continue;
+    const a = k / 18 * Math.PI * 2, x = Math.sin(a) * R, z = Math.cos(a) * R, g = site.h(x, z) - 0.6;
+    const h = 3.2 + r() * 2.6 - (k % 3 === 0 ? 1.6 : 0);
+    B(site, 7.2, h, 1.6, ST.old, x, g + h / 2, z, a + Math.PI / 2);
+    site.colBox(x, z, 3.6, 0.8, a + Math.PI / 2, g - 1, g + h);
+  }
+  // square keep, one corner collapsed
+  const K = 5.2, H = 16;
+  for (const [x, z, w, d, h] of [[0, -K, K * 2 + 1, 1.2, H], [0, K, K * 2 + 1, 1.2, H - 5], [-K, 0, 1.2, K * 2, H], [K, 0, 1.2, K * 2, H - 7]]) {
+    B(site, w, h, d, ST.grey, x, y + h / 2, z);
+  }
+  B(site, K * 2 + 1.2, 0.8, K * 2 + 1.2, ST.dark, 0, y + H - 0.4, 0);
+  site.colBox(0, 0, K + 0.6, K + 0.6, 0, y - 1, y + H);
+  site.platBox(0, 0, K, K, 0, y + H, 1);
+  for (let k = 0; k < 8; k++) { const a = r() * 6.28, d = K + 2 + r() * 8; stone(site, Math.sin(a) * d, site.h(Math.sin(a) * d, Math.cos(a) * d) + 0.25, Math.cos(a) * d, 0.7, 0.45, 0.6, ST.grey, r() * 3); }
+  // the beacon: an iron basket of split wood on the keep top
+  const by = y + H;
+  site.add(cyl(1.1, 0.7, 1.0, iron, 0, by + 1.4, 0, 8));
+  site.add(cyl(0.12, 0.12, 1.0, iron, 0, by + 0.5, 0, 6));
+  for (let k = 0; k < 6; k++) { const l = cyl(0.09, 0.1, 1.5, WD.wood, Math.sin(k) * 0.4, by + 2.0, Math.cos(k) * 0.4, 5); l.rotation.set(0.5 * Math.sin(k * 2), 0, 0.5 * Math.cos(k * 2)); site.add(l); }
+  site.add(torus(0.95, 0.06, iron, 0, by + 1.9, 0));
+}
+function trilithons(site, r) {
+  const y = site.h(0, 0);
+  for (let k = 0; k < 5; k++) { // horseshoe of three-stone gates
+    const a = -1.3 + k * 0.65, R = 9.5, x = Math.sin(a) * R, z = Math.cos(a) * R, g = site.h(x, z) - 0.5;
+    const h = 6.2 + r() * 1.4;
+    for (const s of [-1, 1]) B(site, 1.6, h, 1.1, ST.sand, x + Math.cos(a) * s * 1.35, g + h / 2, z - Math.sin(a) * s * 1.35, a, (r() - 0.5) * 0.04, (r() - 0.5) * 0.05);
+    if (k !== 3) B(site, 4.6, 1.0, 1.2, ST.sand, x, g + h + 0.45, z, a + Math.PI / 2, 0, (r() - 0.5) * 0.06);
+    else stone(site, x + 3, site.h(x + 3, z) + 0.4, z + 1, 2.2, 0.5, 0.65, ST.sand, a, 0, 0.1);
+    site.colBox(x, z, 0.7, 2.2, a + Math.PI / 2, g - 1, g + h);
+  }
+  for (let k = 0; k < 16; k++) { // outer ring
+    const a = k / 16 * Math.PI * 2, R = 17, x = Math.sin(a) * R, z = Math.cos(a) * R, g = site.h(x, z) - 0.4;
+    if (k % 5 === 2) { stone(site, x, g + 0.5, z, 1.4, 0.45, 0.6, ST.sand, a, 0, 0.08); continue; }
+    const h = 2.6 + r() * 1.6;
+    B(site, 1.1, h, 0.75, ST.sand, x, g + h / 2, z, a, (r() - 0.5) * 0.08, (r() - 0.5) * 0.08);
+    site.colCyl(x, z, 0.7, g - 1, g + h);
+  }
+  B(site, 3.2, 0.5, 1.2, ST.grey, 0, y + 0.15, 0, 0.3);
+}
+function lighthouse(site, ctx, r) {
+  const y = site.h(0, 0) - 0.5, H = 18;
+  site.add(cyl(3.4, 3.7, 1.6, ST.grey, 0, y + 0.7, 0, 16));
+  const bands = 6;
+  for (let k = 0; k < bands; k++) {
+    const r0 = 2.9 - k * 0.12, h = H / bands;
+    site.add(cyl(r0 - 0.12, r0, h, k % 2 ? red : ST.white, 0, y + 1.4 + h * (k + 0.5), 0, 16));
+  }
+  const top = y + 1.4 + H;
+  site.add(cyl(2.6, 2.4, 0.35, ST.grey, 0, top + 0.15, 0, 16));
+  site.add(torus(2.45, 0.05, iron, 0, top + 1.2, 0));
+  for (let k = 0; k < 12; k++) { const a = k / 12 * 6.283; site.add(cyl(0.04, 0.04, 1.0, iron, Math.sin(a) * 2.45, top + 0.75, Math.cos(a) * 2.45, 4)); }
+  site.add(cyl(1.35, 1.35, 2.2, glass, 0, top + 1.45, 0, 12));
+  lamp = lamp || M.lampWarm(1.6);
+  site.add(cyl(0.7, 0.7, 1.2, lamp, 0, top + 1.45, 0, 10));
+  site.add(cone(1.7, 1.6, red, 0, top + 3.35, 0, 12));
+  site.add(sphere(0.3, iron, 0, top + 4.3, 0, 8, 6));
+  site.colCyl(0, 0, 3.0, y - 1, top + 4);
+  site.platDisc(0, 0, 2.35, top + 0.35, 0.8);
+  house(site, { x: -7.5, z: 4, w: 6.5, d: 4.6, wallH: 2.7, rise: 2.0, ry: 0.2, walls: ST.white, roof: RF.slate, seed: 5 });
+}
+function aqueduct(site, l, r) {
+  const L = l.len, span = 9.2, n = Math.floor(L / span);
+  // the channel top follows a gentle fall from end to end, high over the dips
+  let topA = -1e9;
+  for (let k = 0; k <= n; k++) topA = Math.max(topA, site.h(0, -L / 2 + k * span));
+  const top0 = topA + 9;
+  const missing = new Set([Math.floor(n * 0.36), Math.floor(n * 0.36) + 1, Math.floor(n * 0.74)]);
+  for (let k = 0; k < n; k++) {
+    const z0 = -L / 2 + k * span, zc = z0 + span / 2;
+    const top = top0 - (k / n) * 2.2;
+    const g0 = Math.min(site.h(0, z0), site.h(0, z0 + span)) - 1.2;
+    // pier at z0
+    const pierH = top - g0;
+    if (!missing.has(k) || !missing.has(k - 1)) {
+      const ph = missing.has(k - 1) && missing.has(k) ? pierH * 0.5 : pierH - (missing.has(k) || missing.has(k - 1) ? 2.4 + r() * 2 : 0);
+      B(site, 2.4, ph, 2.6, ST.lime, 0, g0 + ph / 2, z0);
+      site.colBox(0, z0, 1.2, 1.3, 0, g0, g0 + ph);
+    }
+    if (missing.has(k)) { for (let j = 0; j < 5; j++) stone(site, (r() - 0.5) * 6, site.h(0, zc) + 0.3, zc + (r() - 0.5) * 7, 0.8 + r() * 0.5, 0.45, 0.6, ST.lime, r() * 3); continue; }
+    // arch span: rectangle with a round-headed opening
+    const sh = new THREE.Shape();
+    const bot = top - 6.4, spring = top - 4.2, half = span / 2 - 1.2;
+    sh.moveTo(-span / 2, bot); sh.lineTo(span / 2, bot); sh.lineTo(span / 2, top); sh.lineTo(-span / 2, top); sh.lineTo(-span / 2, bot);
+    const hole = new THREE.Path(); hole.moveTo(-half, bot - 0.01); hole.lineTo(half, bot - 0.01); hole.lineTo(half, spring); hole.absarc(0, spring, half, 0, Math.PI, false); hole.lineTo(-half, bot - 0.01);
+    sh.holes.push(hole);
+    const geo = new THREE.ExtrudeGeometry(sh, { depth: 2.2, bevelEnabled: false, curveSegments: 6 }); geo.translate(0, 0, -1.1);
+    const m = new THREE.Mesh(geo, ST.lime); m.position.set(0, 0, zc); m.rotation.y = Math.PI / 2; m.castShadow = m.receiveShadow = true; site.add(m);
+    // channel lips + a little moss
+    for (const s of [-1, 1]) B(site, 0.35, 0.6, span, ST.old, s * 0.95, top + 0.3, zc);
+    if (r() < 0.4) B(site, 1.2, 0.08, span * 0.7, ivy, 0, top + 0.05, zc);
+    site.platBox(0, zc, 1.1, span / 2, 0, top, 1.0);
+  }
+}
+
+// ---------------------------------------------------------------- medium
+function bridgeRuin(site, r) {
+  // two arches across the brook (local x = across the water); the far arch has fallen
+  const bankA = site.h(-13, 0), bankB = site.h(13, 0), top = Math.max(bankA, bankB) + 3.4;
+  for (const [x, ok] of [[-6, true], [6, false]]) {
+    const sh = new THREE.Shape(), half = 4.8, spring = top - 2.8;
+    sh.moveTo(-6, -3); sh.lineTo(6, -3); sh.lineTo(6, top); sh.lineTo(-6, top); sh.lineTo(-6, -3);
+    const hole = new THREE.Path(); hole.moveTo(-half, -3.01); hole.lineTo(half, -3.01); hole.lineTo(half, spring); hole.absarc(0, spring, half, 0, Math.PI, false); hole.lineTo(-half, -3.01);
+    sh.holes.push(hole);
+    if (ok) {
+      const geo = new THREE.ExtrudeGeometry(sh, { depth: 3.0, bevelEnabled: false, curveSegments: 7 }); geo.translate(0, 0, -1.5);
+      const m = new THREE.Mesh(geo, ST.grey); m.position.set(x, 0, 0); m.castShadow = m.receiveShadow = true; site.add(m);
+      for (const s of [-1, 1]) B(site, 12, 0.7, 0.3, ST.old, x, top + 0.35, s * 1.35);
+      site.platBox(x, 0, 6, 1.4, 0, top, 1);
+    } else {
+      // stump of the pier and fallen voussoirs in the water
+      B(site, 2.0, top + 3, 3.0, ST.grey, x + 5.5, (top - 3) / 2, 0);
+      for (let k = 0; k < 7; k++) stone(site, x + (r() - 0.5) * 8, -1.6 + r() * 0.8, (r() - 0.5) * 5, 0.9, 0.6, 0.7, ST.grey, r() * 3, r(), r());
+    }
+  }
+  B(site, 2.4, top + 3, 3.2, ST.grey, 0, (top - 3) / 2, 0);
+  site.colBox(-6, 0, 6, 1.5, 0, top - 3.2, top);
+}
+function hermitCottage(site, r) {
+  const gy = house(site, { x: 0, z: 0, w: 5.4, d: 4.2, wallH: 2.5, rise: 2.3, walls: ST.mossy, roof: RF.thatch, timber: false, seed: 11 });
+  fenceRun(site, -6, 4, 4, 7.5); fenceRun(site, 4, 7.5, 6.5, 3);
+  stack(site, -4.2, -3.2, 0.2, 5, 2.4);
+  for (let k = 0; k < 6; k++) { const x = -3 + k * 1.3, z = 5.2; site.add(cyl(0.3, 0.24, 0.4, ST.sand, x, site.h(x, z) + 0.2, z, 7)); }
+  B(site, 1.6, 0.45, 0.5, WD.old, 3.5, site.h(3.5, 3.2) + 0.45, 3.2, 0.3); // bench
+  site.add(cyl(0.6, 0.6, 0.7, ST.grey, -5.5, site.h(-5.5, 1) + 0.35, 1, 10)); // water butt
+}
+function farmstead(site, ctx, l, r) {
+  house(site, { x: 0, z: 0, w: 9, d: 6, wallH: 4.6, rise: 3.0, walls: r() < 0.5 ? plaster : plasterWarm, roof: RF.tile, timber: r() < 0.5, seed: 21 + l.x });
+  barn(site, 14, -6, 12, 8, 5.2, Math.PI / 2, 22);
+  house(site, { x: -10, z: -8, w: 4.6, d: 3.4, wallH: 2.4, rise: 1.6, walls: WD.old, roof: RF.moss, chimney: false, seed: 23 });
+  fenceRun(site, -16, 10, 6, 14); fenceRun(site, 6, 14, 10, 24); fenceRun(site, -16, 10, -16, 24); fenceRun(site, -16, 24, 10, 24);
+  for (let k = 0; k < 3; k++) hay(site, 20 + k * 3.8, 6 + r() * 3, 0.9);
+  stack(site, -5.5, -5, 0.1, 4, 2.6);
+  // a cart by the barn
+  const cx = 8, cz = 4, cy = site.h(cx, cz);
+  B(site, 1.6, 0.14, 3.0, WD.wood, cx, cy + 0.85, cz, 0.4);
+  for (const s of [-1, 1]) for (const t of [-1, 1]) { const w = torus(0.55, 0.06, WD.dark, cx + Math.cos(0.4) * s * 0.95 + Math.sin(0.4) * t * 1.0, cy + 0.6, cz - Math.sin(0.4) * s * 0.95 + Math.cos(0.4) * t * 1.0); w.rotation.y = 0.4 + Math.PI / 2; site.add(w); }
+  site.add(cyl(0.9, 1.0, 0.9, ST.grey, -4, site.h(-4, 7) + 0.45, 7, 12)); // well
+}
+function stoneCircle(site, r) {
+  for (let k = 0; k < 13; k++) {
+    const a = k / 13 * Math.PI * 2 + (r() - 0.5) * 0.1, R = 11 + (r() - 0.5), x = Math.sin(a) * R, z = Math.cos(a) * R, g = site.h(x, z) - 0.4;
+    if (k === 7) { stone(site, x, g + 0.45, z, 1.3, 0.4, 0.55, ST.grey, a); continue; }
+    const h = 1.8 + r() * 1.5;
+    stone(site, x, g + h / 2, z, 0.6, h / 2, 0.42, ST.grey, a, (r() - 0.5) * 0.12, (r() - 0.5) * 0.12);
+    site.colCyl(x, z, 0.55, g - 1, g + h);
+  }
+  stone(site, 0, site.h(0, 0) + 0.3, 0, 1.4, 0.5, 0.9, ST.mossy, 0.4);
+}
+function chapelRuin(site, r) {
+  const y = site.h(0, 0) - 0.5, L = 13, Wd = 7, H = 6;
+  for (const s of [-1, 1]) { // side walls with window gaps, broken tops
+    for (let k = 0; k < 4; k++) {
+      const z = -L / 2 + 1.6 + k * 3.3, h = H - (s > 0 ? k * 0.9 : (3 - k) * 0.6) - r() * 0.8;
+      B(site, 0.9, h, 2.2, ST.lime, s * Wd / 2, y + h / 2, z);
+    }
+    site.colBox(s * Wd / 2, 0, 0.45, L / 2, 0, y - 1, y + H - 1);
+  }
+  // gable end with a pointed window (east) and a stump of the west front
+  const sh = new THREE.Shape(); sh.moveTo(-Wd / 2 - 0.45, 0); sh.lineTo(Wd / 2 + 0.45, 0); sh.lineTo(Wd / 2 + 0.45, H); sh.lineTo(0, H + 3.6); sh.lineTo(-Wd / 2 - 0.45, H); sh.lineTo(-Wd / 2 - 0.45, 0);
+  const hole = new THREE.Path(); hole.moveTo(-0.9, 2.2); hole.lineTo(0.9, 2.2); hole.lineTo(0.9, 4.6); hole.quadraticCurveTo(0.8, 5.8, 0, 6.5); hole.quadraticCurveTo(-0.8, 5.8, -0.9, 4.6); hole.lineTo(-0.9, 2.2);
+  sh.holes.push(hole);
+  const geo = new THREE.ExtrudeGeometry(sh, { depth: 0.9, bevelEnabled: false, curveSegments: 5 }); geo.translate(0, 0, -0.45);
+  const m = new THREE.Mesh(geo, ST.lime); m.position.set(0, y, -L / 2); m.castShadow = m.receiveShadow = true; site.add(m);
+  B(site, 1.4, 1.6, 0.9, ST.lime, 0, y + H + 3.6 + 0.4, -L / 2); // bell-cote stump
+  for (const s of [-1, 1]) B(site, 2.2, 3.4 - (s > 0 ? 1.6 : 0), 0.9, ST.lime, s * 2.4, y + 1.7, L / 2);
+  site.colBox(0, -L / 2, Wd / 2, 0.45, 0, y - 1, y + H);
+  // fallen roof beams and rubble inside
+  for (let k = 0; k < 3; k++) site.add(beam(-2 + k * 1.6, y + 0.3, -3 + k, 1.5 - k, y + 1.4 + k * 0.3, 2 + k, 0.22, 0.22, WD.dark));
+  for (let k = 0; k < 10; k++) stone(site, (r() - 0.5) * 6, y + 0.6, (r() - 0.5) * 11, 0.4 + r() * 0.3, 0.25, 0.35, ST.lime, r() * 3);
+  B(site, 1.6, 1.0, 0.8, ST.grey, 0, y + 0.9, -L / 2 + 1.4); // altar block
+}
+function charcoalCamp(site, r) {
+  const y = site.h(0, 0);
+  site.add(sphere(3.2, earth, 0, y - 1.2, 0, 14, 8)).scale.set(1, 0.62, 1);
+  for (let k = 0; k < 5; k++) site.add(cyl(0.15, 0.2, 0.5, ember, Math.sin(k * 1.3) * 1.8, y + 0.4, Math.cos(k * 1.3) * 1.8, 5));
+  stack(site, 5.5, -2, 0.3, 6, 2.6); stack(site, 6.2, 2.5, -0.2, 5, 2.4); stack(site, -6, 1.2, 1.4, 6, 2.6);
+  // lean-to of poles and bark
+  const lx = -3, lz = 6, ly = site.h(lx, lz);
+  for (let k = 0; k < 6; k++) site.add(beam(lx - 2 + k * 0.8, ly, lz + 1.4, lx - 2 + k * 0.8, ly + 2.2, lz - 0.6, 0.1, 0.1, WD.dark));
+  B(site, 4.4, 0.08, 2.8, WD.old, lx, ly + 1.2, lz + 0.4, 0, 0.95);
+  site.add(cyl(0.38, 0.42, 0.6, WD.wood, 2.5, site.h(2.5, 5) + 0.3, 5, 8));
+}
+function shepherdHut(site, r) {
+  const y = site.h(0, 0) - 0.3;
+  site.add(cyl(2.4, 2.6, 2.2, ST.grey, 0, y + 1.1, 0, 14));
+  site.add(cone(3.0, 2.6, RF.thatch, 0, y + 3.4, 0, 14));
+  B(site, 0.9, 1.6, 0.4, WD.dark, 0, y + 0.8, 2.45);
+  site.colCyl(0, 0, 2.6, y - 1, y + 4);
+  // the fold: a ring of low wall
+  for (let k = 0; k < 22; k++) {
+    if (k === 3) continue;
+    const a = k / 22 * Math.PI * 2, R = 7.5, x = 4 + Math.sin(a) * R, z = Math.cos(a) * R, g = site.h(x, z);
+    B(site, 2.2, 0.9, 0.6, ST.old, x, g + 0.35, z, a + Math.PI / 2);
+  }
+}
+function dolmen(site, r) {
+  const y = site.h(0, 0) - 0.3;
+  for (const [x, z, h] of [[-1.4, -0.9, 2.2], [1.5, -0.7, 2.3], [0, 1.4, 2.1]]) { B(site, 0.9, h, 1.6, ST.grey, x, y + h / 2, z, x * 0.5); site.colCyl(x, z, 0.7, y - 1, y + h); }
+  stone(site, 0, y + 2.6, 0, 2.6, 0.45, 2.0, ST.grey, 0.3, 0.06, -0.08);
+  site.platDisc(0, 0, 1.9, y + 2.95, 0.6);
+}
+function quarryKit(site, r) {
+  // a timber derrick, a cart and stacked cut blocks at the foot of the face (the face itself: setpieces.js)
+  const x = 4, z = 10, y = site.h(x, z);
+  site.add(beam(x - 1.5, y, z, x, y + 7, z - 1, 0.25, 0.25, WD.dark)); site.add(beam(x + 1.5, y, z, x, y + 7, z - 1, 0.25, 0.25, WD.dark)); site.add(beam(x, y, z + 2.5, x, y + 7, z - 1, 0.25, 0.25, WD.dark));
+  site.add(beam(x, y + 6.6, z - 1, x - 5, y + 5.4, z - 4, 0.2, 0.2, WD.wood));
+  site.add(rod(x - 5, y + 5.4, z - 4, x - 5, y + 1.6, z - 4, 0.03, M.rope()));
+  for (let k = 0; k < 6; k++) B(site, 1.4, 0.8, 0.9, ST.lime, -6 + (k % 3) * 1.5, site.h(-6, 12) + 0.4 + Math.floor(k / 3) * 0.8, 12 + (r() - 0.5) * 0.2, (r() - 0.5) * 0.1);
+}
+function pier(site, r) {
+  // deck from the shore out over the water along local +z
+  const y = 1.6;
+  for (let k = 0; k < 18; k++) {
+    const z = k * 1.2;
+    B(site, 2.6, 0.12, 1.1, WD.old, 0, y, z, 0, 0, (r() - 0.5) * 0.04);
+    if (k % 3 === 0) for (const s of [-1, 1]) site.add(cyl(0.12, 0.14, 4.5, WD.dark, s * 1.2, y - 2.0, z, 6));
+  }
+  site.platBox(0, 10.5, 1.3, 11, 0, y + 0.06, 0.4);
+  B(site, 3.2, 2.4, 2.6, WD.old, -2.8, site.h(-2.8, -3) + 1.2, -3, 0.2);
+  B(site, 3.6, 0.15, 3.0, RF.slate, -2.8, site.h(-2.8, -3) + 2.5, -3, 0.2, 0.15);
+  const boat = G.assets?.model?.('bld_boat_rowing');
+  if (boat) { boat.position.set(2.4, 0.1, 16); boat.rotation.y = 0.3; site.add(boat); }
+  for (let k = 0; k < 3; k++) site.add(cyl(0.25, 0.25, 0.7, WD.wood, -1 + k * 0.6, y + 0.4, 20, 8));
+}
+function boathouse(site, r) {
+  const gy = house(site, { x: 0, z: 0, w: 5, d: 7, wallH: 2.6, rise: 2.2, walls: WD.old, roof: RF.slate, chimney: false, seed: 31 });
+  const boat = G.assets?.model?.('bld_boat_rowing');
+  if (boat) { boat.position.set(4.5, site.h(4.5, 6) + 0.1, 6); boat.rotation.y = 1.2; site.add(boat); }
+  for (let k = 0; k < 3; k++) { const x = -4 + k * 2.2, z = 6; site.add(cyl(0.07, 0.08, 2.2, WD.dark, x, site.h(x, z) + 1.1, z, 5)); }
+  B(site, 4.6, 1.4, 0.04, mat.cloth(0x6f7f74), -1.8, site.h(-1.8, 6) + 1.2, 6);
+}
+function apiary(site, r) {
+  for (let k = 0; k < 7; k++) {
+    const a = k / 7 * 2.8 - 1.4, x = Math.sin(a) * 5, z = Math.cos(a) * 5 - 2, y = site.h(x, z);
+    if (k % 2) { site.add(cone(0.42, 0.75, straw, x, y + 0.78, z, 9)); site.add(cyl(0.44, 0.44, 0.35, straw, x, y + 0.3, z, 9)); }
+    else { B(site, 0.6, 0.65, 0.55, cream, x, y + 0.42, z, a); B(site, 0.75, 0.08, 0.7, RF.slate, x, y + 0.8, z, a); }
+    B(site, 0.6, 0.12, 0.6, WD.old, x, y + 0.06, z, a);
+  }
+  B(site, 1.8, 0.45, 0.5, WD.old, 0, site.h(0, 3) + 0.45, 3, 0.1);
+}
+// ---------------------------------------------------------------- small
+function swing(site, ctx, r) {
+  const y = site.h(2.6, 0);
+  const g = new THREE.Group();
+  for (const s of [-1, 1]) g.add(cyl(0.025, 0.025, 4.4, M.rope(), s * 0.42, -2.2, 0, 4));
+  g.add(box(1.05, 0.08, 0.36, WD.light, 0, -4.4, 0));
+  site.addDynamic(g, 2.6, y + 5.0, 0, 0.4);
+  let t = r() * 6;
+  ctx.tick((dt) => { t += dt; g.rotation.x = 0.12 * Math.sin(t * 1.3) * (0.6 + 0.4 * (G.journeyWeather?.state.wind || 1)); });
+}
+function cairn(site, r) {
+  let y = site.h(0, 0);
+  for (let k = 0; k < 7; k++) { const s = 0.85 - k * 0.1; stone(site, (r() - 0.5) * 0.2, y + s * 0.4, (r() - 0.5) * 0.2, s, s * 0.45, s * 0.9, k % 2 ? ST.grey : ST.old, r() * 3); y += s * 0.55; }
+  site.colCyl(0, 0, 0.8, y - 3, y);
+}
+function wayShrine(site, r) {
+  const y = site.h(0, 0) - 0.2;
+  B(site, 0.9, 1.4, 0.7, ST.lime, 0, y + 0.7, 0);
+  B(site, 1.05, 0.9, 0.85, ST.lime, 0, y + 1.85, 0);
+  B(site, 0.6, 0.6, 0.2, ST.dark, 0, y + 1.85, 0.36);
+  site.add(sphere(0.16, cream, 0, y + 1.8, 0.3, 8, 6));
+  gableEnd(site, 1.3, 0.55, 1.1, RF.slate, 0, y + 2.3, 0, Math.PI / 2);
+  for (const s of [-1, 1]) site.add(cyl(0.05, 0.05, 0.16, cream, s * 0.3, y + 1.46, 0.42, 6));
+  for (let k = 0; k < 5; k++) site.add(sphere(0.07, k % 2 ? red : mat.paint(0xf0d050), (r() - 0.5) * 0.6, y + 1.43, 0.42 + r() * 0.1, 6, 4));
+  site.colBox(0, 0, 0.5, 0.45, 0, y - 1, y + 2.6);
+}
+function bench(site, r) {
+  const y = site.h(0, 0);
+  B(site, 1.9, 0.07, 0.42, WD.light, 0, y + 0.46, 0);
+  B(site, 1.9, 0.32, 0.06, WD.light, 0, y + 0.78, -0.2, 0, -0.18);
+  for (const s of [-1, 1]) B(site, 0.08, 0.46, 0.4, WD.dark, s * 0.8, y + 0.23, 0);
+}
+function well(site, r) {
+  const y = site.h(0, 0) - 0.1;
+  site.add(cyl(1.0, 1.05, 0.95, ST.grey, 0, y + 0.47, 0, 14));
+  site.add(cyl(0.78, 0.78, 0.97, glass, 0, y + 0.5, 0, 14));
+  for (const s of [-1, 1]) site.add(box(0.14, 2.0, 0.14, WD.dark, s * 0.95, y + 1.4, 0));
+  pitched(site, 1.6, 1.3, 0.6, RF.tile, 0, y + 2.35, 0, Math.PI / 2, 0.15, 0.08);
+  site.add(cyl(0.18, 0.15, 0.3, WD.wood, 0.2, y + 1.3, 0, 8));
+  site.colCyl(0, 0, 1.05, y - 1, y + 1);
+}
+function stoneRing(site, R, n, r) { for (let k = 0; k < n; k++) { const a = k / n * 6.283, x = Math.sin(a) * R, z = Math.cos(a) * R; stone(site, x, site.h(x, z) + 0.15, z, 0.5, 0.3, 0.45, ST.mossy, r() * 3); } }
+
+/** yaw (local +z) toward the deepest water within 40 m, or `fallback` */
+function seaward(x, z, fallback) {
+  let best = fallback, low = 0;
+  for (let k = 0; k < 32; k++) {
+    const a = k / 32 * Math.PI * 2;
+    let d = 0;
+    for (const r of [15, 25, 40]) d += G.world.heightAt(x + Math.sin(a) * r, z + Math.cos(a) * r);
+    if (d < low) { low = d; best = a; }
+  }
+  return best;
+}
+export async function buildLandmarks(ctx) {
+  const t0 = performance.now();
+  const built = [];
+  for (const l of LANDMARKS) {
+    let rot = l.angle || 0;
+    if (l.kind === 'bridgeRuin') rot -= Math.PI / 2; // the deck runs along local x
+    if (l.kind === 'pier' || l.kind === 'boathouse') rot = seaward(l.x, l.z, rot);
+    const site = new Site('lm_' + l.id, l.x, l.z, rot), r = mulberry32(Math.round(l.x * 31 + l.z * 17) >>> 0);
+    try {
+      switch (l.kind) {
+        case 'watchtower': watchtower(site, r); break;
+        case 'windmills': windmills(site, ctx, r); break;
+        case 'beaconKeep': beaconKeep(site, ctx, r); break;
+        case 'trilithons': trilithons(site, r); break;
+        case 'lighthouse': lighthouse(site, ctx, r); break;
+        case 'aqueduct': aqueduct(site, l, r); break;
+        case 'bridgeRuin': bridgeRuin(site, r); break;
+        case 'hermitCottage': hermitCottage(site, r); break;
+        case 'farmstead': farmstead(site, ctx, l, r); break;
+        case 'stoneCircle': stoneCircle(site, r); break;
+        case 'chapelRuin': chapelRuin(site, r); break;
+        case 'charcoalCamp': charcoalCamp(site, r); break;
+        case 'shepherdHut': shepherdHut(site, r); break;
+        case 'dolmen': dolmen(site, r); break;
+        case 'quarry': quarryKit(site, r); break;
+        case 'pier': pier(site, r); break;
+        case 'boathouse': boathouse(site, r); break;
+        case 'apiary': apiary(site, r); break;
+        case 'swingTree': swing(site, ctx, r); break;
+        case 'cairn': cairn(site, r); break;
+        case 'wayShrine': wayShrine(site, r); break;
+        case 'bench': bench(site, r); break;
+        case 'well': well(site, r); break;
+        case 'ancientTree': stoneRing(site, 11, 16, r); break;
+        case 'flowerValley': bench(site, r); break;
+        default: break; // rock / plant pieces only (tor, cragFalls, tarn, fallenGiant, rockfall, snags)
+      }
+    } catch (e) { G.reportError('landmarks:' + l.id, e); continue; }
+    if (!site.root.children.length) continue;
+    await site.bakeSliced(ctx.step);
+    const cut = l.scale === 'small' ? 320 : l.scale === 'medium' ? 1100 : 0;
+    ctx.place('lm_' + l.id, { site, group: site.baked, landmark: l, cut });
+    built.push(l.id);
+  }
+  return { built, ms: Math.round(performance.now() - t0) };
+}

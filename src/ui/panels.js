@@ -6,6 +6,7 @@ import { UI, K, el, tel, clear, paper, keycap, keyLabels, hintLine, pushModal, p
 import { icon } from './icons.js';
 import { addCss } from './style.js';
 import { BINDINGS } from '../core/input.js';
+import { touchUI, touchSettingRows, createTouchGuide } from './touch.js';   // touch controls: their own rows + guide
 
 addCss(`
 /* ---- settings ---- */
@@ -113,9 +114,14 @@ function settingRows() {
     { head: 'ui.settings.view', rows: [SLIDER('sens', 'ui.settings.sens', 0.2, 3, 0.1, (v) => v.toFixed(1)), { k: 'invertY', label: 'ui.settings.invertY', type: 'toggle' }] },
     { head: 'ui.settings.picture', rows: [
       { k: 'quality', label: 'ui.settings.quality', type: 'choice', opts: () => ['low', 'med', 'highfast', 'high'].map((v) => ({ v, l: t('ui.settings.q.' + v) })), note: true },
-      { k: 'shake', label: 'ui.settings.shake', type: 'toggle' }, { k: 'hints', label: 'ui.settings.hints', type: 'toggle' }] },
+      { k: 'look', label: 'ui.settings.look', type: 'choice', opts: () => ['soft', 'vivid'].map((v) => ({ v, l: t('ui.settings.lookOpt.' + v) })) },
+      { k: 'shake', label: 'ui.settings.shake', type: 'toggle' }, { k: 'cinematic', label: 'ui.settings.cinematic', type: 'toggle' }, { k: 'hints', label: 'ui.settings.hints', type: 'toggle' }] },
   ];
-  secs.push({ head: 'ui.settings.keys', rows: [...REBIND.map((k) => ({ k, label: 'ui.settings.key.' + k, type: 'key' })), { k: '_reset', label: 'ui.settings.keyReset', type: 'action' }] });
+  // touch screens: their own section (button size / opacity / drag-to-look) instead of the mouse speed and the key list
+  const touchRows = touchSettingRows();
+  if (touchRows) secs.splice(2, 0, touchRows);
+  if (touchUI()) { const v = secs.find((x) => x.head === 'ui.settings.view'); if (v) v.rows = v.rows.filter((r) => r.k !== 'sens'); }
+  else secs.push({ head: 'ui.settings.keys', rows: [...REBIND.map((k) => ({ k, label: 'ui.settings.key.' + k, type: 'key' })), { k: '_reset', label: 'ui.settings.keyReset', type: 'action' }] });
   const locs = locales();
   if (locs.length > 1) secs.push({ head: 'ui.settings.lang', rows: [{ k: 'lang', label: 'ui.settings.lang', type: 'choice', opts: () => locales().map((l) => ({ v: l.code, l: l.name })) }] });
   return secs;
@@ -341,6 +347,7 @@ function controlGroups() {
   ];
 }
 export function createControls(parent) {
+  if (touchUI()) return createTouchGuide(parent);
   const root = el('div', 'mv-ctl', parent);
   function render() {
     clear(root);

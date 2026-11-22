@@ -7,15 +7,17 @@
 import * as THREE from 'three';
 import { G } from '../core/game.js';
 import { clamp } from '../core/util.js';
-import { ELEMENTS, MATERIALS, STATUSES, T, FIRE } from './consts.js';
+import { ELEMENTS, MATERIALS, STATUSES, T, FIRE, MULT } from './consts.js';
 import { Reactor, bindCore, createHash, distTo } from './reactor.js';
 import { createFire } from './fire.js';
 import { createWeather } from './weather.js';
 import { createFloes } from './floes.js';
 import { createFlames } from './flames.js';
+import { createFields } from './fields.js';
+import { COMBOS, COMBO_IDS } from './catalog.js';
 
 const E = {
-  hash: null, fire: null, weather: null, floes: null, flames: null,
+  hash: null, fire: null, weather: null, floes: null, flames: null, fields: null,
   all: [], active: new Set(), movers: [], lights: [],
   burningCount: 0, scan: 0, heatT: 0, moverT: 0,
   lastChain: null,
@@ -34,6 +36,7 @@ const inWater = (r) => G.world.heightAt(r.pos.x, r.pos.z) < G.world.seaLevel - 0
 const conducts = (r) => r.conductive || r.wet > 0 || r.material === 'water' || inWater(r);
 
 function activate(r) { if (!r._active && !r.dead) { r._active = true; E.active.add(r); } }
+E.activate = activate;
 
 // ---- status primitives (Reactor methods land here) ------------------------------------------------------------
 E.ignite = (r, power = 1, info) => {
@@ -173,13 +176,21 @@ function apply(element, pos, radius = 1, power = 1, info = {}) {
   if (!ELEMENTS.includes(element) || !pos) return out;
   info = info || {};
   const team = info.team || 'neutral';
-  G.events.emit('element:applied', { element, pos, radius, power, team, source: info.source });
+  G.events.emit('element:applied', { element, pos, radius, power, team, source: info.source, info });
   const rx = new Map();      // reaction type -> { n, pos }
   const react = (type, p, extra) => {
     let e = rx.get(type);
     if (!e) rx.set(type, (e = { n: 0, pos: p.clone(), extra: null }));
     e.n++;
     if (extra) e.extra = extra;
+  };
+  // 元素交织: reactions on living things become combos (callout, notes, multiplier)
+  const cx = new Map();      // combo id -> { n, pos, mult }
+  const combo = (id, r, mult) => {
+    if (!r.living && r.kind !== 'creature') return;
+    let e = cx.get(id);
+    if (!e) cx.set(id, (e = { n: 0, pos: new THREE.Vector3(r.pos.x, r.y0 + r.height + 2.0, r.pos.z), mult: 1 }));   // above combat's foe plate (+1.05 .. ~+1.8)
+    e.n++; e.mult = Math.max(e.mult, mult || 1);
   };
   // No friendly fire: a team's own fire / ice / thunder / earth / moon / wind never touches its members (water and sun
   // still do — you can douse or light your own side). Pass info.friendlyFire = true to override.
@@ -191,7 +202,7 @@ function apply(element, pos, radius = 1, power = 1, info = {}) {
     out.push(r);
   });
 
-  if (element === 'thunder') thunder(pos, radius, power, info, out, react);
+  if (element === 'thunder') thunder(pos, radius, power, info, out, react, combo);
   else for (const r of out) {
     const at = reactorTop(r, _v);
     const ex = {};
@@ -200,41 +211,54 @@ function apply(element, pos, radius = 1, power = 1, info = {}) {
         if (r.kind === 'lantern') {
           const res = r.on.ignite ? call(r, 'ignite', info) : call(r, 'light', power, info);
           if (res !== false) react('ignite', at);
-        } else if (r.frozen) { E.thaw(r); react('melt', at); ex.reaction = 'melt'; fx('steam', at); }
+        } else if (r.frozen) { E.thaw(r); react('melt', at); ex.reaction = 'melt'; ex.mult = MULT.melt; combo('melt', r, MULT.melt); fx('steam', at); }
         else if (r.material === 'ice') { react('melt', at); ex.reaction = 'melt'; ex.melt = true; fx('splash', at); }
-        else if (r.wet > 0 && r.flammable > 0) { r.wet = 0; call(r, 'dry'); react('steam', at); ex.reaction = 'steam'; fx('steam', at); sfx('steam', at); }
+        else if (r.wet > 0 && (r.flammable > 0 || r.living)) {
+          r.wet = 0; call(r, 'dry'); react('steam', at); ex.reaction = 'steam'; fx('steam', at); sfx('steam', at);
+          if (r.living) { ex.mult = MULT.steam; combo('steam', r, MULT.steam); }
+        }
         else if (r.wet > 0) { r.wet = Math.max(0, r.wet - 6 * power); if (!r.wet) call(r, 'dry'); fx('steam', at); }
         else if (!r.burning && r.flammable > 0 && !r.charred && Math.random() < Math.min(1, r.flammable * (0.6 + 0.6 * power))) {
           if (E.ignite(r, power, info)) { react('ignite', at); ex.reaction = 'ignite'; }
         }
-        if (r.material === 'shade') ex.mult = 1.5;
+        if (r.material === 'shade') ex.mult = (ex.mult || 1) * 1.5;
         break;
       case 'water':
-        if (r.burning) { E.extinguish(r, info); react('steam', at); ex.reaction = 'steam'; fx('steam', at); sfx('steam', at); }
+        if (r.burning) {
+          E.extinguish(r, info); react('steam', at); ex.reaction = 'steam'; fx('steam', at); sfx('steam', at);
+          if (r.living) { ex.mult = MULT.steam; combo('steam', r, MULT.steam); }
+        }
         if (r.kind === 'lantern') { if (call(r, 'extinguish', info) !== false && r.on.extinguish) react('extinguish', at); break; }
         E.soak(r, T.WET * Math.max(1, Math.min(2, power)));
         fx('hit_water', at);
         break;
       case 'ice':
         if (r.burning) { E.extinguish(r, info); react('extinguish', at); ex.reaction = 'extinguish'; fx('steam', at); }
-        else if (r.wet > 0 || r.material === 'water') {
-          if (E.freeze(r, T.FREEZE * clamp(power, 0.6, 1.6))) { react('freeze', at); ex.reaction = 'freeze'; }
+        else if (r.wet > 0 || r.material === 'water' || r.chilled > 0) {
+          if (!r.frozen && E.freeze(r, T.FREEZE * clamp(power, 0.6, 1.6))) { react('freeze', at); ex.reaction = 'freeze'; combo('freeze', r); }
         } else if (power >= 2 && E.freeze(r, T.FREEZE_DRY)) { react('freeze', at); ex.reaction = 'freeze'; }
         break;
       case 'wind':
         if (r.kind === 'lantern') { if (power >= 0.8 && r.on.extinguish && call(r, 'extinguish', info) !== false) react('extinguish', at); break; }
         if (r.burning) {
           if (r.radius * r.height < 1.2 && Math.random() < 0.6 * power) { E.extinguish(r, info); react('extinguish', at); }
-          else { spreadFrom(r, 1 + power); react('fan', at); ex.reaction = 'fan'; }
+          else { spreadFrom(r, 1 + power); react('fan', at); ex.reaction = 'fan'; combo('fan', r); }
         }
         break;
       case 'earth':
         if (r.frozen || r.material === 'ice') {
           if (r.frozen) { r.frozen = 0; r.wet = Math.max(r.wet, 2); }
-          ex.mult = 3; ex.shatter = true; ex.reaction = 'shatter';
+          ex.mult = MULT.shatter; ex.shatter = true; ex.reaction = 'shatter';
           react('shatter', at);
+          combo('shatter', r, MULT.shatter);
           call(r, 'shatter', info);
           fx('shatter_ice', at); sfx('shatter_ice', at);
+        } else if (r.wet > 0 && r.living) {
+          // wet things hit by earth are caked in mud: slowed
+          const was = r.muddy > 0;
+          r.muddy = Math.max(r.muddy, T.MUDDY); activate(r);
+          ex.reaction = 'mire';
+          if (!was) { react('mire', at); combo('mire', r); }
         }
         break;
       case 'sun':
@@ -250,7 +274,7 @@ function apply(element, pos, radius = 1, power = 1, info = {}) {
         break;
     }
     if (info.heavy && r.frozen && element !== 'earth') {
-      r.frozen = 0; ex.mult = 3; ex.shatter = true; react('shatter', at); call(r, 'shatter', info); fx('shatter_ice', at);
+      r.frozen = 0; ex.mult = MULT.shatter; ex.shatter = true; react('shatter', at); combo('shatter', r, MULT.shatter); call(r, 'shatter', info); fx('shatter_ice', at);
     }
     call(r, 'hit', element, power, hitInfo(info, element, power, ex));
   }
@@ -259,8 +283,9 @@ function apply(element, pos, radius = 1, power = 1, info = {}) {
   if (!info.noGround) ground(element, pos, radius, power, info, react);
 
   for (const [type, e] of rx) {
-    G.events.emit('element:reaction', { type, pos: e.pos, power, count: e.n, element, team, ...(e.extra || {}) });
+    G.events.emit('element:reaction', { type, pos: e.pos, power, count: e.n, element, team, fusion: !!(info.fusion || info.field), ...(e.extra || {}) });
   }
+  for (const [id, e] of cx) combo_(id, e.pos, { team, count: e.n, mult: e.mult });
   return out;
 }
 
@@ -305,6 +330,8 @@ function ground(element, pos, radius, power, info, react) {
       if (nearGround && !water && power >= 1 && Math.random() < 0.6) { if (E.fire.ignite(pos.x, pos.z, 1.2, 0.5)) react('ignite', pos); }
       break;
   }
+  // 元素交织: puddles, mud, ice sheets, steam, lava … (fields.js)
+  if (nearGround) { try { E.fields.onApply(element, pos, radius, power, info); } catch (e) { G.reportError('elements:fields', e); } }
   // physics side of wind
   if (element === 'wind' && G.physics) {
     try {
@@ -314,7 +341,7 @@ function ground(element, pos, radius, power, info, react) {
   }
 }
 
-function thunder(pos, radius, power, info, hits, react) {
+function thunder(pos, radius, power, info, hits, react, combo) {
   const W = G.world;
   const hitSet = new Set(hits);
   const links = [];
@@ -322,10 +349,15 @@ function thunder(pos, radius, power, info, hits, react) {
   const seeds = [];
   const water = !info.noGround && W.heightAt(pos.x, pos.z) < W.seaLevel - 0.3 && pos.y < W.seaLevel + radius + 3;
   const strike = new THREE.Vector3().copy(pos);
+  const over = [];
   for (const r of hits) {
     const at = reactorTop(r, _v);
     const ex = {};
-    if (conducts(r)) { seeds.push(r); E.shock(r, power, info); ex.reaction = 'conduct'; }
+    const burning = r.burning > 0 && r.living;
+    if (conducts(r)) {
+      seeds.push(r); E.shock(r, power, info); ex.reaction = 'conduct';
+      if (r.wet > 0 || inWater(r)) { ex.mult = MULT.conduct; combo('conduct', r, MULT.conduct); }
+    }
     else if (r.material === 'wood' && !r.wet) {
       E.shock(r, power, info);
       if (r.kind === 'tree' || r.kind === 'structure' || power >= 1) { ex.split = true; ex.reaction = 'split'; react('split', at); }
@@ -334,9 +366,12 @@ function thunder(pos, radius, power, info, hits, react) {
       ex.shatter = true; ex.reaction = 'shatter'; react('shatter', at); fx('shatter_rock', at);
       call(r, 'shatter', info);
     } else E.shock(r, power, info);
-    if (r.frozen && r.material !== 'stone') { r.frozen = 0; ex.mult = 3; ex.shatter = true; react('shatter', at); call(r, 'shatter', info); }
+    if (r.frozen && r.material !== 'stone') { r.frozen = 0; ex.mult = MULT.shatter; ex.shatter = true; react('shatter', at); combo('shatter', r, MULT.shatter); call(r, 'shatter', info); }
+    else if (burning) { ex.mult = Math.max(ex.mult || 1, MULT.overload); ex.reaction = 'overload'; combo('overload', r, MULT.overload); over.push(r); }
     call(r, 'hit', 'thunder', power, hitInfo(info, 'thunder', power, ex));
   }
+  // 爆燃: lightning through something burning bursts it — the flames leap to whatever stands near
+  for (const r of over) overload(r, power, info);
   // a strike on open water runs through everything standing in it nearby
   if (water) {
     E.hash.each(pos.x, pos.z, T.CHAIN_RANGE + 2, (o) => {
@@ -345,7 +380,8 @@ function thunder(pos, radius, power, info, hits, react) {
       hitSet.add(o); seeds.push(o); chained.push(o);
       links.push([strike.clone(), reactorTop(o, new THREE.Vector3())]);
       E.shock(o, power * 0.8, info);
-      call(o, 'hit', 'thunder', power * 0.8, hitInfo(info, 'thunder', power * 0.8, { reaction: 'conduct', chain: 1 }));
+      if (o.living) combo('conduct', o, MULT.conduct);
+      call(o, 'hit', 'thunder', power * 0.8, hitInfo(info, 'thunder', power * 0.8, { reaction: 'conduct', chain: 1, mult: MULT.conduct }));
     });
   }
   // conduction: hop between conductors within CHAIN_RANGE
@@ -361,8 +397,10 @@ function thunder(pos, radius, power, info, hits, react) {
       queue.push([b, depth + 1]);
       links.push([reactorTop(a, new THREE.Vector3()), reactorTop(b, new THREE.Vector3())]);
       const p = power * Math.max(0.4, 0.85 - depth * 0.08);
+      const soaked = b.wet > 0 || inWater(b);
       E.shock(b, p, info);
-      call(b, 'hit', 'thunder', p, hitInfo(info, 'thunder', p, { reaction: 'conduct', chain: depth + 1 }));
+      if (soaked) combo('conduct', b, MULT.conduct);
+      call(b, 'hit', 'thunder', p, hitInfo(info, 'thunder', p, { reaction: 'conduct', chain: depth + 1, mult: soaked ? MULT.conduct : 1 }));
     });
   }
   for (const r of chained) hits.push(r);
@@ -374,6 +412,99 @@ function thunder(pos, radius, power, info, hits, react) {
     sfx('thunder_chain', pos);
   }
   E.lastChain = { links, reactors: chained, t: G.time.t };
+}
+
+// ---- 元素交织: combos, blasts, discovery ----------------------------------------------------------------------------
+/** A burning thing struck by lightning bursts: fire leaps to the hostile things around it, a small blast pushes. */
+function overload(r, power, info) {
+  const at = reactorTop(r, new THREE.Vector3());
+  const team = info.team || 'neutral';
+  E.hash.each(r.pos.x, r.pos.z, 4, (o) => {
+    if (o === r || o.dead || o.burning || !o.living || (team !== 'neutral' && o.team === team)) return;
+    if (Math.hypot(o.pos.x - r.pos.x, o.pos.z - r.pos.z) - o.radius > 3.6) return;
+    if (o.wet > 0) { o.wet = 0; call(o, 'dry'); fx('steam', reactorTop(o, _v)); return; }
+    E.ignite(o, 0.9, { source: info.source, team, overload: true });
+  });
+  fx('explosion', at, { color: 'fire', scale: 0.55, power: 0.8 });
+  try { G.fx?.lightning?.(at, _w.set(at.x + (Math.random() - 0.5) * 3, at.y + 1.5, at.z + (Math.random() - 0.5) * 3), { color: 0xffb070, impact: false, branches: 2, dur: 0.25, width: 0.12 }); } catch (e) { /* visual */ }
+  try { G.physics?.explode?.(at, 3.6, 5 * power, { up: 0.5 }); } catch (e) { G.reportError('elements:overload', e); }
+  sfx('explosion_small', at, 0.7);
+}
+
+/** on.hit for one reactor with a damage info (fields and fusions use it): hinfo = info + { element, power, mult, ... }. */
+E.hitReactor = (r, element, power, info, extra) => call(r, 'hit', element, power, hitInfo(info || {}, element, power, extra || {}));
+
+/**
+ * A raw blast (steam explosion, tidal splash, …): every hostile living reactor within R gets on.hit with o.element and
+ * o.damage × o.mult, physics are pushed. o: { element, team, source, damage, mult, reaction, impulse, soak, up }. -> count
+ */
+E.blast = (pos, R, o = {}) => {
+  const team = o.team || 'neutral';
+  let n = 0;
+  E.hash.each(pos.x, pos.z, R, (r) => {
+    if (r.dead || !(r.living || r.kind === 'creature') || (team !== 'neutral' && r.team === team)) return;
+    if (distTo(r, pos.x, pos.y, pos.z) > R) return;
+    if (o.soak) E.soak(r, 3);
+    n++;
+    call(r, 'hit', o.element || 'fire', o.power ?? 1, hitInfo({ source: o.source || null, team, damage: o.damage ?? 20, fusion: true }, o.element || 'fire', o.power ?? 1,
+      { mult: o.mult ?? 1, reaction: o.reaction || null }));
+  });
+  if (o.impulse) { try { G.physics?.explode?.(pos, R + 1, o.impulse, { up: o.up ?? 0.6 }); } catch (e) { G.reportError('elements:blast', e); } }
+  return n;
+};
+
+/** Emit 'element:combo' and note it in the heroine's 元素笔记 (G.state.elementNotes) when she caused it. */
+function combo_(id, pos, o = {}) {
+  const c = COMBOS[id];
+  if (!c || !pos) return;
+  const team = o.team || 'neutral';
+  const p = pos.isVector3 ? pos : new THREE.Vector3(pos.x, pos.y, pos.z);
+  G.events.emit('element:combo', { id, kind: c.kind, els: c.els, pos: p, team, mult: o.mult ?? c.mult ?? 1, count: o.count || 1, big: !!(o.big ?? c.big), quiet: !!o.quiet });
+  if (team === 'player') discover(id, p);
+}
+E.combo = combo_;
+function discover(id, pos) {
+  const st = G.state;
+  if (!st || !COMBOS[id]) return;
+  const notes = st.elementNotes && typeof st.elementNotes === 'object' ? st.elementNotes : (st.elementNotes = {});
+  const first = !notes[id];
+  notes[id] = Math.min(99999, (notes[id] | 0) + 1);
+  if (first) G.events.emit('element:discovered', { id, pos, total: COMBO_IDS.filter((k) => notes[k]).length, of: COMBO_IDS.length });
+}
+
+/** Active statuses of a reactor, strongest first: [{ id, t }] (t = seconds left). For HUD pips and foe bars. */
+const STATUS_SHOWN = ['frozen', 'burning', 'shocked', 'wet', 'muddy', 'chilled'];
+function statusesOf(r, out = []) {
+  // entries are reused from out's own pool, so a caller passing the same array every frame allocates nothing
+  const pool = out._pool || (out._pool = []);
+  let n = 0;
+  if (r && !r.dead) for (let i = 0; i < STATUS_SHOWN.length; i++) {
+    const k = STATUS_SHOWN[i];
+    if (!(r[k] > 0)) continue;
+    const o = pool[n] || (pool[n] = { id: '', t: 0 });
+    o.id = k; o.t = r[k]; out[n++] = o;
+  }
+  out.length = n;
+  return out;
+}
+
+/** Creatures in mud / on frost walk slower. Owners that apply reactor.speedMul themselves set owner.handlesSlow = true
+ *  (or G.elements.ownerHandlesSlow = true for everyone); for the rest their horizontal step is scaled here, after they moved. */
+function slowMovers() {
+  if (G.elements?.ownerHandlesSlow) return;
+  const P = G.player;
+  for (let i = 0; i < E.movers.length; i++) {
+    const r = E.movers[i];
+    if (r.kind !== 'creature') continue;
+    const o = r.owner, p = o && o.pos;
+    if (!p || !p.isVector3 || o === P) continue;
+    const last = r._lastPos || (r._lastPos = new THREE.Vector3().copy(p));
+    if ((r.muddy > 0 || r.chilled > 0) && !r.frozen && !o.handlesSlow && !o.held) {
+      const k = r.speedMul, dx = p.x - last.x, dz = p.z - last.z;
+      if (k < 1 && dx * dx + dz * dz < 9) { p.x = last.x + dx * k; p.z = last.z + dz * k; }
+    }
+    last.copy(p);
+  }
 }
 
 // ---- light ------------------------------------------------------------------------------------------------------
@@ -503,7 +634,9 @@ function updateReactors(dt) {
     }
     if (r.shocked > 0 && (r.shocked -= dt) <= 0) r.shocked = 0;
     if (r.lit > 0 && (r.lit -= dt) <= 0) r.lit = 0;
-    if (!r.burning && !r.wet && !r.frozen && !r.shocked && !r.lit) { E.active.delete(r); r._active = false; }
+    if (r.muddy > 0 && (r.muddy -= dt) <= 0) r.muddy = 0;
+    if (r.chilled > 0) { if (r.burning) r.chilled = 0; else if ((r.chilled -= dt) <= 0) r.chilled = 0; }
+    if (!r.burning && !r.wet && !r.frozen && !r.shocked && !r.lit && !r.muddy && !r.chilled) { E.active.delete(r); r._active = false; }
   }
 }
 
@@ -529,10 +662,10 @@ function updateLights(dt) {
 
 // ---- system -----------------------------------------------------------------------------------------------------
 function clearAll() {
-  for (const r of E.active) { if (r.burning) stopBurn(r); r.burning = r.wet = r.frozen = r.shocked = r.lit = 0; r._active = false; }
+  for (const r of E.active) { if (r.burning) stopBurn(r); r.burning = r.wet = r.frozen = r.shocked = r.lit = r.muddy = r.chilled = 0; r._active = false; }
   E.active.clear();
   E.burningCount = 0;
-  E.fire.clear(); E.weather.clear(); E.floes.clear(); E.flames.clear();
+  E.fire.clear(); E.weather.clear(); E.floes.clear(); E.flames.clear(); E.fields?.clear();
 }
 
 export const elementsSystem = {
@@ -545,6 +678,8 @@ export const elementsSystem = {
     E.weather = createWeather(E);
     E.floes = createFloes(E);
     E.flames = createFlames(E);
+    E.addLight = addLight;
+    E.fields = createFields(E);
     G.elements = {
       ELEMENTS, MATERIALS, STATUSES, FIRE, Reactor,
       register, unregister, apply,
@@ -569,9 +704,39 @@ export const elementsSystem = {
       /** The last thunder chain: { links:[[Vector3, Vector3]], reactors, t }. */
       get lastChain() { return E.lastChain; },
       get reactors() { return E.all; },
+      // ---- 元素交织 (docs/api/elements.md "Element weaving") ----
+      COMBOS,
+      /** Reactors that currently carry a status (burning / wet / frozen / shocked / lit / muddy / chilled). Read-only Set. */
+      get active() { return E.active; },
+      statusesOf,
+      /** ★ The ground field at pos (pos.y optional) or null: { kind, x, z, y, r, t, life, power, team }. kind filters. */
+      fieldAt: (pos, kind) => E.fields.at(pos, kind),
+      /** cb(field) for every field touching the disc (pos, r). */
+      fieldsNear: (pos, r, cb) => E.fields.each(pos, r, cb),
+      get fields() { return E.fields.list; },
+      /** Lay a field directly: kind puddle | charged | icesheet | steam | mud | frost | lava. o: { life, power, team, source } */
+      addField: (kind, x, z, r, o) => E.fields.add(kind, x, z, r, o),
+      /** Let an element touch the ground at pos without the rest of apply() (e.g. a rising rock pillar). */
+      touchGround: (element, pos, radius = 2, power = 1, info = {}) => { try { return E.fields.onApply(element, pos, radius, power, info || {}); } catch (e) { G.reportError('elements:touchGround', e); return 0; } },
+      /** ★ Is pos hidden inside a steam cloud? (foes should lose sight of a heroine standing in one) */
+      concealedAt: (pos) => !!pos && E.fields.concealedAt(pos),
+      /** Emit a combo by id (COMBOS) at pos: callout + notes. o: { team, mult, count, big, quiet } */
+      combo: (id, pos, o) => combo_(id, pos, o),
+      blast: (pos, R, o) => E.blast(pos, R, o),
+      /** Give a reactor a timed status: 'muddy' | 'chilled' | 'wet' | 'shocked' (seconds; keeps the longer). */
+      addStatus(r, status, sec) {
+        if (!r || r.dead || !(sec > 0)) return false;
+        if (status === 'wet') return E.soak(r, sec);
+        if (status !== 'muddy' && status !== 'chilled' && status !== 'shocked') return false;
+        if (status === 'chilled' && r.burning) return false;
+        r[status] = Math.max(r[status] || 0, sec); activate(r);
+        return true;
+      },
+      /** Set true when every owner applies reactor.speedMul itself (turns off the generic slow in lateUpdate). */
+      ownerHandlesSlow: false,
       clear: clearAll,
       stats: () => ({ reactors: E.all.length, active: E.active.size, burning: E.burningCount, cells: E.fire.count, flames: E.flames.count,
-        rain: E.weather.zones.length, wind: E.weather.fields.length, floes: E.floes.floes.length, lights: E.lights.length }),
+        rain: E.weather.zones.length, wind: E.weather.fields.length, floes: E.floes.floes.length, lights: E.lights.length, fields: E.fields.list.length }),
     };
     G.events.on('terrain:deformed', (d) => {
       try {
@@ -588,10 +753,12 @@ export const elementsSystem = {
       updateReactors(dt);
       updateLights(dt);
       E.floes.update(dt);
+      E.fields.update(dt);
       if (dt > 0 && (E.heatT -= dt) <= 0) { E.heatT = 0.2; rebuildHeat(); }
     } catch (e) { G.reportError('elements:update', e); }
   },
   lateUpdate(dt, rdt) {
     try { E.flames.update(dt, rdt); } catch (e) { G.reportError('elements:flames', e); }
+    if (dt > 0) { try { slowMovers(); } catch (e) { G.reportError('elements:slow', e); } }
   },
 };

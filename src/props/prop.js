@@ -507,28 +507,47 @@ function doBreak(p, by) {
 
 // ---- debris (short-lived instanced bodies) ----------------------------------------------------------------------------
 const MAX_DEBRIS = 140;
-function spawnDebris(kind, pos, vel, color, material, burnt) {
+const FADE_T = 0.6;   // pieces shrink away over their last FADE_T seconds instead of popping out
+function spawnDebris(kind, pos, vel, color, material, burnt, opts) {
   if (S.debris.length >= MAX_DEBRIS) S.debris[0] && killDebris(S.debris[0], true);
   const kit = getDebrisKit(kind);
-  const d = { kit, slot: null, body: null, obj: new THREE.Object3D(), color: color.clone(), alive: true };
+  const sc = opts?.scale ?? 1;
+  const life = opts?.life ?? 2.8 + rand() * 2.2;
+  const d = { kit, slot: null, body: null, obj: new THREE.Object3D(), color: color.clone(), alive: true, t: 0, life, k: 1 };
   d.obj.position.copy(pos);
   d.obj.quaternion.setFromEuler(_e.set(rand() * 6, rand() * 6, rand() * 6));
+  if (sc !== 1) d.obj.scale.setScalar(sc);
   alloc(kit, d);
   writeColor(kit, d.slot, d.color, 1);
   writeItem(kit, d.slot, d.obj, 1, false);
   if (G.physics?.add) {
     try {
+      const h = DEBRIS_HALF[kind];
+      const round = kind === 'chunk' || kind === 'ball' || kind === 'clod' || kind === 'rock';
       d.body = G.physics.add({
-        mesh: d.obj, shape: kind === 'chunk' || kind === 'ball' ? 'sphere' : 'box', size: kind === 'chunk' ? 0.12 : kind === 'ball' ? 0.06 : DEBRIS_HALF[kind],
-        pos: d.obj.position, quat: d.obj.quaternion, type: 'dynamic', material, group: 'debris', lifetime: 2.8 + rand() * 2.2,
+        mesh: d.obj, shape: round ? 'sphere' : 'box', size: round ? h[0] * sc : sc === 1 ? h : [h[0] * sc, h[1] * sc, h[2] * sc],
+        pos: d.obj.position, quat: d.obj.quaternion, type: 'dynamic', material, group: 'debris', lifetime: life,
         vel, angvel: _v.set((rand() - 0.5) * 14, (rand() - 0.5) * 14, (rand() - 0.5) * 14).clone(),
         onRemove: () => killDebris(d, false),
       });
     } catch (e) { G.reportError('props:debris', e); }
   }
-  if (!d.body) d.life = 1.5;
+  if (!d.body) d.life = Math.min(d.life, 1.5);
   S.debris.push(d);
   return d;
+}
+const LOOSE_MAT = { clod: 'flesh', rock: 'stone', chunk: 'stone', splinter: 'wood', plank: 'wood', shard: 'stone', sliver: 'paper', ball: 'flesh' };
+/**
+ * Loose debris for anyone (destruction, flora): kind 'clod' | 'rock' | 'splinter' | 'chunk' | 'plank' | 'shard' |
+ * 'sliver' | 'ball'; vel {x,y,z}; opts { color (hex or Color), scale, life, material }. Pooled and capped with the props'
+ * own shards (the oldest piece makes room). Returns false when it could not be made.
+ */
+export function looseDebris(kind, pos, vel, opts = {}) {
+  if (!DEBRIS_HALF[kind] || !pos) return false;
+  const c = opts.color;
+  if (c && c.isColor) _c.copy(c); else _c.setHex(typeof c === 'number' ? c : 0x8a6a4a);
+  try { spawnDebris(kind, pos, vel || _v2.set(0, 4, 0), _c, opts.material || LOOSE_MAT[kind] || 'stone', false, opts); return true; }
+  catch (e) { G.reportError('props:looseDebris', e); return false; }
 }
 function rewriteDebris(d) { writeItem(d.kit, d.slot, d.obj, 1, false); writeColor(d.kit, d.slot, d.color, 1); }
 function killDebris(d, removeBody) {
@@ -542,10 +561,13 @@ function killDebris(d, removeBody) {
 export function updateDebris(dt) {
   for (let i = S.debris.length - 1; i >= 0; i--) {
     const d = S.debris[i];
-    if (!d.body) { d.life -= dt; if (d.life <= 0) { killDebris(d, false); continue; } }
-    if (d.body && d.body.sleeping && d._w) continue;
+    d.t += dt;
+    if (!d.body && d.t >= d.life) { killDebris(d, false); continue; }
+    const k = clamp((d.life - d.t) / FADE_T, 0, 1);
+    if (d.body && d.body.sleeping && d._w && k === d.k) continue;
     d._w = !!(d.body && d.body.sleeping);
-    writeItem(d.kit, d.slot, d.obj, 1, false);
+    d.k = k;
+    writeItem(d.kit, d.slot, d.obj, Math.max(0.02, k), false);
   }
 }
 export function debrisCount() { return S.debris.length; }

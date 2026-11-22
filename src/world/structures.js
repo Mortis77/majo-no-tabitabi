@@ -12,16 +12,11 @@ import { ANCHORS, ROADS, STONE_LANTERNS, GREAT_LANTERNS, SKY_ISLES } from '../da
 import { roadDist } from './ground.js';
 import { tickFactories, makeStoneLantern, makeGreatLantern, makePaperLantern, makeTorii, makeChest, makeSignpost, makeRaceRing,
   makeBrazier, makeCrystalPillar, makeEmaRack, makeShrineBell } from './builders/factories.js';
-import { buildShrine } from './builders/shrine.js';
-import { buildVillage } from './builders/village.js';
-import { buildDusk } from './builders/dusk.js';
-import { buildTown } from './builders/town.js';
 import { buildWaysides } from './builders/journey-waysides.js';
+import { buildLandmarks } from './builders/landmarks.js';
 import { buildTrialBasin } from './builders/trial-basin.js';
 import { buildJourneyRooms } from './builders/journey-rooms.js';
 import { buildBellcrown,buildEastTown } from './builders/bellcrown.js';
-import { buildFar } from './builders/far.js';
-import { buildRoadside } from './builders/roadside.js';
 
 export { makeStoneLantern, makeGreatLantern, makePaperLantern, makeTorii, makeChest, makeSignpost, makeRaceRing, makeBrazier,
   makeCrystalPillar, makeEmaRack, makeShrineBell };
@@ -84,10 +79,10 @@ async function blockLODs(id, p, step) {
     bb.setFromObject(b);
     if (bb.isEmpty()) continue;
     const c = bb.getCenter(new THREE.Vector3()), r = bb.getSize(v).length() / 2;
-    const far = await farLOD(b, 0.3, step);
+    const far = await farLOD(b, p.farCell || 0.3, step);
     far.visible = false; far.matrixAutoUpdate = false; far.updateMatrix();
     G.scene.add(far); p.fars.push(far);
-    lods.push({ id: b.name, near: b, far, c, r, isNear: true, near2: BLOCK_NEAR });
+    lods.push({ id: b.name, near: b, far, c, r, isNear: true, near2: p.blockNear || BLOCK_NEAR });
     const lit = far.children.find((m) => m.isMesh && !m.material.isMeshBasicMaterial);
     if (lit && !p.noShadowProxy) {
       const px = new THREE.Mesh(lit.geometry, lit.material);
@@ -214,7 +209,7 @@ export const structuresSystem = {
       await p;
       tRes = performance.now();
     };
-    for (const [name, fn] of [['waysides',buildWaysides],['trialBasin',buildTrialBasin],['homes',buildJourneyRooms],['peacefulCountry',buildEastTown],['landOfMages',buildBellcrown]]) {
+    for (const [name, fn] of [['waysides',buildWaysides],['trialBasin',buildTrialBasin],['homes',buildJourneyRooms],['peacefulCountry',buildEastTown],['landOfMages',buildBellcrown],['landmarks',async(c)=>{S.landmarks=await buildLandmarks(c);}]]) {
       try { await fn(ctx); } catch (e) { G.reportError('structures:' + name, e); }
       await ctx.step(name + ':done');
     }
@@ -235,7 +230,7 @@ export const structuresSystem = {
         far.visible = false; far.matrixAutoUpdate = false; far.updateMatrix();
         G.scene.add(far);
         p.far = far;
-        lods.push({ id, near: p.group, far, c, r, isNear: true });
+        lods.push({ id, near: p.group, far, c, r, isNear: true, cut: p.cut || 0 });
         const lit = far.children.find((m) => m.isMesh && !m.material.isMeshBasicMaterial);
         if (lit && !p.noShadowProxy) {
           const px = new THREE.Mesh(lit.geometry, lit.material);
