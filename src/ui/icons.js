@@ -73,18 +73,29 @@ const ICONS = {
   resume: F('M7 4.4 19 12 7 19.6z'),
   quit: S('M14 4.5H6v15h8M10.5 12H20M16.5 8.5 20 12l-3.5 3.5', 1.9),
   brush: S('M4 20c2.4-.3 3.8-1.3 4.6-3.3', 1.8) + F('M8.4 16.8 18.8 4.2a1.9 1.9 0 0 1 2.9 2.5L11.2 19.2c-1.3.3-2.5-.8-2.8-2.4z'),
-  // ---- wardrobe (src/data/outfits.js): a robe on its stand, and the three outfits as garments (in their own colours) ----
+  // ---- wardrobe (src/data/outfits.js): a robe on its stand, and her four outfits as garments (in their own colours) ----
   wardrobe: S('M2.5 5.2h19M12 2.6v2.6', 1.6) + F('M5 6.6 9.4 5.6h5.2L19 6.6l1.4 5.6-3.2.8V21H6.8v-8L3.6 12.2z')
     + S('M9.4 5.8 12 10l2.6-4.2', 1.2, 'stroke="#000" stroke-opacity=".45"'),
-  outfit_miko: F('M5.8 15.7c2.1-3 3-9.2 7.2-12 2.6-1.7 5.3-.1 5.7 2.5-2.3-1.2-3.8-1.4-4.8.4l2.4 9z', 'fill="#5e506e" stroke="#342c42" stroke-width=".9"')
+  // 日常服: white blouse with the yellow bow over the dark pleated skirt
+  outfit_apprentice: F('M7 4.6 9.6 3.6h4.8l2.6 1 2.6 3.6-2.2 1.4-1.4-1.6V12.4H8.4V8L7 9.6 4.8 8.2z', 'fill="#f4efe6" stroke="#231f1d" stroke-opacity=".7" stroke-width=".8"')
+    + F('M8.2 12.2h7.6l2.8 8c-2 .8-4.2 1.2-6.6 1.2s-4.6-.4-6.6-1.2z', 'fill="#3e3446" stroke="#231f1d" stroke-opacity=".6" stroke-width=".7"')
+    + S('M10.2 12.8 9.4 20.8M12 12.8v8.8M13.8 12.8l.8 8', .7, 'stroke="#000" stroke-opacity=".3"')
+    + F('M9.9 4.6 12 5.8l2.1-1.2-.3 2.4L12 6.3l-1.8.7z', 'fill="#e0b85a"') + S('M11.2 6.4 10.6 8.6M12.8 6.4l.6 2.2', .8, 'stroke="#c9963c"'),
+  // 魔女服: her pointed hat with the lavender band
+  outfit_witch: F('M5.8 15.7c2.1-3 3-9.2 7.2-12 2.6-1.7 5.3-.1 5.7 2.5-2.3-1.2-3.8-1.4-4.8.4l2.4 9z', 'fill="#5e506e" stroke="#342c42" stroke-width=".9"')
     + F('m7.5 12.8 7.7-1.7.6 2.1-9.1 2.2z', 'fill="#d9b9d4"') + F('M2 17c2.8-2 6.9-1.9 10.5-2.8 4-.9 6.1-1.3 9.6-1.2-2 2.4-4.6 3.9-9.2 5.1C7.7 19.5 3.5 19.4 2 17z', 'fill="#967a9e" stroke="#403548" stroke-width=".8"'),
-  outfit_swim_a: F('M8.2 4.2 12 8.6l3.8-4.4 1.2 7.2H7z', 'fill="#fbf6ea" stroke="#231f1d" stroke-opacity=".7" stroke-width=".8"')
-    + S('M8.2 4.4 12 8.8l3.8-4.4', 1.1, 'stroke="#c23b2a"') + F('M6.8 11.6h10.4l2.6 8.4-5.6 1.6-3.2-1.4-4.4.6z', 'fill="#c23b2a"')
-    + S('M9.6 12.2l-.8 7.8M12.6 12.2l.4 8.8M15.4 12.2l1.4 8.6', .7, 'stroke="#000" stroke-opacity=".28"') + S('M6.8 11.6h10.4', 1.3, 'stroke="#8f2418"')
-    + F('M11 10.6h2l1.6 1-1.6 1h-2l-1.6-1z', 'fill="#fbf6ea"'),
-  outfit_swim_b: S('M9.4 6.2 11.2 2.8M14.6 6.2l-1.8-3.4', 1.1, 'stroke="#4a3f86"') + F('M7.8 5.8c1.6 1.1 2.8 1.5 4.2 1.5s2.6-.4 4.2-1.5l.8 4.4H7z', 'fill="#4a3f86"')
-    + S('M7.1 10.1h9.8', .8, 'stroke="#e0b85a"') + F('M7.2 12.2h9.6l.8 5.6h-4.8L12 15.6l-.8 2.2H6.4z', 'fill="#4a3f86"')
-    + F('M6.6 12 14.2 11.8 11 21.4l-5.2-.6z', 'fill="#8a5fb0"') + C(8.6, 14.6, .6, 'fill="#e0b85a"') + C(10.6, 17.6, .6, 'fill="#e0b85a"') + C(8, 19.2, .6, 'fill="#e0b85a"'),
+  // 潮祭: white ruffled top and frill skirt with small black bows, a sheer shirt over the shoulders
+  outfit_swim_a: S('M6.4 4.6 3.8 14.2M17.6 4.6l2.6 9.6', 2.2, 'stroke="#9fbcd2" stroke-opacity=".75"')
+    + F('M8.2 6.6c1.2.9 2.5 1.3 3.8 1.3s2.6-.4 3.8-1.3l.8 3.4H7.4z', 'fill="#fbf6ea" stroke="#231f1d" stroke-opacity=".7" stroke-width=".8"')
+    + S('M8.8 6.8 9.6 3.4M15.2 6.8l-.8-3.4', .9, 'stroke="#231f1d" stroke-opacity=".7"')
+    + F('M7 12.4h10l1.8 6.2c-.9.6-1.8.5-2.6 0-.8.6-1.7.6-2.5 0-.8.6-1.7.6-2.5 0-.8.6-1.7.6-2.5 0-.8.5-1.7.6-2.5 0z', 'fill="#fbf6ea" stroke="#231f1d" stroke-opacity=".7" stroke-width=".8"')
+    + C(12, 9.2, .75, 'fill="#231f1d"') + C(12, 13.4, .75, 'fill="#231f1d"'),
+  // 暮海: deep indigo two-piece with lavender ruffles, the gold stars, a scrunchie
+  outfit_swim_b: S('M9.4 6.2 10.6 2.8M14.6 6.2l-1.2-3.4', 1.1, 'stroke="#2e2a44"') + F('M7.8 5.8c1.6 1.1 2.8 1.5 4.2 1.5s2.6-.4 4.2-1.5l.8 4.2H7z', 'fill="#2e2a44"')
+    + F('M6.6 9.6h10.8l-.8 1.8-1.4-.8-1.6.9-1.6-.9-1.6.9-1.6-.9-1.4.8z', 'fill="#c2a8dc"')
+    + F('M7.4 13h9.2l-.6 5.6h-3.2L12 16.8l-.8 1.8H8z', 'fill="#2e2a44"')
+    + F('M6.4 12.6h11.2l-.8 2-1.4-.9-1.7 1-1.7-1-1.7 1-1.7-1-1.4.9z', 'fill="#c2a8dc"')
+    + C(9.2, 7.8, .55, 'fill="#e0b85a"') + C(14.8, 7.8, .55, 'fill="#e0b85a"') + C(19.4, 18.6, 1.5, 'fill="none" stroke="#d99bbd" stroke-width="1.1"'),
 };
 const ALIAS = {
   burning: 'fire', wet: 'water', frozen: 'ice', shocked: 'thunder', mana: 'spirit', life: 'heart', hp: 'heart',

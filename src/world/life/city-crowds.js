@@ -58,7 +58,10 @@ export function createCityCrowds(G, st, tier, dens) {
       if (!p || p.busy > 0 || p.claim > st.time || inKeepOut(st.keep, p.x, p.y, p.z, 5)) continue;
       const d = Math.hypot(p.x - F.x, p.z - F.z);
       if (d < lo) continue;
-      const sc = d < hi ? d * Math.random() : d + 1e4;
+      // in front of where she is looking first (the balconies she will see)
+      // a balcony 20-70 m ahead (high balconies right beside her are above the frame)
+      const fw = (p.x - F.x) * Math.sin(F.cyaw) + (p.z - F.z) * Math.cos(F.cyaw);
+      const sc = d < hi ? Math.abs(fw - 42) + Math.random() * 40 + (fw < 0 ? 150 : 0) : d + 1e4;
       if (sc < bd) { bd = sc; best = p; }
     }
     return best;
@@ -71,7 +74,7 @@ export function createCityCrowds(G, st, tier, dens) {
     a.t = rnd(4, 14);
     setClip(a, a.partner ? 'talk' : pick(['rail', 'rail', 'idle', 'call']));
   }
-  const nBal = Math.min(N(40), balc.length * 2);
+  const nBal = Math.min(N(50), balc.length * 2);
   for (let i = 0; i < nBal;) {
     const p = nearPerch(0, 160);
     if (!p) break;
@@ -85,10 +88,12 @@ export function createCityCrowds(G, st, tier, dens) {
   function relocate(cam) {
     for (const a of folk) {
       if (a.mode !== 'balcony' || (a.partner && a.partner.relocT === st.time)) continue;
-      if (Math.hypot(a.x - F.x, a.z - F.z) < 190) continue;
+      const dFa = Math.hypot(a.x - F.x, a.z - F.z), behind = (a.x - cam.x) * Math.sin(F.cyaw) + (a.z - cam.z) * Math.cos(F.cyaw) < -15;
+      if (dFa < 190 && !(behind && dFa > 45)) continue;
       const b = a.partner;
-      if (Math.hypot(a.x - cam.x, a.y - cam.y, a.z - cam.z) < 110 || (b && Math.hypot(b.x - cam.x, b.y - cam.y, b.z - cam.z) < 110)) continue;
-      const p = nearPerch(20, 150);
+      // never pop someone the camera can see: only those behind it, or far off
+      if (!behind && (Math.hypot(a.x - cam.x, a.y - cam.y, a.z - cam.z) < 110 || (b && Math.hypot(b.x - cam.x, b.y - cam.y, b.z - cam.z) < 110))) continue;
+      const p = nearPerch(18, 110);
       if (!p) return;
       for (const q of b ? [a, b] : [a]) { q.perch.busy = Math.max(0, q.perch.busy - 1); q.perch.folk = Math.max(0, q.perch.folk - 1); q.s = 0; q.relocT = st.time; }
       seat(a, p, 0, !!b); if (b) seat(b, p, 1, true);
@@ -112,6 +117,18 @@ export function createCityCrowds(G, st, tier, dens) {
   }
   function relocateWalker(cam) {
     for (const a of folk) {
+      const sBehind = (a.x - cam.x) * Math.sin(F.cyaw) + (a.z - cam.z) * Math.cos(F.cyaw) < -15;
+      if (a.mode === 'shop' && P.shops.length && (Math.hypot(a.x - F.x, a.z - F.z) > 200 || sBehind) && Math.hypot(a.x - cam.x, a.z - cam.z) > 30) {
+        for (let k = 0; k < 40; k++) {
+          const sh = pick(P.shops), d = Math.hypot(sh.x - F.x, sh.z - F.z);
+          const fw = (sh.x - F.x) * Math.sin(F.cyaw) + (sh.z - F.z) * Math.cos(F.cyaw);
+          if (d < 15 || d > 110 || fw < 8) continue;
+          const x = sh.x + Math.sin(sh.face) * rnd(1.4, 2.4), z = sh.z + Math.cos(sh.face) * rnd(1.4, 2.4);
+          if (P.blocked(x, z) || inKeepOut(st.keep, x, 0, z, 3)) continue;
+          a.x = x; a.z = z; a.y = groundY(x, z); a.yaw = sh.face + Math.PI; a.home = { x, z, y: a.y }; a.s = 0;
+          return;
+        }
+      }
       if (a.mode !== 'walk' && a.mode !== 'pause') continue;
       if (Math.hypot(a.x - F.x, a.z - F.z) < 200 || Math.hypot(a.x - cam.x, a.z - cam.z) < 90) continue;
       const sp = streetSpot(160);
@@ -129,7 +146,7 @@ export function createCityCrowds(G, st, tier, dens) {
     setClip(a, a.kind === 'kid' ? 'jog' : a.carry ? 'carry' : 'walk');
   }
   const shops = P.shops.length ? P.shops : [];
-  for (let i = 0; i < N(10); i++) {
+  for (let i = 0; i < N(14); i++) {
     let x, z, face;
     if (shops.length) { const s = pick(shops); face = s.face; x = s.x + Math.sin(face) * rnd(1.4, 2.4) + Math.cos(face) * rnd(-1.5, 1.5); z = s.z + Math.cos(face) * rnd(1.4, 2.4) - Math.sin(face) * rnd(-1.5, 1.5); }
     else { const sp = streetSpot(); if (!sp) break; x = sp.x; z = sp.z; face = rnd(0, TAU); }

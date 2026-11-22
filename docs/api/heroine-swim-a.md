@@ -1,5 +1,8 @@
 # heroine wardrobe — swimsuit A 潮祭 (tide festival)
 
+> **Journey note (2026-11-22):** this page describes an earlier cut. The swimsuit as built now is a white frilled two-piece with a frill skirt and a sheer shirt; Elaina's versions are built by `tools/journey/swimwear.mjs` (see docs/api/heroine.md, "Wardrobe (journey)").
+
+
 Owner files: `tools/costume/swim_a.mjs` (build, coverage check, install), `tools/sculpt/assets/akari_swim_a.mjs` (the suit's
 field design and cut lines), `assets/models/chars/char_akari_swim_a.glb`, the manifest entry `char_akari_swim_a`. Work log and
 pictures: `.tmp/akari-swim-a/` (PROGRESS.md, sheets/, play/). Builds on docs/api/heroine.md (layers, chains, fitting) and

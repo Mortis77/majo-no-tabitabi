@@ -1,0 +1,158 @@
+// Ring courses between landmarks (activities round, 2026-11-22). Data: RINGS in src/data/wilds.js.
+// No menu, no countdown: the first ring of each course always hangs in the air as an invitation; flying through it on
+// the broom starts the clock. The next ring glows (the others are dim), a compass marker points to it, the HUD tracker
+// shows the time. Best time + best medal in G.state.wilds.rings[id] = { best, medal } (medal 0 gold .. 3 none); a
+// better medal pays the difference in RING_PAY. Given up when she is off the broom > 4 s or > 320 m from the next ring.
+import * as THREE from 'three';
+import { G } from '../core/game.js';
+import { t } from '../core/i18n.js';
+import { PAL } from '../core/mats.js';
+import { RINGS, RING_PAY } from '../data/wilds.js';
+import { LANDMARK_BY_ID } from '../data/landmarks.js';
+import { sfx, toast } from './common.js';
+
+const MEDALS = ['gold', 'silver', 'bronze'];
+
+export function createWildRings({ wstate, lmName, tt }) {
+  const courses = [];
+  let run = null, hudT = 0, lastEnd = -99;
+  const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _prev = new THREE.Vector3();
+
+  const rec = (id) => { const w = wstate(); const r = w?.rings[id]; return r && typeof r === 'object' ? r : null; };
+  function ringY(x, z, dy) { const W = G.world; return Math.max(W.heightAt(x, z), W.seaLevel ?? 0) + dy; }
+
+  function init() {
+    const make = G.structures?.factories?.makeRaceRing || G.structures?.makeRaceRing;
+    for (const def of RINGS) {
+      const pts = def.rings.map(([x, z, dy]) => new THREE.Vector3(x, ringY(x, z, dy), z));
+      const rings = pts.map((pos, i) => {
+        const normal = new THREE.Vector3();
+        if (i < pts.length - 1) normal.subVectors(pts[i + 1], pos).normalize(); else normal.subVectors(pos, pts[i - 1]).normalize();
+        if (i > 0 && i < pts.length - 1) normal.add(_a.subVectors(pos, pts[i - 1]).normalize()).normalize();
+        const h = make ? make(def.radius) : null;
+        if (h) { h.group.position.copy(pos); h.group.lookAt(_a.copy(pos).add(normal)); h.group.visible = i === 0; G.scene.add(h.group); }
+        return { pos, normal, h };
+      });
+      let len = 0; for (let i = 1; i < pts.length; i++) len += pts[i].distanceTo(pts[i - 1]);
+      courses.push({ def, rings, len });
+    }
+  }
+  function idle() {
+    for (const c of courses) c.rings.forEach((r, i) => { if (!r.h) return; r.h.group.visible = !run && i === 0; r.h.setActive?.(true); });
+  }
+  function crossed(r, from, to, radius) {
+    if (to.distanceTo(r.pos) < radius * 0.9) return true;
+    const d0 = _a.subVectors(from, r.pos).dot(r.normal), d1 = _b.subVectors(to, r.pos).dot(r.normal);
+    if (d0 > 0 || d1 < 0) return false;
+    const f = d0 === d1 ? 0 : d0 / (d0 - d1);
+    _a.copy(from).lerp(to, f);
+    return _a.distanceTo(r.pos) < radius * 1.2;
+  }
+  function begin(c) {
+    run = { c, t: 0, next: 1, offT: 0 };
+    c.rings.forEach((r, i) => { if (r.h) { r.h.group.visible = true; r.h.setActive?.(i === 1); } });
+    for (const o of courses) if (o !== c) o.rings.forEach((r) => { if (r.h) r.h.group.visible = false; });
+    const r0 = c.rings[0];
+    r0.h?.pass?.();
+    sfx('race_ring', { pos: r0.pos }); sfx('whoosh', { vol: 0.6 });
+    toast(tt('toast.ringStart', { name: tt('ring.' + c.def.id) }), { icon: 'flag', dur: 2.6 });
+    G.events.emit('race:start', { id: c.def.id });
+    marker(); hud();
+  }
+  function marker() {
+    if (!run) { G.ui?.setMarkers?.([], 'race'); return; }
+    const r = run.c.rings[run.next];
+    if (r) G.ui?.setMarkers?.([{ id: 'ring_next', pos: { x: r.pos.x, y: r.pos.y, z: r.pos.z }, icon: 'race', color: '#ffd27a', kind: 'quest', label: tt('marker.ring') }], 'race');
+  }
+  function hud() {
+    if (!run) return;
+    const c = run.c, n = run.next, max = c.rings.length - 1, best = rec(c.def.id)?.best;
+    G.ui?.setTracker?.({
+      title: tt('ring.' + c.def.id),
+      objective: tt('ringHud', { n: n - 1, max, t: run.t.toFixed(1) }) + (best ? tt('ringBest', { t: best.toFixed(1) }) : ''),
+      progress: (n - 1) / max,
+    });
+  }
+  function pass() {
+    const c = run.c, r = c.rings[run.next];
+    r.h?.pass?.(); r.h?.setActive?.(false);
+    try { G.fx?.ring?.(r.pos, { color: PAL.gold, radius: c.def.radius * 1.6, dur: 0.45, y: r.pos.y }); } catch (e) { /* optional */ }
+    sfx('race_ring', { pos: r.pos });
+    G.cam?.fovKick?.(0.2);
+    run.next++;
+    const nx = c.rings[run.next];
+    if (nx) { nx.h?.setActive?.(true); marker(); hud(); }
+    else finish(true);
+  }
+  function finish(ok, reason) {
+    if (!run) return null;
+    const R = run; run = null; lastEnd = G.time?.t || 0;
+    G.ui?.setTracker?.(null);
+    G.ui?.setMarkers?.([], 'race');
+    idle();
+    if (!ok) { toast(tt('toast.ringLost.' + (reason || 'far')), { icon: 'flag', dur: 3 }); G.events.emit('race:finish', { id: R.c.def.id, time: null, aborted: true }); return null; }
+    const id = R.c.def.id, time = Math.round(R.t * 100) / 100, md = R.c.def.medals;
+    const tier = time <= md[0] ? 0 : time <= md[1] ? 1 : time <= md[2] ? 2 : 3;
+    const w = wstate(), prev = rec(id);
+    const had = prev && Number.isFinite(prev.medal) ? prev.medal : 3;
+    const best = prev && Number.isFinite(prev.best) ? Math.min(prev.best, time) : time;
+    if (w) w.rings[id] = { best, medal: Math.min(had, tier) };
+    let dust = 0;
+    if (tier < had) { const pay = [RING_PAY.gold, RING_PAY.silver, RING_PAY.bronze, 0]; dust = pay[tier] - pay[had]; }
+    if (dust > 0 && G.player) G.gameplay?.spawnPickup?.('stardust', G.player.pos.clone().setY(G.player.pos.y + 1.2), dust);
+    const medal = tier < 3 ? MEDALS[tier] : null;
+    toast(tt('toast.ringDone', { t: time.toFixed(1), medal: tt('medal.' + (medal || 'none')) }) + (prev && time < prev.best ? tt('toast.ringRecord') : ''), { icon: 'flag', dur: 5 });
+    sfx(medal ? 'levelup' : 'ui_chime');
+    G.events.emit('race:finish', { id, time, best, medal });
+    G.wilds && (G.wilds.markersDirty = true);
+    return { time, best, medal };
+  }
+
+  return {
+    courses,
+    init,
+    start() { if (run) finish(false, 'far'); idle(); },
+    update(dt, playing) {
+      const P = G.player;
+      if (!P || !playing) { if (P) _prev.copy(P.pos); return; }
+      if (!run) {
+        // the first ring starts the course (on the broom, not right after a finish)
+        if (P.onBroom && (G.time?.t || 0) - lastEnd > 3) {
+          for (const c of courses) {
+            const r = c.rings[0];
+            if (Math.abs(P.pos.x - r.pos.x) > 30 || Math.abs(P.pos.z - r.pos.z) > 30) continue;
+            if (crossed(r, _prev, P.pos, c.def.radius)) { begin(c); break; }
+          }
+        }
+        _prev.copy(P.pos);
+        return;
+      }
+      run.t += dt;
+      const r = run.c.rings[run.next];
+      if (r && crossed(r, _prev, P.pos, run.c.def.radius)) pass();
+      _prev.copy(P.pos);
+      if (!run) return;
+      run.offT = P.onBroom ? 0 : run.offT + dt;
+      const nx = run.c.rings[run.next];
+      if (run.offT > 4) finish(false, 'broom');
+      else if (nx && P.pos.distanceTo(nx.pos) > 320) finish(false, 'far');
+      else if (run.t > 300) finish(false, 'slow');
+      if (run && (hudT -= dt) <= 0) { hudT = 0.1; hud(); }
+    },
+    markers(out) {
+      for (const c of courses) {
+        const l = LANDMARK_BY_ID[c.def.start];
+        if (!l || !G.wilds?.isFound(c.def.start)) continue;
+        const r = c.rings[0];
+        out.push({ x: r.pos.x, z: r.pos.z, icon: 'flag', label: tt('ring.' + c.def.id), kind: 'race', color: '#ffd27a' });
+      }
+    },
+    journal() {
+      return courses.map((c) => { const r = rec(c.def.id); return { id: c.def.id, name: tt('ring.' + c.def.id), from: lmName(c.def.start), best: r ? r.best : null, medal: r && r.medal < 3 ? MEDALS[r.medal] : null, len: Math.round(c.len), medals: c.def.medals }; });
+    },
+    get running() { return run ? run.c.def.id : null; },
+    get next() { return run ? run.c.rings[run.next] : null; },
+    cancel: () => finish(false, 'far'),
+    ring: (id, i) => courses.find((c) => c.def.id === id)?.rings[i] || null,
+  };
+}

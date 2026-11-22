@@ -43,6 +43,10 @@ export function defaultState() {
     combat: { cleared: {}, elites: {}, seen: {}, trials: { best: 0, clears: 0 } },
     /** wardrobe: the outfit she wears (src/data/outfits.js id); a new journey begins in her apprentice clothes */
     outfit: 'apprentice',
+    /** open-country discoveries (src/gameplay/wilds.js): landmark id -> 1 found; star id -> 1 picked up / sighted on the
+     *  map; puzzle id -> 'solved' | 'open'; ring course id -> { best, medal }; cairns / perches used; puzzles seen;
+     *  steps = star rewards paid (every STAR_STEP stars) */
+    wilds: { lm: {}, stars: {}, sighted: {}, puzzles: {}, rings: {}, cairns: {}, perches: {}, seen: {}, steps: 0 },
   };
 }
 

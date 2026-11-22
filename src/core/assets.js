@@ -13,6 +13,7 @@ import { toonGradient, hookMaterial } from './mats.js';
 import { assetStat, mark, slice } from './boottime.js';
 import { makeCelMaterial, buildOutlines, smoothNormals, mergeFaceLines, mergeByMaterial, buildShadowProxy, hairBand, hairDarkTag, earPivots, setCelFix, CEL_FIX, buildSeeLines, SEE_LINES } from '../actors/celmat.js';
 import { bindFlightCloth } from '../actors/flight-cloth.js';
+import { HEROINE_ASSETS } from '../data/outfits.js';   // wardrobe: every outfit of hers gets the flight cloth
 import { mergeCelParts } from '../actors/celmerge.js';
 
 const BASE = 'assets/';
@@ -297,7 +298,7 @@ export function createAssets(G) {
     if (G.sculpt.typeOf(id)) unPivot(gltf);
     await slice(); // cooking (cel materials, outlines, merges) is synchronous: let a frame through between models
     t0 = performance.now();
-    if (id === 'char_elaina' || id === 'char_elaina_apprentice') bindFlightCloth(gltf);
+    if (HEROINE_ASSETS.has(id)) bindFlightCloth(gltf);
     if (info.toon !== false) toonify(gltf.scene, { id, ...(info.mats && !orig ? { mats: info.mats } : {}) });
     assetStat(grp, 'cookMs', performance.now() - t0);
     // perf pass (boot / memory): the parser keeps the whole GLB binary chunk, every buffer-view copy and the compressed
