@@ -17,6 +17,7 @@ import { buildLandmarks } from './builders/landmarks.js';
 import { buildTrialBasin } from './builders/trial-basin.js';
 import { buildJourneyRooms } from './builders/journey-rooms.js';
 import { buildBellcrown,buildEastTown } from './builders/bellcrown.js';
+import { createCityMist } from './city-mist.js';
 
 export { makeStoneLantern, makeGreatLantern, makePaperLantern, makeTorii, makeChest, makeSignpost, makeRaceRing, makeBrazier,
   makeCrystalPillar, makeEmaRack, makeShrineBell };
@@ -213,6 +214,8 @@ export const structuresSystem = {
       try { await fn(ctx); } catch (e) { G.reportError('structures:' + name, e); }
       await ctx.step(name + ':done');
     }
+    // the skirt of mist below the City of Magic's plateau (episode two's aerial view)
+    try { const mist = createCityMist(G); if (mist) { S.cityMist = mist; tickers.push((dt) => mist.update(dt)); } } catch (e) { G.reportError('structures:mist', e); }
     // site trees: procedural flora models, instanced per place
     for (const id in S.places) { const p = S.places[id]; if (p.group) { try { realizeTrees(p.group); } catch (e) { G.reportError('structures:trees:' + id, e); } await ctx.step('trees:' + id); } }
     // far level of detail: each place swaps to a two-mesh version beyond NEAR m from its bounds
