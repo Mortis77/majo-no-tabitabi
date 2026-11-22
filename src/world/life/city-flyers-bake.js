@@ -370,7 +370,7 @@ export function createBodyPool(root, bodies, tier = 1) {
       _o.position.set(a.x, a.y, a.z);
       _e.set(a.pitch || 0, a.yaw || 0, a.bank || 0, 'YXZ');
       _o.quaternion.setFromEuler(_e);
-      _o.scale.setScalar(a.scale * a.s);
+      _o.scale.setScalar(a.scale * a.s * (a._boost || 1));
       _o.updateMatrix();
       m.setMatrixAt(i, _o.matrix);
       const C = b.clips, cur = C[a.clip] || C.idle;

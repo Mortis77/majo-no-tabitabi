@@ -735,6 +735,11 @@ export function createCityLife(G, root, tier) {
     for (const a of st.flyers) {
       const d = Math.hypot(a.x - cam.x, a.y - cam.y, a.z - cam.z);
       if (!visible(a, d)) continue;
+      // readability at distance: a witch in the air 100-300 m out is drawn up to 1.8x larger, so the sky over the city
+      // reads as busy instead of a few dark specks (on balconies and while landing she keeps her true size)
+      const air = a.mode === 'fly' || a.mode === 'escort';
+      const far = air ? Math.min(1, Math.max(0, (d - 90) / 230)) : 0;
+      a._boost = 1 + 0.8 * far * far * (3 - 2 * far);
       pool.put(a, lodOf(d));
       // trail from the brush end
       if ((a.mode === 'fly' || a.mode === 'escort') && a.v > 6 && nt < T.cap && d < 320) {
