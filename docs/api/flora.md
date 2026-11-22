@@ -311,3 +311,32 @@ non-billboard crowns (conifers, bamboo sprays, willow strands), which still use 
   instanced draw (count = shadowCount = 0 in onBeforeShadow) to every cascade: 24 / 11 / 6 empty draws per cascade
   render at the fox street. `render/warmup.js` draws `mvCast` meshes as casters during the boot warm-up so their depth
   programs are still built at boot. Nothing else changed (packing, look, shadow range). Off: `?dcull=0`.
+
+## Map round: the composed countryside (2026-11-22)
+- `flora/countryside-plan.js` — `countryPlan(W)` (memoised, deterministic, ~30 ms): zones (`ZONES`, `zoneWeights(x,z)` →
+  [farm, moor, heath, wild]), field parcels (`fields`, `fieldAt(x,z,pad)`; kinds lavender / wheat / barley / hay / poppy /
+  orchard, around the hometown, before the city and around every farmstead landmark), parcel edges (`edges.hedge|wall|
+  fence`), dry-stone walls along the road through moor / heath / farmland (`roadWalls`) and across the moor and heath
+  (`moorWalls`), meadow hedgerows running away from the road (`meadowHedges`), landmark trees on rises (`lone`),
+  `copses`, one-colour flower `drifts` (`regionFlowers(x)`, `MEADOW_COLOURS`), `open(x,z,pad)` (the clearance test:
+  roads, rivers, anchors, story places, waysides, landmarks, lake survey, city).
+- `flora/countryside-species.js` — procedural species registered into `procgen.EXTRA_RECIPES` (hook in
+  `buildProcModel`): `lavender`, `wheat` (also barley by tint), `heather`, `gorse`, `hedge`, `oak`, `ancient` (the 44 m
+  giant tree), `apple`, `hawthorn`, `drywall` (2.4 m segment along local +x), `fence` (3 m), `haybale`. Entries in
+  `species.js`. Walls / fences / bales are `rock` kind (no colliders except bales).
+- `flora/countryside-scatter.js` — `plantCountryside(W, density, put)` called at the end of `scatter()`; plants crops in
+  rows, edges, walls, hedgerows (hawthorn / small trees every 9–23 m, gates), landmark trees with flower rings, copses
+  with fringes, drifts, heath cover (heather / gorse / bracken / stones in the moor and heath zones) and the plants of
+  every landmark (giant tree, flower valley, fallen giant, snags, blastable rockfalls of breakable boulders, quarry
+  rubble, tarn reeds and lily pads at the pool level). Dense layers scale with `G.quality.density`.
+- `scatter.js` changes: open-land trees are now rare strays (plan does the composition); natural woods outside the
+  stands gather into groves (`clump` noise); no random planting inside a field parcel or a landmark clearance
+  (`landmarkAt`); the flower valley keeps its flowers. `put(id,x,z,rot,scale,rgb,{tx,tz,mineral,sink,y,force})` places an
+  exact instance.
+- `flora/fields.js` — `G.flora.fields`: ONE merged mesh draped over every non-orchard parcel (~19k tris), crop painted
+  in the fragment (lavender rows, combed wheat / barley, mown hay stripes, poppies), depth-biased toward the camera,
+  dithered edges. Visible at every distance (the crop tufts draw within ~80 m).
+- `meadowPattern.js` — `meadowDayPetalAt(patch, forest, wet, p)`: regional meadow colours (yellow east, red/white middle,
+  blue/white past the wilds, violet/pink west) used by the GPU flower sprays and (one line) by the terrain's painted
+  distant flowers, so both agree.
+- `G.flora.plan`, `G.flora.countryside` (planted counts) for tools.

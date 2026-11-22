@@ -166,7 +166,7 @@ void main() {
 const GRADE_FRAG = /* glsl */`
 uniform sampler2D tDiffuse;
 uniform vec3 uLift, uGain, uVigCol, uFlash;
-uniform float uSat, uContrast, uMidLift, uVig, uGradeOn, uVib, uSharp, uSatKnee;
+uniform float uSat, uContrast, uMidLift, uVig, uGradeOn, uVib, uSharp, uSatKnee, uHiRoll;
 uniform vec3 uShTint;
 uniform vec2 uTexel;
 varying vec2 vUv;
@@ -210,6 +210,8 @@ void main() {
     float delta = lum*(1.-lum)*(4.*(uContrast-1.)*(lum-.5) + uMidLift*(2.-lum));
     if(delta<0.) c *= 1.+delta/max(.0001,lum);
     else c += (1.-c)*delta/max(.0001,1.-lum);
+    // highlight roll-off (soft look): sunlit stone, white blossoms and cloud tops settle just under paper white
+    c *= 1.0 - uHiRoll * 0.1 * smoothstep(0.58, 1.0, dot(c, vec3(.2126,.7152,.0722)));
     // split tone: the land's colour sinks into the shadows only; mid-tones (skin) and whites (the kosode) stay clean
     float sh = 1.0 - smoothstep(0.0, 0.45, l);
     c *= mix(vec3(1.0), uShTint, sh * sh);
@@ -282,7 +284,26 @@ export const GRADES = {
   sun: { lift: [0.0, 0.002, 0.008], gain: [1.005, 1.0, 0.995], sh: [0.98, 0.995, 1.03], sat: 1.49, vib: 0.65, knee: 0.14, contrast: 1.22, midLift: .07, vig: 0.12, vigCol: [0.86, 0.9, 0.98] },
   dusk: { lift: [0.012, 0.0, 0.024], gain: [1.025, 0.985, 0.96], sh: [0.99, 0.95, 1.06], sat: 1.31, vib: 0.37, knee: 0.15, contrast: 1.20, midLift: .04, vig: 0.18, vigCol: [0.8, 0.66, 0.86] },
   night: { lift: [0.0, 0.006, 0.02], gain: [1.01, 1.0, 0.99], sh: [0.95, 0.98, 1.08], sat: 1.09, vib: 0.13, knee: 0.16, contrast: 1.06, midLift: 0, vig: 0.22, vigCol: [0.62, 0.68, 0.9] },
+  // 'soft' look (default since the play-upgrade round): an airy anime-game grade. Colour comes from hue, not from
+  // pushed saturation: the loudest colours (lime grass tips, magenta crowns, white path stone) are pulled back hard,
+  // muted ones (sky, pastel flowers) keep a little vibrance, contrast stays low, shadows are lifted and cool instead of
+  // crushed, and the light keeps a faint warmth. Paired with a lower tone-curve contrast and a paler, denser haze.
+  soft_sun: { lift: [0.006, 0.01, 0.018], gain: [1.012, 1.0, 0.978], sh: [0.965, 0.995, 1.06], sat: 1.24, vib: 0.55, knee: 0.3, contrast: 1.07, midLift: 0.06, vig: 0.06, vigCol: [0.9, 0.94, 1.0], hiRoll: 0.65 },
+  soft_dusk: { lift: [0.012, 0.006, 0.024], gain: [1.02, 0.99, 0.965], sh: [0.98, 0.95, 1.06], sat: 1.18, vib: 0.3, knee: 0.28, contrast: 1.1, midLift: 0.04, vig: 0.12, vigCol: [0.84, 0.74, 0.9], hiRoll: 0.5 },
+  soft_night: { lift: [0.004, 0.01, 0.026], gain: [1.0, 1.0, 1.0], sh: [0.95, 0.99, 1.08], sat: 1.04, vib: 0.12, knee: 0.18, contrast: 1.04, midLift: 0.02, vig: 0.18, vigCol: [0.66, 0.72, 0.92], hiRoll: 0.3 },
 };
+
+/**
+ * Whole-picture looks the player picks in settings (G.settings.look). Each names its three grades, the filmic tone
+ * curve (exposure into the curve, log-domain contrast, colour after the sigmoid), how much the distance haze thickens
+ * (fog) and how far its colour moves toward a pale sky white (haze), a bloom multiplier, and the light ratio: key
+ * (sun) and fill (sky ambient) multipliers and the strength of the sunbeams through cloud gaps (shafts).
+ */
+export const LOOKS = {
+  soft: { sun: 'soft_sun', dusk: 'soft_dusk', night: 'soft_night', tone: { exp: 1.05, ct: 1.13, sat: 1.03 }, fog: 1.3, haze: 0.26, bloom: 0.9, key: 1.1, fill: 0.78, shafts: 1.15 },
+  vivid: { sun: 'sun', dusk: 'dusk', night: 'night', tone: { exp: 1.08, ct: 1.22, sat: 1.08 }, fog: 1, haze: 0, bloom: 1, key: 1, fill: 1, shafts: 1 },
+};
+export const lookOf = (name) => LOOKS[name] || LOOKS.soft;
 
 class ScenePass extends Pass {
   constructor(renderer, scene, camera, opt) {
@@ -443,7 +464,7 @@ export function createPipeline(renderer, scene, camera, opt) {
     uniforms: { tDiffuse: { value: null }, uLift: { value: new THREE.Vector3() }, uGain: { value: new THREE.Vector3(1, 1, 1) },
       uVigCol: { value: new THREE.Vector3(1, 1, 1) }, uFlash: { value: new THREE.Color(0, 0, 0) },
       uSat: { value: 1 }, uContrast: { value: 1 }, uMidLift: { value: 0 }, uVig: { value: 0 }, uGradeOn: { value: 1 },
-      uVib: { value: 0 }, uSatKnee: { value: 0 }, uTone: { value: opt.tone ?? 1 }, uToneExp: { value: 1.08 }, uToneCt: { value: 1.22 }, uToneSat: { value: 1.08 }, uShTint: { value: new THREE.Vector3(1, 1, 1) }, uSharp: { value: opt.sharpen ?? 0.6 }, uTexel: { value: new THREE.Vector2(1, 1) },
+      uVib: { value: 0 }, uSatKnee: { value: 0 }, uHiRoll: { value: 0 }, uTone: { value: opt.tone ?? 1 }, uToneExp: { value: 1.08 }, uToneCt: { value: 1.22 }, uToneSat: { value: 1.08 }, uShTint: { value: new THREE.Vector3(1, 1, 1) }, uSharp: { value: opt.sharpen ?? 0.6 }, uTexel: { value: new THREE.Vector2(1, 1) },
       uPre: { value: 0 } },
   });
   // GPU pass: tone map once (+ the bloom add) before the grade; on only where the grade would tone map more than once

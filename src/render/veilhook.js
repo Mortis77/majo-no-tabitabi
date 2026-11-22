@@ -52,6 +52,20 @@ ${CLOUD_SUN_LOOKUP_GLSL}
 #define MV_CLOUD_LIGHT
 float mvCloudDirect = 1.0;
 uniform vec4 mvContact[4]; // contact shadows: feet position xyz + radius (0 = unused), see sky.js
+uniform vec4 mvCanyonBox, mvCanyonY, mvCanyonCore, mvCanyonOpen[5];
+// City of Magic: share of the open sky a point at the bottom of a tall-house street can still see (1 = open sky)
+float mvCanyonSky( vec3 p ) {
+  if ( mvCanyonY.z <= 0.0 ) return 1.0;
+  vec2 d = abs( p.xz - mvCanyonBox.xy ) - mvCanyonBox.zw;
+  float inside = 1.0 - smoothstep( -mvCanyonY.w, 0.0, max( d.x, d.y ) );
+  if ( inside <= 0.0 ) return 1.0;
+  float core = 1.0 - smoothstep( mvCanyonCore.z - 4.0, mvCanyonCore.z + 2.0, length( p.xz - mvCanyonCore.xy ) );
+  float street = mix( mvCanyonY.x, mvCanyonY.y, core );
+  float open = 0.0;
+  for ( int i = 0; i < 5; i++ ) open = max( open, 1.0 - smoothstep( mvCanyonOpen[i].z * 0.7, mvCanyonOpen[i].z + 6.0, length( p.xz - mvCanyonOpen[i].xy ) ) );
+  float low = 1.0 - smoothstep( street + 2.0, street + 26.0, p.y );
+  return 1.0 - mvCanyonY.z * inside * low * ( 1.0 - 0.75 * open );
+}
 uniform sampler2D mvLampMap; // lamp pools (light r3): camera-centred map, rgb pool colour, a = lum x lamp height
 uniform vec4 mvLampBox;      // origin x, origin z, 1 / size (m), night k (0 = no pools: one compare)
 float mvContactK = 1.0; // 0..1 occlusion of the ground under characters (written in the light section, read by the ambient)
@@ -372,7 +386,8 @@ function patchLights(src) {
       float mvDown = clamp( 0.55 - 0.5 * mvWN.y, 0.0, 1.0 );
       mvAmb += mvSunLocal * mvPalette( MV_ROW_BOUNCE, mvV ) * mvDown * mvDown * (.18+.55*mvCloudDirect) * mvHemiMul;
       // sky fill is occluded where the surface faces into the ground (crevices, undersides), not only by the contact term
-      irradiance += mvAmb * ( 0.3 + 0.7 * mvContactK );
+      // deep streets of the City of Magic see little sky: dim at the bottom, open again at balcony height
+      irradiance += mvAmb * ( 0.3 + 0.7 * mvContactK ) * mvCanyonSky( vMvWorld );
       // lamp pools (light r3): every lantern near the view, read from the baked pool map (world/sky.js): fixed cost,
       // no per-lamp loop, no popping. The map holds the pool on the ground plane; the lamp height comes back from the
       // alpha (lum-weighted), so roofs high above a lantern and floors far below stay dark; the gradient of the map
@@ -545,6 +560,7 @@ function patchShader(shader, m) {
     mvRingBoost: U.mvRingBoost, mvTime: U.mvTime, mvSunCam: U.mvSunCam, mvHemiMul: U.mvHemiMul, mvFogCam: U.mvFogCam,
     mvFogDensity: U.mvFogDensity, mvFogFalloff: U.mvFogFalloff, mvFogBase: U.mvFogBase, mvSunVis: U.mvSunVis,
     mvSurf: U.mvSurf, mvNoise: U.mvNoise, mvCloud: U.mvCloud, mvQ: U.mvQ, mvContact: U.mvContact,
+    mvCanyonBox: U.mvCanyonBox, mvCanyonY: U.mvCanyonY, mvCanyonCore: U.mvCanyonCore, mvCanyonOpen: U.mvCanyonOpen,
     mvCloudSunMap: cloudSunMap.texture, mvCloudSunBox: cloudSunMap.box,
     mvLampMap: U.mvLampMap, mvLampBox: U.mvLampBox,
   }, lookUniforms(m));

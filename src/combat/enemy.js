@@ -8,6 +8,7 @@ import { clamp, damp, dampAngle, angleDiff, TAU } from '../core/util.js';
 import { acquireCreature } from '../actors/creature.js';
 import { createActor, makeActorShadowBlob } from '../actors/rig.js';
 import { cancelTimers } from './attacks.js';
+import { initPoise } from './wards.js';
 
 const _v = new THREE.Vector3(), _w = new THREE.Vector3();
 const GRAV = 22;
@@ -82,7 +83,13 @@ export class Enemy {
     this.dmgMul = opts.dmgMul ?? 1;
     this._lightT = Math.random() * 0.25;
     this._barT = 0;
+    this.haste = 1;
+    this.handlesSlow = true;   // elements: this mover applies reactor.speedMul itself (step)
+    this.ward = null;
+    this.elite = false;
+    this.affixes = null;
     this.build(opts);
+    initPoise(this);
   }
 
   build(opts = {}) {
@@ -123,7 +130,7 @@ export class Enemy {
     const self = this, def = this.def;
     this.reactor = G.elements.register({
       owner: this, kind: 'creature', material: this.material, getPos: () => this.pos, radius: this.radius, height: this.height,
-      team: 'enemy', living: true, flammable: def.flammable, burnTime: def.burnTime, immune: def.immune,
+      team: 'enemy', living: true, flammable: def.flammable, burnTime: def.burnTime, immune: def.immune, conductive: def.conductive,
       on: {
         hit(r, element, power, h) { self.onElementHit(element, power, h); },
         burnTick(r, dt) {
@@ -154,7 +161,7 @@ export class Enemy {
     if (def.mult && def.mult[element] != null) mult *= def.mult[element];
     const base = h.damage ?? 8 * power;
     if (!(base > 0)) return;
-    G.combat?.damage(this, base * mult, { element, power, source: h.source, mult, heavy: h.heavy, shatter: h.shatter, purify: h.purify, dir: h.dir, pos: h.pos });
+    G.combat?.damage(this, base * mult, { element, power, source: h.source, mult, heavy: h.heavy, shatter: h.shatter, purify: h.purify, dir: h.dir, pos: h.pos, reaction: h.reaction });
   }
 
   empower(power) {
@@ -231,7 +238,8 @@ export class Enemy {
     if (this.def.anchored) { this.move.set(0, 0, 0); this.vel.set(0, 0, 0); this.grounded = true; return frozen ? 0 : k; }
 
     // integrate: AI move (horizontal) + external velocity (knockback, throws, leaps)
-    const mv = frozen ? 0 : 1;
+    // elements' statuses slow the stride (muddy 0.45, chilled 0.7, frozen 0); knockback keeps its full speed
+    const mv = frozen ? 0 : (this.reactor?.speedMul ?? 1);
     let nx = this.pos.x + (this.move.x * mv + this.vel.x) * kd;
     let nz = this.pos.z + (this.move.z * mv + this.vel.z) * kd;
     if (!this.fly && !this.def.swim && W.isWater(nx, nz) && !W.isWater(this.pos.x, this.pos.z) && this.vel.lengthSq() < 30) { nx = this.pos.x; nz = this.pos.z; this.move.set(0, 0, 0); }
@@ -302,7 +310,7 @@ export class Enemy {
     const bar = this.bar;
     if (bar) {
       this._barT -= dt;
-      const show = !this.dead && !this.def.noBar && this._barT > 0 && this.hp < this.maxHp;
+      const show = !this.dead && !this.def.noBar && !G.ui?.foePlates && this._barT > 0 && this.hp < this.maxHp;
       bar.visible = show;
       if (show) {
         bar.position.set(this.pos.x, this.pos.y + this.height + 0.45, this.pos.z);

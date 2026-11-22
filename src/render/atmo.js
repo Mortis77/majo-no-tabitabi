@@ -130,6 +130,13 @@ export const U = {
   mvCloud: { value: new THREE.Vector4(.52, CLEAR_CLOUD_BASE, .84, 0) }, // cover threshold, base, shadow strength, mirror
   mvQ: { value: new THREE.Vector4(1, 1, 1, 0) },       // detail on, fine scale on, cloud shadows on, debug view
   mvContact: { value: [0, 1, 2, 3].map(() => new THREE.Vector4(0, -1e4, 0, 0)) }, // contact shadows: feet xyz + radius
+  // street canyons of the City of Magic: the sky fill fades toward the bottom of the tall-house streets (set by sky.js
+  // from src/data/bellcrown.js). box: centre xz + half size; y: lower-town street level, core level, strength, edge;
+  // core: raised core centre xz + radius; open: squares (xz + radius) where the sky stays open
+  mvCanyonBox: { value: new THREE.Vector4(0, 0, 0, 0) },
+  mvCanyonY: { value: new THREE.Vector4(0, 0, 0, 1) },
+  mvCanyonCore: { value: new THREE.Vector4(0, 0, 0, 0) },
+  mvCanyonOpen: { value: [0, 1, 2, 3, 4].map(() => new THREE.Vector4(0, 0, 0, 0)) },
   // lamp pools (light r3): EVERY glowing lantern near the view lights the ground and walls around it, through one
   // small camera-centred map (LAMP_RES^2 texels of LAMP_CELL m): rgb = summed pool colour on the ground plane,
   // a = sum of (pool luminance x lantern height) so the shader recovers the lamp height. Baked by world/sky.js.

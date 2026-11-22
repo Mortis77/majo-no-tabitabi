@@ -17,9 +17,14 @@ import { createCeremony } from './ceremony.js';
 import { idlePaint, mapReady } from './map.js';
 import { selfUnlocked } from './dom.js';
 import { applyKeyBindings } from './panels.js';
+import { createReactions } from './reactions.js';   // 元素交织: reaction callouts, foe status marks, discoveries
+import { createTouch } from './touch.js';   // touch controls (phones / tablets): above the HUD, below every full-screen layer
+import { createFoes } from './foes.js';   // combat: foe plates (hp, ward, affixes, 破绽) and the combo meter
 
-let hud = null, stage = null, dialogue = null, wheel = null, title = null, menu = null, shop = null, cer = null;
+let hud = null, stage = null, dialogue = null, wheel = null, title = null, menu = null, shop = null, cer = null, touch = null;
 const offs = [];
+let rx = null;
+let foes = null;
 
 export const uiSystem = {
   name: 'ui',
@@ -30,9 +35,14 @@ export const uiSystem = {
     installStyle(root);
     await loadFontsWithin(6000);   // the locale's faces: every canvas baked after this (world lettering) uses them
     hud = createHud(root);
+    rx = createReactions(root);
+    foes = createFoes(hud.root);
     stage = createStage(root, hud.root);
+    const touchDeps = {};
+    touch = createTouch(root, touchDeps);
     dialogue = createDialogue(root);
     wheel = createWheel(root);
+    touchDeps.wheel = wheel;
     // full-screen layers (title, menus, sheets) live in one host that sits under the fade veil
     const host = (UI.host = el('div', 'layer mv-host', root));
     title = createTitle(host, stage);
@@ -48,7 +58,7 @@ export const uiSystem = {
       // ---- HUD ----
       toast: (text, opts) => stage.toast(text, opts),
       banner: (title, subtitle, opts) => stage.banner(title, subtitle, opts),
-      prompt: (text) => hud.prompt(text),
+      prompt: (text) => { hud.prompt(text); touch.prompt(text); },
       setTracker: (d) => hud.setTracker(d),
       /** setMarkers(list, layer = 'main'): each layer is replaced on its own; all layers are shown together. */
       setMarkers: (list, layer) => hud.setMarkers(list, layer),
@@ -71,6 +81,8 @@ export const uiSystem = {
       get talking() { return dialogue.active; },
       get wheelOpen() { return wheel.open; },
       get isOpen() { return UI.modals.length > 0; },
+      /** touch controls: { on, root, where(id), stick, releaseAll() } (src/ui/touch.js) */
+      touch,
     });
 
     window.addEventListener('mousemove', (e) => { UI.mouse.x = e.clientX; UI.mouse.y = e.clientY; UI.mouse.moved = true; });
@@ -97,6 +109,8 @@ export const uiSystem = {
     // the fade veil covers everything, menus included
     const fadeEl = root.querySelector('.mv-fade');
     if (fadeEl) root.appendChild(fadeEl);
+    ui.reactions = rx;
+    ui.foePlates = !!foes;
     return ui;
   },
 
@@ -111,14 +125,17 @@ export const uiSystem = {
     // paint the map a little at a time while the player walks about, so it is ready when opened
     if (!top && G.mode === 'play' && !mapReady() && (G.time.frame & 1) === 0) idlePaint(1.5);
     wheel.update(rdt);
+    touch.update(rdt);
     hud.setWheel(wheel.open);
     dialogue.update(rdt);
     hud.update(rdt);
+    rx?.update(rdt);
+    foes?.update(rdt);
     stage.update(rdt);
     UI.mouse.moved = false;
   },
 
-  lateUpdate() { hud.late(); },
+  lateUpdate(dt, rdt) { hud.late(); rx?.late(); foes?.late(rdt); },
 };
 
 /** Menu hotkeys while nothing else holds the keyboard. */

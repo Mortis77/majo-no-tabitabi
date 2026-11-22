@@ -228,7 +228,7 @@ export const storySystem = {
       }
       G.state.story.trialLakeEdition = 1;
     }
-    if (G.state.flags.majo_named) G.state.spells.earth=Math.max(2,G.state.spells.earth||0);
+    if (G.state.flags.majo_named) for (const id of ['earth', 'thunder', 'wind', 'water', 'fire', 'ice']) G.state.spells[id] = Math.max(2, G.state.spells[id] || 0);   // the invest grant, for saves made before it grew
     if (!G.state.quests.apprentice) G.quests.start('apprentice', { silent: true });
     if (G.quests.isDone('apprentice') && !G.state.quests.mages) G.quests.start('mages', { silent: true });
     if (G.ui?.providers) {

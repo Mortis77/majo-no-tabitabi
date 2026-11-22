@@ -22,6 +22,11 @@
 //                                            (or before each T.shot) to follow her while she moves.
 //               await T.shot('name')         save <out>/<name>.png           T.errors()  T.stats()
 // --title    do NOT autostart: boot to the real title screen with saving enabled; the script drives the menu.
+// --mobile   a phone held sideways: mobile viewport (use --size 844x390), touch emulation (pointer: coarse -> the touch
+//            controls come up by themselves), and real touch events for the script (CDP Input.dispatchTouchEvent):
+//               await T.touchDown(id, x, y)   await T.touchMove(id, x, y)   await T.touchUp(id)
+//               await T.tap(x, y, ms=60)       await T.swipe(id, x0, y0, x1, y1, steps=8, ms=200)
+//            Buttons: G.ui.touch.where('cast') -> {x, y, w};  stick: G.ui.touch.stick -> {cx, cy, r}.
 // --profile  name of a persistent browser profile under .tmp/profiles/ (keeps the save between runs; default: throwaway).
 // Without a script: waits 2.5 s and saves final.png.
 // Output folder: .tmp/play/<name>/ (printed at the end). Exit code 0 = no errors, 2 = errors were reported.
@@ -58,6 +63,19 @@ if (!usp.has('mute')) usp.set('mute', '1');
 if (opt('quality')) usp.set('quality', opt('quality'));
 
 const page = await launch({ width: W, height: H, profileDir: opt('profile') ? path.join(TMP, 'profiles', opt('profile').replace(/[^\w.-]/g, '_')) : null });
+const MOBILE = args.includes('--mobile');
+if (MOBILE) {
+  await page.send('Emulation.setDeviceMetricsOverride', { width: W, height: H, deviceScaleFactor: 1, mobile: true, screenOrientation: { type: W > H ? 'landscapePrimary' : 'portraitPrimary', angle: W > H ? 90 : 0 } });
+  await page.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
+  await page.send('Runtime.addBinding', { name: '__mvTouch' });
+  // the page asks for a touch event; it is sent for real and the page is told when it has been dispatched
+  page.on('Runtime.bindingCalled', async (p) => {
+    if (p.name !== '__mvTouch') return;
+    let m = null;
+    try { m = JSON.parse(p.payload); await page.send('Input.dispatchTouchEvent', { type: m.type, touchPoints: m.points }); } catch (e) { note('error', 'touch failed: ' + e.message); }
+    page.send('Runtime.evaluate', { expression: `window.__mvTouchDone(${m ? m.seq : -1})` }).catch(() => {});
+  });
+}
 const logs = [];
 const seen = new Map();
 const note = (kind, text) => {
@@ -103,6 +121,15 @@ try {
   } else {
     console.log(`ready in ${((Date.now() - t0) / 1000).toFixed(1)} s`);
     try {
+      if (MOBILE) await page.evaluate(`(() => { const T = window.__T, act = new Map(), wait = {}; let seq = 0;
+        window.__mvTouchDone = (n) => { const r = wait[n]; delete wait[n]; if (r) r(); };
+        const send = (type) => new Promise((res) => { const n = ++seq; wait[n] = res; window.__mvTouch(JSON.stringify({ seq: n, type, points: [...act].map(([id, p]) => ({ id, x: p.x, y: p.y, radiusX: 8, radiusY: 8, force: 1 })) })); });
+        T.touchDown = (id, x, y) => { act.set(id, { x, y }); return send('touchStart'); };
+        T.touchMove = (id, x, y) => { const p = act.get(id); if (!p) return Promise.resolve(); p.x = x; p.y = y; return send('touchMove'); };
+        T.touchUp = (id) => { act.delete(id); return send('touchEnd'); };
+        T.tap = async (x, y, ms = 60) => { await T.touchDown(99, x, y); await T.wait(ms); await T.touchUp(99); };
+        T.swipe = async (id, x0, y0, x1, y1, steps = 8, ms = 200) => { await T.touchDown(id, x0, y0); for (let i = 1; i <= steps; i++) { await T.wait(ms / steps); await T.touchMove(id, x0 + (x1 - x0) * i / steps, y0 + (y1 - y0) * i / steps); } await T.touchUp(id); };
+      })()`);
       result = await page.evaluate(`(async () => { const T = window.__T, G = window.__game; ${script}\n})()`, { timeout });
     } catch (e) {
       code = 2;

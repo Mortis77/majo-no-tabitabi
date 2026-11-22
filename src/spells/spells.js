@@ -15,6 +15,7 @@ import { createEntities } from './entities.js';
 import { createBeams } from './beams.js';
 import { createArts } from './arts.js';
 import { makeDummy, DUMMIES } from './dummy.js';
+import { createFusions } from './fusions.js';   // 元素交织: spell-on-spell fusions
 
 const CHARGE_TIME = 0.9;
 const CHARM_RATE = 1 / 3;
@@ -224,6 +225,10 @@ function cast(spellId, form = 'small', o = {}) {
     else if (spellId === 'kinkan') res = S.arts.kinkan(c);
     else res = FORMS[spellId]?.[form]?.(c) || {};
   } catch (e) { G.reportError('spells:cast:' + spellId, e); res = {}; }
+  // combat (broom fights): a spell thrown from a flying broom keeps most of the broom's speed, so it leaves her hand
+  // instead of crawling ahead of her; lobbed shots only when they home (their arc was solved for a standing caster)
+  const pj = isP && G.player.onBroom ? res?.projectile : null;
+  if (pj && pj.alive && (!pj.gravity || pj.target)) { const v = G.player.vel; pj.vel.x += v.x * 0.8; pj.vel.z += v.z * 0.8; pj.vel.y += v.y * 0.5; pj.speed = pj.vel.length(); }
   const handle = Object.assign(res && typeof res === 'object' && !Array.isArray(res) && !res.isVector3 ? res : {}, { spell: spellId, form, team, caster });
   if (typeof handle.stop !== 'function') handle.stop = () => {};
   G.events.emit('spell:cast', { caster, spell: spellId, form, pos: origin, dir, team });
@@ -484,7 +489,7 @@ const api = {
   makeDummy,
   /** Remove every live spell effect (projectiles, beams, pillars, bubbles, cranes, guards). */
   clear() {
-    S.proj?.clear(); S.beams?.clear(); S.arts?.clear();
+    S.proj?.clear(); S.beams?.clear(); S.arts?.clear(); S.fusions?.clear();
     for (const e of S.ents) { try { e.dispose(); } catch (err) { G.reportError('spells:clear', err); } }
     S.ents.length = 0; S.timers.length = 0;
     stopCharge(); PI.beam = null; PI.guard = null;
@@ -502,14 +507,17 @@ export const spellsSystem = {
     S.proj = createProjectiles(S);
     S.beams = createBeams(S);
     S.arts = createArts(S, S.V);
+    S.fusions = createFusions(S);
     createEntities(S, S.V);
     if (G.physics && Array.isArray(G.physics.timeBubbles)) S.timeBubbles = G.physics.timeBubbles;
     api.list = LIST_IDS.map(entry);
     G.spells = api;
     G.events.on('element:reaction', (e) => {
-      if (!e || e.team !== 'player') return;
+      if (!e || e.team !== 'player' || e.fusion) return;   // a fusion's own ticks do not feed the gauge
       S.addGauge(0.028 + 0.01 * Math.min(4, e.count || 1));
     });
+    // 元素交织: every combination she makes feeds it (repeating field ticks do not)
+    G.events.on('element:combo', (e) => { if (e && e.team === 'player' && !e.quiet) S.addGauge(e.big ? 0.06 : 0.03); });
     G.events.on('player:died', () => { if (PI.beam) { PI.beam.stop(); PI.beam = null; } stopCharge(); if (PI.guard) { S.arts.stopGuard(PI.guard); PI.guard = null; } });
     G.events.on('mode:changed', (e) => { if (e.mode === 'title') api.clear(); });
     if (G.ui && G.ui.providers) G.ui.providers.spells = () => api.list.map((s) => ({ id: s.id, name: s.name, desc: s.desc, level: s.level, element: s.element, small: s.small, big: s.big }));
@@ -539,6 +547,7 @@ export const spellsSystem = {
       try { keep = e.update(dt); } catch (err) { G.reportError('spells:ent:' + e.kind, err); }
       if (!keep) { S.ents.splice(i, 1); try { e.dispose(); } catch (err) { G.reportError('spells:dispose', err); } }
     }
+    try { S.fusions?.update(dt); } catch (e) { G.reportError('spells:fusions', e); }
     for (let i = 0; i < DUMMIES.length; i++) DUMMIES[i].update(dt);
   },
   lateUpdate() {

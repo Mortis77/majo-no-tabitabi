@@ -54,14 +54,11 @@ export const TEARS_PER_POINT = 4;
  * requires: story flag needed before it opens (ignored when no story system is running).
  */
 export const SHOPS = {
-  village_dango: {
-    anchor: 'village_dango', radius: 3.4,
-    stock: [{ item: 'dango', price: 12 }, { item: 'sun_tea', price: 18 }, { item: 'rice', price: 8 }],
-  },
-  town_shop: {
-    anchor: 'town_shop', radius: 3.4, requires: 'town_shop_open',
-    stock: [{ item: 'dango', price: 12 }, { item: 'moon_mochi', price: 40 }, { item: 'sun_tea', price: 18 },
-      { upgrade: 'broom' }, { upgrade: 'charm' }, { upgrade: 'hp' }, { upgrade: 'mana' }],
+  // the inn counter in the City of Magic (journey anchor 'shop'), open once the broken roof is mended; the engine's
+  // old village / lantern-town stalls had anchors on the first game's map and sat invisible in the wilds here
+  city_shop: {
+    anchor: 'shop', radius: 3.0, requires: 'majo_repaired',
+    stock: [{ item: 'dango', price: 12 }, { upgrade: 'broom' }, { upgrade: 'charm' }, { upgrade: 'hp' }, { upgrade: 'mana' }],
   },
 };
 

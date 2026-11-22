@@ -10,6 +10,9 @@
 // init(g, env), update(g, ctx) }.
 import * as THREE from 'three';
 import { POI, MOUNTAIN, STONE_LANTERNS, GREAT_LANTERNS } from '../../data/world.js';
+import { G as GAME } from '../../core/game.js';
+import { countryPlan } from '../flora/countryside-plan.js';
+import { LANDMARKS } from '../../data/landmarks.js';
 
 const TAU = Math.PI * 2;
 const rnd = (a, b) => a + Math.random() * (b - a);
@@ -719,6 +722,113 @@ function heroMothFind(x, z, env) {
   return best ? { x: best.x, z: best.z, y: best.y } : null;
 }
 
+// ---- map round (2026-11-22): birds in the tree crowns, a starling murmuration over the fields, bees on the crops ----
+Object.assign(KINDS, {
+  finch: { ...KINDS.sparrow, size: 0.27, a: 0x9b7a50, b: 0x5e4a36, scare: 15 },
+  starling: { body: 'bird', size: 0.25, a: 0x2e2c36, b: 0x1d1b23, hz: 11, amp: 0.95, glide: 0.25, gAmp: 0.1, speed: 11, legs: 0, neck: 0, beak: 1 },
+});
+/** a tall tree near (x,z): its crown top is the perch */
+function findTree(x, z) {
+  const trees = GAME.flora?.treesNear?.({ x, y: 0, z }, 24);
+  if (!trees || !trees.length) return null;
+  for (const t of trees) {
+    if (t.height < 6 || t.burning || t.charred) continue;
+    const r = Math.max(2.6, Math.min(4.5, (t.radius || 2) * 0.55)), top = t.pos.y + t.height * 0.9;
+    return { x: t.pos.x, z: t.pos.z, y: top, crown: { r, top } };
+  }
+  return null;
+}
+function treePerchInit(g, env) {
+  perchInit('finch', 5, 9)(g, env);
+  const C = g.spot.crown;
+  g.groundFn = (x, z) => (Math.hypot(x - g.spot.x, z - g.spot.z) < C.r ? C.top : env.ground(x, z));
+  for (const a of g.agents) {
+    const r = Math.sqrt(Math.random()) * C.r * 0.9, an = rnd(0, TAU);
+    a.x = g.x + Math.sin(an) * r; a.z = g.z + Math.cos(an) * r; a.y = C.top + standH(a);
+  }
+}
+/** open ground over the countryside (fields, meadows, moor) for the murmuration */
+function findOpen(x, z, env) {
+  const h = env.ground(x, z);
+  if (h < 1 || env.world.isReserved(x, z, 20)) return null;
+  return { x, z };
+}
+function murmurInit(g, env) {
+  const sp = KINDS.starling;
+  g.sp = sp; g.base = Math.max(0, env.ground(g.x, g.z)); g.H = rnd(26, 40); g.R = rnd(12, 18);
+  g.cx = g.x; g.cz = g.z; g.dir = rnd(0, TAU); g.spread = 1;
+  const n = Math.max(10, Math.round(rnd(30, 44) * Math.max(0.35, env.tier)));
+  for (let i = 0; i < n; i++) {
+    const a = birdAgent(sp, g.x, g.base + g.H, g.z);
+    a.p1 = rnd(0, TAU); a.p2 = rnd(0, TAU); a.p3 = rnd(0, TAU); a.k1 = rnd(0.8, 1.2); a.rr = rnd(0.3, 1);
+    g.agents.push(a);
+  }
+}
+function murmurUpdate(g, ctx) {
+  const dt = ctx.dt, t = ctx.time, sp = g.sp;
+  const urg = threatAt(ctx, g.cx, g.base + g.H, g.cz, 26, _src);
+  g.spread = damp(g.spread, urg > 0 ? 1.9 : 1, 2, dt);
+  if (urg > 0) { const dx = g.cx - _src.x, dz = g.cz - _src.z, d = Math.hypot(dx, dz) || 1; g.dir = Math.atan2(dx, dz); g.cx += dx / d * dt * 6; g.cz += dz / d * dt * 6; }
+  g.dir += dt * 0.12 * Math.sin(t * 0.07 + g.x);
+  g.cx += Math.sin(g.dir) * dt * 2.2; g.cz += Math.cos(g.dir) * dt * 2.2;
+  g.x = g.cx; g.z = g.cz;
+  const base = Math.max(ctx.ground(g.cx, g.cz), g.base * 0.5) + g.H;
+  // one breathing, folding cloud: shared slow phases + individual offsets
+  const s1 = Math.sin(t * 0.37), s2 = Math.sin(t * 0.23 + 1.3), s3 = Math.cos(t * 0.31 + 0.4);
+  for (const a of g.agents) {
+    const R = g.R * g.spread * (0.55 + 0.45 * a.rr);
+    const ox = Math.sin(t * 0.9 * a.k1 + a.p1) * R * (1 + 0.6 * s1) + s2 * R * 0.6;
+    const oy = Math.sin(t * 0.7 * a.k1 + a.p2) * R * 0.35 * (1 + 0.5 * s3);
+    const oz = Math.cos(t * 0.8 * a.k1 + a.p3) * R * (1 - 0.4 * s1) + s3 * R * 0.5;
+    steer(a, g.cx + ox, base + oy, g.cz + oz, sp.speed, 3.2, dt);
+    flap(a, dt, 0.5); orient(a, dt, 0.6);
+  }
+}
+const _splash = new THREE.Vector3();
+/** fish that leap out of the lake, the brooks and the sea shallows now and then, with a splash */
+function leapInit(g, env) {
+  const n = Math.max(1, Math.round(rnd(1, 2.6) * Math.max(0.5, env.tier)));
+  for (let i = 0; i < n; i++) {
+    const a = agent('leaper', null, g.x, -1, g.z);
+    a.colA.setHex(Math.random() < 0.5 ? 0x6f8a86 : 0x8a8f78); a.colB.setHex(0xe8e6dc);
+    a.size = rnd(0.32, 0.5); a.hide = true; a.state = 'under'; a.t = rnd(1, 8); a.amp = 0.8;
+    g.agents.push(a);
+  }
+}
+function leapUpdate(g, ctx) {
+  const dt = ctx.dt;
+  for (const a of g.agents) {
+    a.t -= dt;
+    if (a.state === 'under') {
+      a.hide = true;
+      if (a.t <= 0) {
+        const ang = rnd(0, TAU), r = rnd(0, 7), x = g.x + Math.sin(ang) * r, z = g.z + Math.cos(ang) * r;
+        if (ctx.ground(x, z) > -0.9) { a.t = 1; continue; }
+        const dir = rnd(0, TAU), sp = rnd(1.2, 2.2);
+        a.x = x; a.z = z; a.y = -0.15; a.vx = Math.sin(dir) * sp; a.vz = Math.cos(dir) * sp; a.vy = rnd(3.2, 4.3);
+        a.state = 'air'; a.hide = false; a.s = 1; a.yaw = dir;
+        ctx.water?.ripple?.(x, z, 0.7);
+      }
+    } else {
+      a.vy -= 9.8 * dt; a.x += a.vx * dt; a.y += a.vy * dt; a.z += a.vz * dt;
+      a.pitch = -Math.atan2(a.vy, Math.hypot(a.vx, a.vz)); a.phase += dt * 14;
+      if (a.y < -0.2 && a.vy < 0) {
+        a.state = 'under'; a.hide = true; a.t = rnd(4, 11);
+        ctx.water?.ripple?.(a.x, a.z, 1);
+        try { GAME.fx?.burst?.('splash', _splash.set(a.x, 0.05, a.z), { scale: 0.5 }); } catch { /* optional */ }
+      }
+    }
+  }
+}
+/** bees on lavender / poppy fields, at the bee garden and in the flower valley */
+function findBees(x, z, env) {
+  if (!dry(env, x, z)) return null;
+  const f = countryPlan(env.world).fieldAt(x, z, 1);
+  if (f && (f.kind === 'lavender' || f.kind === 'poppy')) return { x, z };
+  for (const l of LANDMARKS) if ((l.kind === 'apiary' || l.kind === 'flowerValley') && Math.hypot(x - l.x, z - l.z) < l.r + 12) return { x, z };
+  return null;
+}
+
 export const GROUPS = [
   // hero moments (one of each where she passes; every tier)
   { id: 'hero_sparrows', lands: [1, 0.3, 0], max: 1, lowFloor: 1, near: 0, far: 70, keep: 100, spacing: 3, find: heroFind('steps'), init: heroPerchInit('sparrowH', 8), update: perchUpdate },
@@ -730,7 +840,10 @@ export const GROUPS = [
   { id: 'songbirds', lands: [1, 0.15, 0], max: 3, near: 24, far: 70, keep: 120, spacing: 22, find: findPath, init: perchInit('sparrow', 5, 9), update: perchUpdate },
   { id: 'swallows', lands: [1, 0.2, 0], max: 1, near: 10, far: 30, keep: 200, spacing: 40, follows: true, find: findMeadow, init: swoopInit('swallow', 4, 6, 1.2, 6), update: swoopUpdate },
   { id: 'butterflies', lands: [1, 0.25, 0], max: 4, near: 10, far: 40, keep: 60, spacing: 12, find: findFlowers, init: insectInit('butterfly', 4, 7, 'wander'), update: insectUpdate },
-  { id: 'bees', lands: [1, 0, 0], max: 2, near: 8, far: 40, keep: 55, spacing: 10, find: findSunhill, init: insectInit('bee', 6, 10, 'bee'), update: insectUpdate },
+  { id: 'bees', lands: [1, 0, 0], max: 2, near: 8, far: 40, keep: 55, spacing: 10, find: findBees, init: insectInit('bee', 6, 10, 'bee'), update: insectUpdate },
+  { id: 'leapers', lands: [1, 1, 0], max: 2, near: 10, far: 70, keep: 110, spacing: 25, find: findWater, init: leapInit, update: leapUpdate },
+  { id: 'treebirds', lands: [1, 0.4, 0], max: 3, near: 18, far: 80, keep: 140, spacing: 30, find: findTree, init: treePerchInit, update: perchUpdate },
+  { id: 'starlings', lands: [1, 0.3, 0], max: 1, lowFloor: 1, near: 60, far: 180, keep: 360, spacing: 200, interval: 25, find: findOpen, init: murmurInit, update: murmurUpdate },
   { id: 'dragonflies', lands: [1, 0.8, 0], max: 2, near: 8, far: 40, keep: 60, spacing: 12, find: findWaterEdge, init: insectInit('dragonfly', 2, 4, 'dart'), update: insectUpdate },
   { id: 'fish', lands: [1, 1, 0], max: 3, near: 10, far: 45, keep: 70, spacing: 14, find: findWater, init: fishInit(false), update: fishUpdate },
   // coast and peaks
@@ -751,4 +864,4 @@ export const GROUPS = [
   { id: 'jellies', lands: [0, 0, 1], max: 2, near: 20, far: 70, keep: 110, spacing: 25, find: findWaterEdge, init: jellyInit, update: jellyUpdate },
 ];
 // instance caps per body at quality 'high' (worst case of the group maxima above)
-export const CAPS = { bird: 96, insect: 110, frog: 10, fish: 24, jelly: 12 };
+export const CAPS = { bird: 150, insect: 110, frog: 10, fish: 24, jelly: 12, leaper: 6 };

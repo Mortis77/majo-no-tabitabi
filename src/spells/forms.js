@@ -205,6 +205,7 @@ export const FORMS = {
       const h = { zone: null };
       S.after(0.7, () => {
         h.zone = G.elements?.rain?.(at.x, at.z, 18, 20) || null;
+        S.fusions?.addRain(h.zone, c.team, c.caster);   // 合咏: thunder / ice / fire / wind cast into the cloud
         G.fx?.ring(at, { color: COLORS.water, radius: 18, dur: 1.4, intensity: 1.4 });
         G.audio?.sfx('splash', { pos: at, vol: 0.6, pitch: 0.7 });
       });
@@ -263,6 +264,8 @@ export const FORMS = {
         G.events.emit('spell:clash', { pos: p.pos.clone(), a: 'wind', b: p.el, result: 'deflect' });
         S.addGauge(0.03, c.team);
       });
+      // 合咏 风火: her own fireballs inside the gust swell and speed up
+      S.fusions?.fanShots(o, _f, c.team);
       // Three tapering air sheets travel down the physical cone, leaving the
       // centre open so the caster and the objects being pushed remain legible.
       G.fx?.kit?.windWake?.(o,_f,12.2,2.36);

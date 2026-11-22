@@ -476,6 +476,13 @@ window.playTwo = async function (part) {
         throw Error('step stuck ' + id + ' ' + JSON.stringify(S.debug()) + ' mode ' + G.mode);
     }
     if (part === 'last') {
+      // the parting at the gate ends episode two with an epilogue and the credits roll; read through it
+      let endSeen = false;
+      for (let k = 0; k < 1500 && !(endSeen && G.mode === 'play'); k++) {
+        if (G.mode === 'ending') { endSeen = true; await tap('Enter'); } else await tick();
+      }
+      if (!endSeen || G.mode !== 'play') throw Error('credits roll ' + JSON.stringify({ endSeen, mode: G.mode }));
+      notes.push({ creditsRoll: true });
       if (
         !Q.isDone('mages') ||
         !Q.isDone('apprentice') ||

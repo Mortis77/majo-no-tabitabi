@@ -7,8 +7,19 @@ export function sleeves(g, who) {
     teacher = who === 'fran',
     magic = teacher || student || who === 'exam',
     cloth = magic ? 'coat' : 'blouse';
+  // The apprentice's everyday blouse (episode 1): long sleeves that follow the arm with about a centimetre of ease
+  // (arm radius 3.0–3.7 cm upper, 2–3 cm at the wrist) and a softly loosened cuff, in the same linen as the bodice.
+  const fitted = [
+    [0.068, 0.07, 0.072, 1.236],
+    [0.126, 0.056, 0.058, 1.228],
+    [0.207, 0.047, 0.046, 1.224],
+    [0.316, 0.046, 0.047, 1.219],
+    [0.399, 0.041, 0.041, 1.221],
+    [0.47, 0.037, 0.036, 1.22],
+    [0.498, 0.042, 0.04, 1.219],
+  ];
   for (const s of [-1, 1]) {
-    const profile = [
+    const profile = who === 'apprentice' ? fitted : [
       [0.068, 0.074, 0.071, 1.239],
       [0.126, 0.084, 0.083, 1.23],
       [0.207, 0.073, 0.069, 1.222],

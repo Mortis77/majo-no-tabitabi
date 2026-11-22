@@ -132,6 +132,8 @@ export function createCamera() {
       else if (P.state === 'air') want = 5.6;
       want = lerp(want, 3.4, C.shoulder * 0.8);
       want += lockW * 1.4;
+      // duel framing (G.fx.duel): both duelists in view — a gentle swing toward the foe when the mouse is idle, a little farther back
+      if (!cine) want += G.fx?.duel?.camAssist?.(C, P, rdt, idleLook) || 0;
       // looking up from below: come in so the ground does not fill the screen
       if (C.pitch > 0.1) want *= lerp(1, 0.55, clamp((C.pitch - 0.1) / 0.8));
       C.targetDist = want;
@@ -215,6 +217,9 @@ export function createCamera() {
         _pos.addScaledVector(strKickDir, 0.9 * k); _pos.y += 0.25 * k;
       }
 
+      // duel cinematics (G.fx.duel): a brief dramatic angle on a decisive moment, the look pulled toward the duel's middle
+      const duelFov = G.fx?.duel?.camShot?.(_pos, _look, rdt, !!cine) || 0;
+
       // ---- cinematic blend ----
       if (cine) {
         cine.t = Math.min(1, cine.t + (cine.dur > 0 ? rdt / cine.dur : 1));
@@ -234,7 +239,8 @@ export function createCamera() {
       cam.lookAt(_look);
       const so = G.fx?.shakeOffset;
       if (so) cam.position.add(so);
-      if (Math.abs(cam.fov - fov) > 0.01) { cam.fov = fov; cam.updateProjectionMatrix(); }
+      const fovOut = fov + duelFov;
+      if (Math.abs(cam.fov - fovOut) > 0.01) { cam.fov = fovOut; cam.updateProjectionMatrix(); }
       cam.getWorldDirection(forward);
       snapNext = false;
     },

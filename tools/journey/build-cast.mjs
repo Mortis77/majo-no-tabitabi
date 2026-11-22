@@ -396,7 +396,11 @@ async function elaina(doc, g) {
   ashTravellingCoat(g);
 }
 const manifestRows = {};
+// --only apprentice,fran  rebuilds just those cast members (the manifest rows of the others are left as they are)
+const onlyArg = process.argv.indexOf('--only'),
+  only = onlyArg > 0 ? new Set(process.argv[onlyArg + 1].split(',')) : null;
 for (const [who, spec] of Object.entries(shapes)) {
+  if (only && !only.has(who)) continue;
   const d = await io.read(
       who === 'elaina' ? traveller : who === 'apprentice' ? 'assets/models/journey/elaina.glb' : base,
     ),
@@ -447,7 +451,7 @@ for (const [who, spec] of Object.entries(shapes)) {
       n.dispose();
       m.dispose();
     }
-    g.palette = { blouse: ['#efe6db'], collar: ['#e6dbc9'], hair: ['#c9c8da'], hairGlint: ['#dedbe8'] };
+    g.palette = { blouse: ['#f3efe9'], collar: ['#e9e1d3'], hair: ['#c9c8da'], hairGlint: ['#dedbe8'] };
     sleeves(g, 'apprentice');
     const curl = [
       [0.01, 1.502, 0.018],
@@ -510,6 +514,13 @@ for (const [who, spec] of Object.entries(shapes)) {
     if (who === 'saya') hat(g, who, g.switchJoint('Journey_ApprenticeHat', head));
   }
   await g.bake();
+  if (who === 'apprentice') {
+    // one garment: the sleeves keep their own woven map (the bodice's linen texture is an atlas laid out for the
+    // bodice UVs) but take the bodice's white and its cel-shading parameters (shade colour, garment, finish)
+    const linen = r.listMaterials().find((m) => m.getName() === 'cloth_traveller_linen'),
+      sleeve = r.listMeshes().find((m) => m.getName() === 'apprentice_blouse');
+    if (linen && sleeve) for (const p of sleeve.listPrimitives()) p.getMaterial().setExtras({ ...linen.getExtras() });
+  }
   r.listScenes()[0].setName(id);
   await d.transform(
     prune({

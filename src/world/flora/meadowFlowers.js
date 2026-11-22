@@ -112,7 +112,7 @@ vec3 gPos=vec3(0.0,-1.e4,0.0),gNrm=vec3(0.,1.,0.);
     gPos.y+=form.y*len*(1.-flatten*.68);
     vec3 green=mix(field.rgb*vec3(.53,.67,.54),vec3(.10,.26,.12),.36);
     float mixColour=smoothstep(.38,.62,gN(root/52.+.12).r);
-    vec3 petal=meadowDayPetal(mixColour,forest,wet);
+    vec3 petal=meadowDayPetalAt(mixColour,forest,wet,root);
     petal=mix(petal,mix(vec3(.91,.22,.18),vec3(.96,.54,.15),mixColour),dusk*(1.-.83*wet));
     vec3 moon=mix(vec3(.43,.74,.82),vec3(.58,.48,.86),mixColour);
     petal=mix(petal,moon,night);

@@ -1,6 +1,9 @@
 // Keyboard + mouse input with named actions. Gameplay actions are automatically silenced unless G.mode === 'play'.
 //   G.input.held('sprint')  G.input.pressed('jump')  G.input.released('attack')
 //   G.input.moveX / moveY   (-1..1, right / forward)        G.input.lookX / lookY (mouse pixels this frame)
+// A virtual source (the touch controls, src/ui/touch.js) feeds the same actions by NAME (so key rebinding never breaks it):
+//   G.input.virtual.down('cast') / up('cast')   .move(x, y) analog stick (-1..1)   .key(code, on) a raw code (UI confirm)
+// G.input.touch = true while the touch controls are in charge: the pointer is never locked then.
 
 import { t, has } from './i18n.js';
 
@@ -29,8 +32,13 @@ export const BINDINGS = {
 };
 const ALWAYS = new Set(['map', 'journal', 'spellbook', 'pause', 'confirm', 'cancel', 'uiUp', 'uiDown', 'uiLeft', 'uiRight']);
 
+let labelHook = null;
+/** The touch controls name their buttons instead of keys: fn(action) -> label | null (null = the key's label). */
+export function setKeyLabelHook(fn) { labelHook = typeof fn === 'function' ? fn : null; }
+
 /** Human-readable key label for an action (first binding), e.g. keyLabel('interact') -> 'E'. */
 export function keyLabel(action) {
+  if (labelHook) { const l = labelHook(action); if (l) return l; }
   const c = (BINDINGS[action] || [''])[0];
   if (has('core.key.' + c)) return t('core.key.' + c);
   if (c.startsWith('Key')) return c.slice(3);
@@ -41,6 +49,8 @@ export function keyLabel(action) {
 export function createInput(G) {
   const canvas = G.canvas;
   const held = new Set(), pressed = new Set(), released = new Set();
+  const vHeld = new Set(), vPressed = new Set(), vReleased = new Set();   // virtual (touch) actions, by action name
+  let vmx = 0, vmy = 0;                                                     // virtual analog stick
   let swallowClick = false;
   let dragging = false;
 
@@ -52,23 +62,37 @@ export function createInput(G) {
     /** true while the pointer is NOT locked and the user is dragging to look around (fallback mode). */
     dragLook: false,
     anyPressed: false,
-    get moveX() { return (this.held('right') ? 1 : 0) - (this.held('left') ? 1 : 0); },
-    get moveY() { return (this.held('forward') ? 1 : 0) - (this.held('back') ? 1 : 0); },
+    /** true while the touch controls are in charge (src/ui/touch.js): no pointer lock is ever requested then. */
+    touch: false,
+    // keys win over the stick; the stick is analog (its length scales walking speed, see player.js readInput)
+    get moveX() { const k = (this.held('right') ? 1 : 0) - (this.held('left') ? 1 : 0); return k || (G.mode === 'play' ? vmx : 0); },
+    get moveY() { const k = (this.held('forward') ? 1 : 0) - (this.held('back') ? 1 : 0); return k || (G.mode === 'play' ? vmy : 0); },
     _ok(action) { return ALWAYS.has(action) || G.mode === 'play'; },
-    held(action) { if (!this._ok(action)) return false; const b = BINDINGS[action]; if (!b) return false; for (const c of b) if (held.has(c)) return true; return false; },
-    pressed(action) { if (!this._ok(action)) return false; const b = BINDINGS[action]; if (!b) return false; for (const c of b) if (pressed.has(c)) return true; return false; },
-    released(action) { if (!this._ok(action)) return false; const b = BINDINGS[action]; if (!b) return false; for (const c of b) if (released.has(c)) return true; return false; },
+    held(action) { if (!this._ok(action)) return false; if (vHeld.has(action)) return true; const b = BINDINGS[action]; if (!b) return false; for (const c of b) if (held.has(c)) return true; return false; },
+    pressed(action) { if (!this._ok(action)) return false; if (vPressed.has(action)) return true; const b = BINDINGS[action]; if (!b) return false; for (const c of b) if (pressed.has(c)) return true; return false; },
+    released(action) { if (!this._ok(action)) return false; if (vReleased.has(action)) return true; const b = BINDINGS[action]; if (!b) return false; for (const c of b) if (released.has(c)) return true; return false; },
     /** Raw key code queries, never mode-gated (e.g. 'KeyK'). */
     codeHeld(code) { return held.has(code); },
     codePressed(code) { return pressed.has(code); },
     /** Forget a press so no later system reacts to it this frame. */
-    consume(action) { for (const c of BINDINGS[action] || []) pressed.delete(c); },
+    consume(action) { for (const c of BINDINGS[action] || []) pressed.delete(c); vPressed.delete(action); },
     requestLock() {
-      if (G.params.nolock || !canvas.requestPointerLock) return;
+      if (G.params.nolock || input.touch || !canvas.requestPointerLock) return;
       try { const p = canvas.requestPointerLock(); if (p && p.catch) p.catch(() => lockRefused()); } catch (e) { lockRefused(); }
     },
     exitLock() { if (document.pointerLockElement === canvas) document.exitPointerLock(); },
-    endFrame() { pressed.clear(); released.clear(); this.lookX = 0; this.lookY = 0; this.wheel = 0; this.anyPressed = false; },
+    endFrame() { pressed.clear(); released.clear(); vPressed.clear(); vReleased.clear(); this.lookX = 0; this.lookY = 0; this.wheel = 0; this.anyPressed = false; },
+    /** The touch controls' source: actions by name, an analog stick, raw codes for the UI (Enter = confirm). */
+    virtual: {
+      down(action) { if (!vHeld.has(action)) { vHeld.add(action); vPressed.add(action); input.anyPressed = true; } },
+      up(action) { if (vHeld.has(action)) { vHeld.delete(action); vReleased.add(action); } },
+      isDown(action) { return vHeld.has(action); },
+      /** analog stick, -1..1 each (x right, y forward); its length is the walking speed */
+      move(x, y) { vmx = Number.isFinite(x) ? Math.max(-1, Math.min(1, x)) : 0; vmy = Number.isFinite(y) ? Math.max(-1, Math.min(1, y)) : 0; },
+      get mx() { return vmx; }, get my() { return vmy; },
+      key(code, on) { if (on) down(code); else up(code); },
+      releaseAll() { for (const a of [...vHeld]) input.virtual.up(a); vmx = vmy = 0; },
+    },
     /** Test hooks: drive the game without real devices. */
     sim: {
       down(code) { down(code); },
@@ -90,7 +114,7 @@ export function createInput(G) {
     if (!e.repeat) down(e.code);
   });
   window.addEventListener('keyup', (e) => up(e.code));
-  window.addEventListener('blur', () => { for (const c of [...held]) up(c); dragging = false; if (pend) { clearTimeout(pend.timer); pend = null; } });
+  window.addEventListener('blur', () => { for (const c of [...held]) up(c); input.virtual.releaseAll(); dragging = false; if (pend) { clearTimeout(pend.timer); pend = null; } });
 
   // Without pointer lock (lock refused, trackpads, headless) the mouse works by dragging: a drag looks around,
   // a click or a still hold of the left button attacks. A left press is held back until it is clearly one or the other,
@@ -110,7 +134,7 @@ export function createInput(G) {
   };
   canvas.addEventListener('mousedown', (e) => {
     canvas.focus?.();
-    if (G.mode === 'play' && !input.locked && !G.params.nolock && canvas.requestPointerLock && performance.now() - lockFailT > 4000) {
+    if (G.mode === 'play' && !input.locked && !input.touch && !G.params.nolock && canvas.requestPointerLock && performance.now() - lockFailT > 4000) {
       input.requestLock();
       swallowClick = true; // the click that grabs the pointer is not an attack
       lockPending = { button: e.button };

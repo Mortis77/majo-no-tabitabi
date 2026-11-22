@@ -26,6 +26,7 @@ export function defaultState() {
     /** story + tutorial booleans/values */
     flags: {},
     spellScars: [],              // ordered terrain edits from free-cast magic
+    destruction: {},             // world/destruction.js: { v, flora: [x·10, z·10, wreck bits, …] } felled / charred / shattered
     /** quest id -> { state: 'active'|'done', step: number, vars: {} } */
     quests: {},
     lanterns: {},        // stone lantern id -> true once lit
@@ -35,13 +36,19 @@ export function defaultState() {
     defeated: {},        // boss / nest id -> true
     races: {},           // race id -> best time (seconds)
     lore: {},            // 绘马 id -> true once read
+    elementNotes: {},    // 元素笔记: combo id (src/elements/catalog.js) -> times she has caused it
     stats: { kills: 0, deaths: 0, distance: 0 },
+    /** combat (journey foes): camp id -> playTime it was cleared (respawn timers), named elite id -> playTime beaten,
+     *  foe types met (first-meeting hints), the clearing trial's record */
+    combat: { cleared: {}, elites: {}, seen: {}, trials: { best: 0, clears: 0 } },
     /** wardrobe: the outfit she wears (src/data/outfits.js id); a new journey begins in her apprentice clothes */
     outfit: 'apprentice',
   };
 }
 
-export const defaultSettings = () => ({ master: 0.8, music: 0.6, sfx: 0.85, sens: 1, invertY: false, quality: 'high', shake: true, hints: true, lang: 'zh-CN', postAO: true, postBloom: true, postShafts: true });
+export const defaultSettings = () => ({ master: 0.8, music: 0.6, sfx: 0.85, sens: 1, invertY: false, quality: 'high', shake: true, hints: true, lang: 'zh-CN', postAO: true, postBloom: true, postShafts: true, look: 'soft', cinematic: true,
+  // touch controls (src/ui/touch.js): 'auto' = on phones / tablets; button size and opacity; drag-to-look speed
+  touch: 'auto', touchSize: 1, touchAlpha: 0.8, touchSens: 1 });
 
 function deepMerge(base, extra) {
   if (!extra || typeof extra !== 'object') return base;

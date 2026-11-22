@@ -69,8 +69,14 @@ export function createEntities(S, V) {
     }
     let t = 0, life = 25, dying = -1, hitDone = false, sinkFrom = 0;
     const top = () => mesh.position.y + H;
-    const reactor = G.elements?.register?.({ owner: null, kind: 'structure', material: 'stone', getPos: () => _w.set(at.x, mesh.position.y, at.z), radius: R, height: H, team: 'neutral',
-      on: { shatter: () => ent.crumble(), hit: (r, el, pw, h) => { if (el === 'thunder' || (h && h.heavy && pw >= 2)) ent.crumble(); } } });
+    // 元素交织: the column is a lightning rod — thunder charges it (it arcs to foes nearby, then crumbles) instead of
+    // splitting it; it conducts, so a strike on it also chains on to wet foes around it
+    const reactor = G.elements?.register?.({ owner: null, kind: 'structure', material: 'stone', conductive: true, getPos: () => _w.set(at.x, mesh.position.y, at.z), radius: R, height: H, team: 'neutral',
+      on: { shatter: () => ent.crumble(), hit: (r, el, pw, h) => {
+        if (el === 'thunder' && !h?.fusion && h?.team && h.team !== 'neutral' && h.team === c.team && S.fusions) S.fusions.chargePillar(ent, h);
+        else if (el === 'thunder' && !(ent.rod > 0)) ent.crumble();
+        else if (h && h.heavy && pw >= 2) ent.crumble();
+      } } });
     G.fx?.burst('dust', _v.set(at.x, gy + 0.3, at.z), { scale: 1.6 });
     G.fx?.burst('shatter_rock', _v, { scale: 0.8 });
     G.fx?.ring(_v, { color: COLORS.earth, radius: 3.5, dur: 0.5 });
@@ -78,7 +84,7 @@ export function createEntities(S, V) {
     G.audio?.sfx('rock_fall', { pos: at, vol: 0.8 });
     S.shake(0.3, at);
     const ent = add({
-      kind: 'pillar', pos: at.clone(), get top() { return top(); },
+      kind: 'pillar', pos: at.clone(), get top() { return top(); }, team: c.team, caster: c.caster, rod: 0, get dying() { return dying >= 0; },
       update(dt) {
         t += dt;
         if (dying < 0) {
@@ -89,9 +95,11 @@ export function createEntities(S, V) {
             hitDone = true;
             _v.set(at.x, gy + 1, at.z);
             G.elements?.apply('earth', _v, R + 0.4, c.power, { source: c.caster, team: c.team, damage: damageOf('earth', 'small'), heavy: true, noGround: true });
+            G.elements?.touchGround?.('earth', _v.set(at.x, gy + 0.3, at.z), R + 0.6, c.power, { source: c.caster, team: c.team });   // puddle → mud, burning grass → lava
             G.physics?.explode(_v.set(at.x, gy - 0.5, at.z), R + 1.2, 10, { up: 1.6 });
           }
-          if (t > life) ent.crumble();
+          if (ent.rod > 0 && S.fusions?.pillarTick(ent, dt)) ent.crumble();
+          if (t > life && !(ent.rod > 0)) ent.crumble();
         } else {
           dying += dt;
           mesh.position.y = sinkFrom - H * easeInOutCubic(clamp(dying / 0.9));
@@ -154,7 +162,7 @@ export function createEntities(S, V) {
   };
 
   // ---- 冰镜 ice dais ---------------------------------------------------------------------------------------------
-  S.spawnDais = (at, caster) => {
+  S.spawnDais = (at, caster, team = caster === G.player ? 'player' : caster?.team || 'neutral') => {
     while (daises.length >= MAX_DAIS) daises[0].melt(0.6);
     const R = 3.3, H = 1.7;
     const gy = G.world.heightAt(at.x, at.z);
@@ -168,7 +176,13 @@ export function createEntities(S, V) {
     const col = G.world.addCollider({ x: at.x, z: at.z, r: R, y0: gy - 1, y1: gy - 0.3, tag: 'spell-ice' });
     let t = 0, life = 22, scale = 1;
     const reactor = G.elements?.register?.({ owner: null, kind: 'structure', material: 'ice', pos: new THREE.Vector3(at.x, gy, at.z), radius: R, height: H, team: 'neutral',
-      on: { hit: (r, el) => { if (el === 'fire') { life = Math.min(life, t + 3); G.fx?.burst('steam', _v.set(at.x, gy + H, at.z), { scale: 1.5 }); } } } });
+      on: { hit: (r, el, pw, h) => {
+        if (el !== 'fire') return;
+        // 元素交织: her own fire on her ice dais flashes it into a steam explosion
+        if (!blasted && t > 0.3 && !h?.fusion && h?.team === team && team !== 'neutral' && S.fusions) { blasted = true; S.fusions.steamblast(at, team, h.source || caster); life = Math.min(life, t + 1.2); return; }
+        life = Math.min(life, t + 3); G.fx?.burst('steam', _v.set(at.x, gy + H, at.z), { scale: 1.5 });
+      } } });
+    let blasted = false;
     const ent = add({
       kind: 'dais',
       update(dt) {
@@ -201,8 +215,8 @@ export function createEntities(S, V) {
 
   // ---- 龙卷 tornado -----------------------------------------------------------------------------------------------
   S.spawnTornado = (at, c) => {
-    const R = 5, H = 40, DUR = 14;
-    const wind = G.elements?.addWind?.({ kind: 'updraft', pos: at.clone(), radius: R, height: H, strength: 17, duration: DUR, swirl: 1 }) || null;
+    const R = 5, H = 40, DUR0 = 14;
+    const wind = G.elements?.addWind?.({ kind: 'updraft', pos: at.clone(), radius: R, height: H, strength: 17, duration: DUR0, swirl: 1 }) || null;
     const grp = new THREE.Group();
     grp.position.copy(at);
     const m1 = V.scroll(V.stripes, 0x9fe8c0, 0.55), m2 = V.scroll(V.stripes, 0xe8fff4, 0.42);
@@ -227,13 +241,19 @@ export function createEntities(S, V) {
     const dust = null;
     G.fx?.ring(at, { color: COLORS.wind, radius: R * 1.4, dur: 0.8 });
     G.audio?.sfx('cast_wind', { pos: at, vol: 1.2 });
-    let t = 0, tick = 0;
+    let t = 0, tick = 0, DUR = DUR0;
     const team = c.team, caster = c.caster;
+    // 合咏: cast fire / thunder / ice / water into it (or shoot through it) and it takes that element on (fusions.js)
+    const tw = S.fusions?.addTornado({ at: at.clone(), R, H, team, caster, shp, ent: null, recolor: (col) => { m1.color?.setHex?.(col); } }) || null;
     const ent = add({
       kind: 'tornado', pos: at,
+      get fused() { return tw?.el || null; },
+      /** live a few seconds longer (capped at 22 s in all) */
+      extend(sec) { DUR = Math.min(22, Math.max(DUR, t + 1.5) + sec); if (wind) wind.duration = DUR; },
       update(dt) {
         t += dt;
         const k = clamp(t / 0.6) * clamp((DUR - t) / 1.2);
+        if (tw) { try { S.fusions.tornadoTick(tw, dt, k); } catch (e) { G.reportError('spells:tornado-fusion', e); } }
         outer.rotation.y -= dt * 3.2; inner.rotation.y -= dt * 5.5;
         m1.map.offset.y -= dt * 0.9; m2.map.offset.y -= dt * 1.6; m1.map.offset.x += dt * 0.2;
         m1.opacity = k; m2.opacity = k * 0.8;
@@ -256,8 +276,9 @@ export function createEntities(S, V) {
         }
         return t < DUR;
       },
-      dispose() { for (const h of shp) h.kill?.(0.3); wind?.remove?.(); em?.remove?.(); dust?.remove?.(); grp.removeFromParent(); m1.map.dispose(); m2.map.dispose(); m1.dispose(); m2.dispose(); },
+      dispose() { if (tw) S.fusions?.removeTornado(tw); for (const h of shp) h.kill?.(0.3); wind?.remove?.(); em?.remove?.(); dust?.remove?.(); grp.removeFromParent(); m1.map.dispose(); m2.map.dispose(); m1.dispose(); m2.dispose(); },
     });
+    if (tw) tw.ent = ent;
     return { tornado: ent, stop: () => { t = Math.max(t, DUR - 1); } };
   };
 
@@ -321,6 +342,9 @@ export function createEntities(S, V) {
       S.shake(1, at);
       G.hitstop(0.09); G.cam?.fovKick?.(0.4);
       S.debris(_v.set(x, G.world.heightAt(x, z) + 1, z), 8, 0.7, V.meteorMat);
+      // 元素交织: into a lake it throws a tidal splash; on land a pool of molten rock stays in the crater
+      if (G.world.isWater?.(x, z)) S.fusions?.tidal(at, team, caster, power);
+      else S.after(0.35, () => { if (!G.world.isWater?.(x, z)) G.elements?.addField?.('lava', x, z, 4.2, { team, source: caster, life: 12, power }); });
       // embers keep burning around the rim
       S.after(0.25, () => {
         for (let i = 0; i < 10; i++) {

@@ -99,17 +99,22 @@ void main() {
   vec3 add;
   if (vPar.y < 0.5) {   // lightning
     // The stepped leader descends, then the hot return stroke retraces the same channel upwards.
-    float leader = (1.0 - smoothstep(.04, .34, vPar.x)) * .80;
-    float restrike = max(0.0, 1.0 - abs(vPar.x - vPar.w) / .19);
-    float energy = leader + restrike * restrike + .19 * (1.0 - vPar.x);
+    // vfx: vPar.z = afterglow share — the strike runs on its own clock, the channel then glows on and cools away
+    float ag = vPar.z;
+    float x = vPar.x * (1.0 + 1.6 * ag);
+    float leader = (1.0 - smoothstep(.04, .34, x)) * .80;
+    float restrike = max(0.0, 1.0 - abs(x - vPar.w) / .19);
+    float energy = leader + restrike * restrike + .19 * max(0.0, 1.0 - x);
+    float glowOn = ag * .36 * pow(1.0 - vPar.x, 1.7) * smoothstep(0.0, 0.06, vPar.x);   // the afterglow is light only
     if (vFacet >= 0.) {
       float face = smoothstep(.44,.64,vFacet);
       vec3 coat = mix(vCol.rgb * .47, mix(vCol.rgb, vec3(1.,.94,1.), .70), face);
-      gl_FragColor = fxOut(coat * energy * vCol.a * .72, coat, clamp(energy * .95, 0., .95));
+      gl_FragColor = fxOut(coat * (energy + glowOn * 1.6) * vCol.a * .72, coat, clamp(energy * .95, 0., .95));
     } else {
       if (r >= 1.0) discard;
       float halo = pow(1.0 - r, 2.6);
-      gl_FragColor = fxOut(vCol.rgb * halo * energy * vCol.a * .78, vec3(0.), 0.);
+      float hot = exp(-r * r * 70.0) * (leader + restrike * restrike) * .55;   // vfx: a crisp white-hot thread in the strike
+      gl_FragColor = fxOut((vCol.rgb * halo * (energy + glowOn) * .78 + vec3(1.0, .97, 1.0) * hot) * vCol.a, vec3(0.), 0.);
     }
     return;
   }
@@ -192,6 +197,7 @@ export class Bolts {
     this.head = MAX_BEAMS; this.dirty = false;
     this.lastBoltEnd = -Infinity;
     this.beamUsed = new Uint8Array(MAX_BEAMS);
+    this.after = 0;                    // vfx: afterglow share for the segments written next (set around a bolt)
     const g = new THREE.InstancedBufferGeometry();
     const corners = [-1, 0, 1, 0, 1, 1, -1, 1];
     const sections = new Array(12).fill(0), indices = [0, 1, 2, 0, 2, 3];
@@ -222,21 +228,22 @@ export class Bolts {
     this.mesh.onBeforeRender = () => { if (this.dirty) { this.dirty = false; this.buf.needsUpdate = true; } };
   }
 
-  _write(i, ax, ay, az, bx, by, bz, col, halfW, birth, dur, style, intensity, fade) {
+  _write(i, ax, ay, az, bx, by, bz, col, halfW, birth, dur, style, intensity, fade, after = 0) {
     const o = i * STRIDE, f = this.f;
     f[o] = ax; f[o + 1] = ay; f[o + 2] = az; f[o + 3] = birth;
     f[o + 4] = bx; f[o + 5] = by; f[o + 6] = bz; f[o + 7] = dur;
     f[o + 8] = col.r; f[o + 9] = col.g; f[o + 10] = col.b; f[o + 11] = halfW;
-    f[o + 12] = style; f[o + 13] = (i * 0.618034) % 1; f[o + 14] = intensity; f[o + 15] = fade;
+    f[o + 12] = style; f[o + 13] = style > 0.5 ? (i * 0.618034) % 1 : after; f[o + 14] = intensity; f[o + 15] = fade;
     this.mesh.geometry.instanceCount = Math.max(this.mesh.geometry.instanceCount, i + 1);
     this.dirty = true;
   }
 
-  segment(ax, ay, az, bx, by, bz, col, halfW, birth, dur, intensity, returnAt = .48) {
+  segment(ax, ay, az, bx, by, bz, col, halfW, birth, dur, intensity, returnAt = .48, after = this.after) {
+    dur *= 1 + 1.6 * after;            // vfx: afterglow lengthens the segment's life; the strike keeps its own clock
     this.lastBoltEnd = Math.max(this.lastBoltEnd, birth + dur);
     const i = this.head;
     this.head = i + 1 === this.cap ? MAX_BEAMS : i + 1;
-    this._write(i, ax, ay, az, bx, by, bz, col, halfW, birth, dur, 0, intensity, returnAt);
+    this._write(i, ax, ay, az, bx, by, bz, col, halfW, birth, dur, 0, intensity, returnAt, after);
   }
 
   /** A jagged bolt from A to B with `branches` side forks. col: THREE.Color (linear). Returns nothing; no allocations. */

@@ -49,6 +49,22 @@ addCss(`
 .dlg-ch.sel .n { background: var(--red); color: #fff6e6; box-shadow: none; }
 .dlg-ch.sel::after { content: ''; position: absolute; left: 6u; right: 6u; bottom: 3u; height: 2u; background: var(--red); opacity: .85; }
 @keyframes dlg-ch-in { from { opacity: 0; transform: translateX(26u); } }
+/* clear of the home bar; on small screens the box fits the width and sits lower, choices are fingertip-sized */
+.mv-ui .dlg-box { bottom: calc(38u + env(safe-area-inset-bottom, 0px)); }
+.mv-ui.compact .dlg-box { --dw: min(800u, calc(100vw - 28px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)));
+  width: var(--dw); margin-left: calc(var(--dw) / -2); bottom: calc(12u + env(safe-area-inset-bottom, 0px)); min-height: 112u; padding: 24u 34u 18u; }
+.mv-ui.compact .dlg-box.has-port { padding-left: 132u; }
+.mv-ui.compact .dlg-box.has-port.right { padding-left: 34u; padding-right: 132u; }
+.mv-ui.compact .dlg-port { left: 22u; bottom: 16u; width: 96u; height: 112u; }
+.mv-ui.compact .dlg-box.right .dlg-port { left: auto; right: 22u; }
+.mv-ui.compact .dlg-box.has-port .dlg-name { left: 120u; }
+.mv-ui.compact .dlg-box.has-port.right .dlg-name { left: auto; right: 120u; }
+.mv-ui.compact .dlg-text { min-height: 56u; }
+.mv-ui.compact .dlg-choices { right: calc(50% - var(--dw2, 400u)); bottom: calc(146u + env(safe-area-inset-bottom, 0px));
+  --dw2: min(400u, calc(50vw - 14px - env(safe-area-inset-right, 0px))); }
+.mv-ui.compact .dlg-choices.left { right: auto; left: calc(50% - var(--dw2, 400u)); }
+.mv-ui.touch .dlg-ch { min-height: 44px; padding: 10u 26u 10u 14u; }
+.mv-ui.touch .dlg-ch .n { width: 26u; height: 26u; line-height: 26u; }
 `);
 
 export function createDialogue(root) {
@@ -126,7 +142,10 @@ export function createDialogue(root) {
   box.addEventListener('click', () => { if (cur && G.time.real - cur.t > 0.12) advance(); });
 
   const api = {
+    root: R,
     get active() { return !!cur; },
+    /** choices are up (a tap elsewhere must not pick one) */
+    get choosing() { return !!(cur && cur.done && cur.choices); },
     /** Show one line. Resolves with the index of the chosen choice, or undefined for a plain line. */
     say(o) {
       if (typeof o === 'string') o = { text: o };

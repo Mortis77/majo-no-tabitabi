@@ -999,8 +999,13 @@ const ROCKS = {
 };
 
 /** Procedural model for a species key, or null (fall back to the asset). */
+/** Extra procedural species registered by other flora modules (countryside-species.js): key -> (G, seed) => model. */
+export const EXTRA_RECIPES = {};
+/** Builders shared with countryside-species.js. */
+export const PROC = { GB, tube, bill, card, model, bush, crossed, broadTree, rotUV, LEAF_LOOK, BLOSSOM_LOOK, DS, lin, sat, sstep };
 export function buildProcModel(G, key, sp) {
   const seed = [...key].reduce((a, c) => (a * 31 + c.charCodeAt(0)) | 0, 7);
+  if (EXTRA_RECIPES[key]) return EXTRA_RECIPES[key](G, seed);
   const box = sp.asset ? assetBox(G, sp.asset) : null;
   if (ROCKS[key]) return ROCKS[key]({ box, G }, seed);
   const f = RECIPES[key];

@@ -1,5 +1,5 @@
 import { G } from '../core/game.js';
-import { t } from '../core/i18n.js';
+import { t, raw } from '../core/i18n.js';
 
 export function makeQuests(S) {
   const talk = (id, npc, anchor = id, options = {}) => ({ id, npc, anchor, action: 'talk', ...options });
@@ -37,7 +37,8 @@ export function makeQuests(S) {
           anchor: 'franTrial',
           check: (c) => !!c.vars.franResult && !!G.state.flags.majo_trial_lake && !S.finale.active,
         },
-        talk('invest', 'fran', 'franTrial', { grant: { spells: { earth: 2 }, flags: ['majo_named', 'majo_brooch'] } }),
+        // 元素交织: Fran's last lesson — thunder, and the charged (big) form of every element she knows
+        talk('invest', 'fran', 'franTrial', { grant: { spells: { earth: 2, thunder: 2, wind: 2, water: 2, fire: 2, ice: 2 }, flags: ['majo_named', 'majo_brooch'] } }),
         talk('promise', 'mother', 'farewell', {
           done: () => G.ui?.banner?.(t('story.ui.next'), t('story.ui.road')),
         }),
@@ -69,7 +70,8 @@ export function makeQuests(S) {
             const a = S.anchor('gate'),
               p = G.player.pos;
             return (
-              G.player.onBroom && Math.abs(p.x - a.x) < 5.2 && Math.abs(p.z - a.z) < 6 && p.y < a.y + 9
+              // the great gate's arch is 13 m wide and 22.5 m high (data/city-life.js GATE)
+              G.player.onBroom && Math.abs(p.x - a.x) < 6 && Math.abs(p.z - a.z) < 8 && p.y < a.y + 21
             );
           },
         },
@@ -103,9 +105,21 @@ export function makeQuests(S) {
         talk('hat', 'saya', 'innRoom', { prompt: 'hat', grant: { flags: ['majo_saya_hat'] } }),
         talk('depart', 'saya', 'gate'),
       ].map(step),
-      onComplete() {
+      onComplete(c, skipped) {
         S.grant({ flags: ['majo_finished'] });
-        G.ui?.banner?.(t('story.ui.end'), t('story.ui.paths'));
+        const banner = () => G.ui?.banner?.(t('story.ui.end'), t('story.ui.paths', { journal: G.input?.keyLabel?.('journal') || 'J' }));
+        if (skipped || !G.ui?.showEnding) return banner();
+        // the parting at the gate closes the two episodes: a short epilogue, then the credits roll, then free travel
+        const session = S.session;
+        setTimeout(async () => {
+          if (session !== S.session) return;
+          try { await G.ui.showEnding({ lines: raw('story.ui.epilogue') || [] }); }
+          catch (e) { G.reportError('story:ending', e); }
+          if (session !== S.session) return;
+          if (G.mode === 'ending') G.setMode('play');
+          banner();
+          S.save();
+        }, 1200);
       },
     },
   };

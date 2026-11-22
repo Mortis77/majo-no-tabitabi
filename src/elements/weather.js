@@ -5,6 +5,7 @@ import { G } from '../core/game.js';
 import { makeNoise2D, smoothstep } from '../core/util.js';
 
 const nz = makeNoise2D(4242);
+const _mood = new THREE.Color();
 const DROPS = 3200;
 
 const rainVS = /* glsl */`
@@ -173,7 +174,8 @@ export function createWeather(E) {
     rain(x, z, r = 18, duration = 20) {
       const W = G.world;
       const gy = W.heightAt(x, z);
-      const zone = { x, z, r, duration, t: 0, gy, top: Math.max(gy, W.seaLevel) + 24, fade: 0, soakT: 0, dead: false };
+      // vx / vz: drift (a gust pushes the cloud, 元素交织 squall); mood: null | 'storm' | 'hail' (fusions recolour the cloud)
+      const zone = { x, z, r, duration, t: 0, gy, top: Math.max(gy, W.seaLevel) + 24, fade: 0, soakT: 0, dead: false, vx: 0, vz: 0, mood: null };
       zone.remove = () => { zone.t = Math.max(zone.t, zone.duration); };
       makeZoneVisual(zone);
       zone.cloud.position.set(x, zone.top + 1.5, z);
@@ -266,14 +268,24 @@ export function createWeather(E) {
         q.t += dt;
         q.fade = Math.min(1, q.t / 1.2) * (1 - smoothstep(q.duration, q.duration + 1.8, q.t));
         if (q.t > q.duration + 2) { disposeZone(q); zones.splice(i, 1); continue; }
-        const lightK = 0.12 + 0.88 * (G.world.daylightAt(q.x, q.z)); // unlit streaks: dim under the Veil (was 0.35 floor)
         const rm = q.rain.material.uniforms, cm = q.cloud.material.uniforms;
+        if (q.vx || q.vz) {   // drifting on a gust
+          q.x += q.vx * dt; q.z += q.vz * dt;
+          const kk = Math.exp(-0.9 * dt); q.vx *= kk; q.vz *= kk;
+          if (Math.abs(q.vx) + Math.abs(q.vz) < 0.05) q.vx = q.vz = 0;
+          q.gy = G.world.heightAt(q.x, q.z);
+          rm.uCenter.value.set(q.x, q.z);
+          q.cloud.position.x = q.x; q.cloud.position.z = q.z;
+        }
+        const lightK = 0.12 + 0.88 * (G.world.daylightAt(q.x, q.z)); // unlit streaks: dim under the Veil (was 0.35 floor)
         rm.uTime.value = t; rm.uFade.value = q.fade; rm.uTop.value = q.top; rm.uBottom.value = q.gy - 8;
         rm.uWind.value.set(breeze.x, breeze.z);
         rm.uColor.value.setRGB(0.62 * lightK + 0.1, 0.7 * lightK + 0.12, 0.8 * lightK + 0.16);
         cm.uTime.value = t; cm.uFade.value = q.fade;
         cm.uDark.value.setRGB(0.1 + 0.09 * lightK, 0.11 + 0.1 * lightK, 0.14 + 0.12 * lightK);
         cm.uLit.value.setRGB(0.2 + 0.25 * lightK, 0.22 + 0.27 * lightK, 0.27 + 0.3 * lightK);
+        if (q.mood === 'storm') { cm.uDark.value.multiplyScalar(0.55).add(_mood.setRGB(0.03, 0.0, 0.06)); cm.uLit.value.multiplyScalar(0.7).add(_mood.setRGB(0.06, 0.02, 0.12)); }
+        else if (q.mood === 'hail') { rm.uColor.value.setRGB(0.78 * lightK + 0.18, 0.86 * lightK + 0.18, 0.95 * lightK + 0.2); cm.uLit.value.add(_mood.setRGB(0.08, 0.12, 0.16)); }
         q.cloud.rotation.y += dt * 0.02;
         if (q.t < q.duration && q.t > 0.4) {
           q.soakT -= dt;

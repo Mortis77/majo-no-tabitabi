@@ -1,12 +1,15 @@
 // World-space plant communities. A fixed seed keeps individual plants in place through LOD changes.
 import * as THREE from 'three';
-import { noise2, mulberry32 } from '../../core/util.js';
+import { noise2, mulberry32, smoothstep } from '../../core/util.js';
 import { FIELD_LIMIT, JOURNEY_POI, journeyIndoor } from '../../data/journey-map.js';
 import { TRIAL_LAKE, floodedTrialHeight, trialViewHeight, trialViewOpening } from '../trial-lake.js';
 import { plantForestStands } from './forest-stands.js';
 import { crownColors, treeCommunity } from './travel-canopy.js';
 import { WAYSIDES } from '../../data/waysides.js';
 import { bellPaving } from '../../data/bellcrown.js';
+import { countryPlan, zoneWeights } from './countryside-plan.js';
+import { plantCountryside } from './countryside-scatter.js';
+import { landmarkAt } from '../../data/landmarks.js';
 
 export const STRIDE = 16;
 const palette = values => values.map(value => new THREE.Color(value).toArray());
@@ -28,12 +31,25 @@ export function scatter(world, density = 1) {
   function plant(id, x, z, scale, tones, tilt = .12, mineral = false) {
     const y = world.heightAt(x, z);
     if (y < .1 || journeyIndoor(x, z, 1) || bellPaving(x, z, 1) || world.isReserved(x, z, 1)) return;
+    // map round: landmarks keep their ground (a flower valley only loses its trees and rocks)
+    const lm = landmarkAt(x, z, 1.5);
+    if (lm && (lm.kind !== 'flowerValley' || !/^flower|^fern|^bush/.test(id))) return;
     if (!result.has(id)) result.set(id, []);
     const tint = choose(tones);
     result.get(id).push(x, y - .06, z, random() * 2 * Math.PI, scale,
       (random() - .5) * tilt, (random() - .5) * tilt,
       ...(mineral ? neutral : tint), ...(mineral ? tint : neutral), 0, 0, random());
   }
+  // map round: one exact instance (yaw / pitch given), used by the countryside planting
+  function put(id, x, z, rot, scale, rgb, o = {}) {
+    const y = world.heightAt(x, z);
+    if (!o.force && (y < .1 || journeyIndoor(x, z, 1) || bellPaving(x, z, 1) || world.isReserved(x, z, .5) || landmarkAt(x, z, .5))) return false;
+    if (!result.has(id)) result.set(id, []);
+    result.get(id).push(x, (o.y ?? y) - (o.sink ?? .06), z, rot, scale, o.tx || 0, o.tz || 0,
+      ...(o.mineral ? neutral : rgb), ...(o.mineral ? rgb : neutral), 0, 0, random());
+    return true;
+  }
+  const plan = countryPlan(world), zw = [0, 0, 0, 0];
   const pitch = 15;
   for (let iz = -FIELD_LIMIT; iz < FIELD_LIMIT; iz += pitch) {
     for (let ix = -FIELD_LIMIT; ix < FIELD_LIMIT; ix += pitch) {
@@ -48,14 +64,21 @@ export function scatter(world, density = 1) {
       const forest = Math.hypot(x - JOURNEY_POI.forest.x, z - JOURNEY_POI.forest.z) < 148;
       const wooded = forest || canopy > .23 || (h > 65 && detail > .05);
       const edge = road < 14;
-      const treeChance = wooded ? .47 : edge ? .19 : .035;
+      // map round: open land is composed by the countryside plan (copses, landmark trees, hedgerows, orchards);
+      // only a few strays and roadside trees stay random. Fields belong to their crops.
+      zoneWeights(x, z, zw);
+      const heathW = Math.max(zw[1], zw[2]);
+      if (!forest && plan.fieldAt(x, z, 2.5)) continue;
+      // natural woods outside the stands gather into groves with glades between them (not an even savanna)
+      const clump = forest ? 1 : smoothstep(0, .3, noise2(x / 48 + 31, z / 48 - 17));
+      const treeChance = wooded ? (forest ? .47 : .03 + .82 * clump * clump) * (1 - .5 * heathW) : (edge ? .08 : .007) * (1 - .6 * heathW) * (1 - .7 * zw[0]);
       const wayside = WAYSIDES.some(p => Math.abs(x-p.x)<p.radius && Math.abs(z-p.z)<p.radius);
       if (!wayside && road > 7 && !trialViewOpening(x,z) && random() < treeChance * (.7 + .3 * density)) {
         const tree=treeCommunity(x,z,h,river,wooded,forest,random);
         plant(tree.key, x, z, (wooded ? 1.1 : .92) + random() * .76, crowns[tree.type], .07);
         if (wooded && random() < .49) plant('fern1', x + 2, z + 2, .92 + random() * .6, undergrowth);
       }
-      if (random() < (.19 + .27 * Number(edge || river < 28 || detail > .1)) * density) {
+      if (random() < (.19 + .27 * Number(edge || river < 28 || detail > .1)) * density * (river < 22 ? 1 : 1 - .85 * heathW)) {
         const type = river < 22 ? choose(['reed1','reed2']) : wooded ? 'fern2' : choose(blossoms);
         const colors = type.startsWith('flower') ? petals : undergrowth;
         const count = (wooded ? 4 : 7) + Math.floor(random() * (wooded ? 5 : 9));
@@ -70,7 +93,7 @@ export function scatter(world, density = 1) {
         plant('logMoss', x, z, .8 + random() * .6, stone, .1, true);
         plant('mushSmall1', x + .8, z + .8, .7 + random() * .4, undergrowth);
       }
-      if (road > 10 && random() < (h > 57 ? .085 : .017) * density) {
+      if (road > 10 && random() < ((h > 57 ? .085 : .017) + .05 * zw[2] + .025 * zw[3]) * density) {
         const type = h > 60 && detail > .12 ? choose(outcrops) : choose(['boulder2','moss2']);
         plant(type, x, z, .7 + random() * (h > 60 ? 2.5 : 1.1), stone, .35, true);
       }
@@ -193,5 +216,6 @@ export function scatter(world, density = 1) {
       if (clumps.length === 2) break;
     }
   }
+  try { result.countryside = plantCountryside(world, density, put); } catch (e) { console.error('[flora] countryside', e); }
   return result;
 }

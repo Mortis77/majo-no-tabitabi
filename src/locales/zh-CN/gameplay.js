@@ -113,6 +113,7 @@ export default {
     result: '{medal} · {t} 秒',
   },
   shop: {
+    city_shop: '旅馆柜台',
     village_dango: '面包摊',
     town_shop: '千灯钟镇杂货铺',
     altar: '月之泪祭坛',
@@ -120,13 +121,13 @@ export default {
     level: '{lv}/{max} 段',
   },
   upgrade: {
-    hp: { name: '生命之绳', desc: '系在腰间的红绳。最大生命 +20。' },
-    mana: { name: '灵力之铃', desc: '一声清音，心神澄明。最大灵力 +20。' },
-    broom: { name: '星帚之羽', desc: '给星帚添一根羽毛，飞得更快。' },
-    charm: { name: '朱砂灵符', desc: '用上好的朱砂画符，灵符更有劲。' },
+    hp: { name: '旅人的护符', desc: '缀着小宝石的护身符，贴身带着。最大体力 +20。' },
+    mana: { name: '魔力水晶', desc: '握在手心微微发凉。最大魔力 +20。' },
+    broom: { name: '新扎的扫帚穗', desc: '换上一束更轻的穗子，扫帚飞得更快。' },
+    charm: { name: '杖尖宝石', desc: '镶在魔杖尖上，魔力弹更有劲。' },
   },
   item: {
-    stardust: { name: '旅费', desc: '夜空掉下来的小亮片。千灯钟镇的人拿它买东西。' },
+    stardust: { name: '旅费', desc: '旅途中攒下的星屑，在魔法使之国的旅馆柜台可以换东西。' },
     moontear: { name: '月之泪', desc: '胧大人落下的泪，凉凉的，会发光。四滴可在祭坛换一分力气。' },
     dango: { name: '旅行面包', desc: '松软的圆面包，可以在旅行途中恢复体力。' },
     apple: { name: '苹果', desc: '脆生生的。回复 12 生命。' },

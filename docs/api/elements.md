@@ -40,3 +40,83 @@ Ground fire tunables: 2 m cells, cap 420, each cell burns 4.2–6.4 s and spread
 - Grass-fire smoke: kit smoke puffs that rise (1.8 m/s) and fray, radius 1.0–2.2 m, two puffs per patch every 0.45 s.
 - Reactions each have a shape in fx.magic (steam column, freeze crystals + frost feathers, conduct ground arcs, fire whirl, …).
 - Known shortfall: burnt ground shows cream-orange patches at night (terrain scorch shading).
+
+## Element weaving (元素交织, play-upgrade 2026-11-22)
+Combining elements is now the point of the system. Everything follows a few general rules, the same for foes, the heroine,
+props and the ground (a "chemistry" lens: elements change materials, elements change other elements, materials never change
+materials directly):
+- **water in any form** — a wet thing, a puddle, spell rain, a steam cloud — **+ thunder → charged** (conduct ×1.6, chains;
+  a charged puddle shocks whoever stands in it; rain becomes a thunder cloud; steam becomes a charged fog),
+  **+ ice → frozen** (wet foe freezes; puddle → ice sheet that freezes those standing in it; rain → hail; steam → rime/frost),
+  **+ fire → steam** (×1.3 on a wet foe; puddle → steam cloud; rain → warm fog), **+ earth → mud** (wet foe → muddy/slowed;
+  puddle or rain-soaked ground → mud).
+- **fire melts ice** (frozen foe ×2; ice sheet / frost → puddle; her ice dais → steam explosion; ice on lava → steam explosion).
+- **wind carries what it touches** (burning things spread, her own fireballs swell, steam drifts, rain clouds drift, a tornado
+  takes on fire / thunder / ice / water). **thunder on fire bursts it** (overload ×1.5, the flames leap to things near).
+- **earth + fire → molten rock** (a pillar raised through burning grass, a meteor crater) — water quenches it, ice blasts it.
+- **friendly fire**: statuses of a field (wet, chilled, muddy, set alight) apply to everyone standing in it; damage spares the
+  caster's side, exactly like apply().
+
+### Statuses (Reactor)
+`muddy` and `chilled` (seconds left) join burning / wet / frozen / shocked / lit; STATUSES lists all seven.
+- **★ `reactor.speedMul`** — 0 frozen, 0.45 muddy, 0.7 chilled, else 1. **Owners should multiply their movement by it.**
+  Until they do, elements scales the horizontal step of every creature mover (owner.pos) in its lateUpdate. An owner that
+  applies speedMul itself sets `owner.handlesSlow = true` (or set `G.elements.ownerHandlesSlow = true` for everyone).
+  The heroine is never touched by that fallback (player.js would have to read `P.reactor.speedMul`).
+- chilled + ice → freezes even when dry. Fire removes chilled.
+
+### Multipliers (hinfo.mult, consts.js MULT)
+conduct 1.6 (wet / in water, chained hits too), steam 1.3 (fire on a wet living thing, water on a burning one), melt 2 (fire on
+frozen), shatter 3 (earth / heavy / thunder on frozen), overload 1.5 (thunder on burning). Shade multipliers stack on top.
+hinfo.reaction is one of: conduct steam melt freeze shatter overload fan mire ignite extinguish purify resonate split, plus
+`lava`, `chargedfog`, `steamblast` for field / fusion damage. Field and fusion damage carries `hinfo.fusion = true`.
+
+### Ground fields (src/elements/fields.js)
+Kinds: `puddle` 水洼 (water landing on ground), `charged` 电光水洼, `icesheet` 冰封水洼, `steam` 蒸汽云, `mud` 泥沼,
+`frost` 霜地 (a big ice burst), `lava` 熔岩. Field = `{ id, kind, x, z, y, r, t, life, power, team, source }`. ≤ 18 at once;
+the same kind overlapping grows / refreshes. Ice sheets and charged water fall back to puddles; spell rain quenches lava.
+Steam swallows hostile fire projectiles flying into it. Looks are persistent G.fx.shape handles + timed kit accents.
+- **★ `G.elements.fieldAt(pos, kind?)`** → the most recent field holding (pos.x, pos.z) (pos.y optional: feet within ~1.9 m of
+  the surface; steam: inside the 4.6 m cloud) or null.
+- `G.elements.fieldsNear(pos, r, cb)`, `G.elements.fields` (live array, read-only).
+- `G.elements.addField(kind, x, z, r, { life, power, team, source })` → field | null (not on open water except steam).
+  Map / landmark code may pre-place puddles, mud, frost.
+- `G.elements.touchGround(element, pos, radius, power, info)` → the ground half of apply() without hitting reactors (used by
+  the rising rock pillar: puddle → mud, burning grass → lava).
+- **★ `G.elements.concealedAt(pos)`** → true inside a steam cloud. **Combat: foes should not acquire / keep the heroine as a
+  target while `G.elements.concealedAt(G.player.pos)`** (and a foe inside one is easy to lose).
+
+### Combos, discoveries
+- Catalogue: `src/elements/catalog.js` COMBOS (also `G.elements.COMBOS`): id → { kind 'reaction'|'field'|'fusion', els, mult?, big? }.
+  29 entries. Words: `elements.combo.<id>.{name, recipe, desc, hint}`.
+- **Event `'element:combo'`** `{ id, kind, els, pos, team, mult, count, big, quiet }` — every reaction on a living thing,
+  every field change and every fusion. `quiet` = a repeating tick (no callout).
+- **Event `'element:discovered'`** `{ id, pos, total, of }` — first time the player's team causes a combo; persisted in
+  `G.state.elementNotes[id]` (count). The UI toasts it and fills the journal page.
+- `G.elements.combo(id, pos, { team, mult, count, big, quiet })` — emit one yourself (e.g. a boss with its own fusion).
+- `G.elements.blast(pos, R, { element, team, source, damage, mult, reaction, impulse, up, soak })` → count — raw area hit on
+  living reactors (friendly-fire rule) + physics push.
+- `G.elements.addStatus(r, 'muddy'|'chilled'|'wet'|'shocked', sec)`, `G.elements.statusesOf(r, out?)` → [{ id, t }]
+  (frozen, burning, shocked, wet, muddy, chilled), `G.elements.active` (Set of reactors that carry a status).
+- `'element:applied'` now also carries `info` (the apply() info object; read only).
+
+### Fusions (src/spells/fusions.js — her own lingering spells)
+Tornado (wind big) + fire 炎旋 / thunder 雷旋 / ice 冰旋 / water 水龙卷 (cast into it, shoot through it, or rain on it);
+rain cloud (water big) + thunder 雷雨云 (strikes foes under it ~1/s) / ice 冰雹 (hail + frost) / fire 暖雾 (fog bank) /
+wind 骤雨 (the cloud drifts on the gust); rock pillar + thunder 引雷石柱 (the pillar is conductive: it arcs to the nearest foe
+every 0.45 s for 6.5 s, then crumbles; strikes on it chain to wet foes); ice dais + her fire 蒸爆; meteor into a lake 巨浪
+(soaks r 16, shore puddles); meteor on land leaves lava in the crater; a gust through her own flying fireballs 风火.
+Only the same team fuses; fusion effects carry `info.fusion` and never fuse again. Rain zones got `vx, vz` (drift) and
+`mood` (null | 'storm' | 'hail').
+
+### UI (src/ui/reactions.js, G.ui.reactions)
+Callouts at the meeting point (brush stroke in the two elements' colours, ×mult, a kicker on fusions; on a creature they
+sit at its top + 2 m, above combat's foe plate); status marks over foes and creatures within 40 m (≤ 10, up to 4 pips with
+draining rings) hang just BELOW the point top + 1.05 m — the anchor of combat's plates (src/ui/foes.js), so a plate and
+the marks stack without overlapping. `G.ui.reactions.pips = false` hides the marks if another module draws statuses.
+Journal → 「元素笔记」 page (third sub-tab): every combo, discovered ones with recipe / text / multiplier / count, unknown
+ones with a hint. A toast on each first discovery; a toast when the story grants thunder / big forms.
+
+### Story
+Fran's last lesson (`invest`) now grants thunder 2 and the big forms of wind / water / fire / ice (earth 2 as before);
+story.js start() back-fills saves past `majo_named`; such a save gets one toast on load (`flags.elementsKit`).

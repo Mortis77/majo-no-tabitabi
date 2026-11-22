@@ -88,3 +88,55 @@ unchanged (the same number of nodes).
 **Requests (not done here).** `title.js`: draw `.tt-name .nm` from `handLetteringUrl(t('core.title'))` when present
 (mask the painted inscription, keep the text node), else `var(--ft)`; `stage.js` could likewise use `handLettering`
 for a place-name card whose name has a painted version (only 向日神社 today).
+
+## Touch and small screens (mobile round, 2026-11-22)
+**How it plays.** On a phone or tablet held sideways the game shows thumb controls over the HUD (`src/ui/touch.js`).
+Left half: a floating stick appears where the thumb lands; walking speed follows how far it is pushed (analog: half
+push = half speed), on the broom its sideways push turns the flight. Right half: drag to turn the view. Right-thumb
+buttons (ink discs with a gold ring, placed from the bottom-right corner, size/opacity in settings): 魔力弹 (hold =
+stream), 施法 (wears the selected element; tap = small form, hold-and-release = charged big form, charge ring and
+cooldown sweep on the disc), 换魔法 (tap = next known magic, hold = the magic wheel, flick from it = choose at once;
+an opened wheel waits for a tapped slot), 跳跃 (on the broom: hold to climb), 闪身 / 下降 (broom), 防护 (hold), 唤帚,
+疾跑 / 加速 toggle, 面包 (count badge), 锁定 (only in a fight), and a contextual 互动 button that appears with the verb
+of the current prompt. Dragging on 魔力弹 / 施法 also aims. Top-right: pause and map. In a conversation a tap anywhere
+reads on (a choice must be tapped itself); in a skippable cutscene a hold on 跳过 skips; on the ending a finger reads on
+and, held, hurries the credits. Held upright, a card asks to turn the phone and the pause scroll opens beneath it.
+
+**Detection** (`src/ui/touchenv.js`): `?touch=1|0`, else `settings.touch` 'on'|'off', else 'auto' = coarse primary
+pointer (or a touchscreen laptop from its first touch until a real mouse press). In touch mode `G.input.touch = true`
+(pointer lock is never requested), `.mv-ui.touch` is on the UI root, `UI.touch = true`. First tap: fullscreen +
+`screen.orientation.lock('landscape')` where supported; iPhone Safari gets a one-line home-screen hint on the title.
+Browser gestures: Safari gesture events and multi-finger moves (except on the map) are prevented; the page shell has
+`touch-action: manipulation`, `overscroll-behavior: none`, no callouts / tap highlight; the canvas `touch-action: none`.
+
+**Scale** (`style.js applyScale`): with touch, `--u = max(desktop rule, min(0.9, h/470, w/820))` (0.83 at 844×390,
+0.80 at 667×375, 0.9 on tablets). `.mv-ui.compact` when the screen holds less than ~1180×660 units: menu, shop, title
+sheets, confirm slip, dialogue, learn and ending are clamped to the screen (`min(…u, 100vw/100dvh − insets)`), the
+wheel scales to the height. SAFE rules add `env(safe-area-inset-*)` to the HUD corners, toasts, dialogue and skip hint
+(0 on a desktop: nothing moves there). In touch mode the HUD drops the key hints, the key prompt and the spell
+cluster (all on the buttons), the tracker sits left of the pause/map column (objective clamped to two lines) and edge
+pins stay above the thumbs.
+
+**API.**
+- `G.input.virtual`: `down(action)` / `up(action)` (by ACTION name: rebinding never breaks a button), `move(x, y)`
+  analog stick −1..1 (keys win; mode-gated like held()), `key(code, on)` raw code (UI confirm = 'Enter'), `isDown`,
+  `releaseAll()`. `G.input.touch`. `setKeyLabelHook(fn)` (core/input.js): touch mode names buttons in `{key}` texts
+  (`ui.touch.key.*`, e.g. 「施法」).
+- `player.js readInput`: `I.wish = min(1, |move|)` (keys: always 1).
+- `G.ui.touch`: `{ on, ctx, root, where(id) -> {x,y,w}|null, stick -> {x,y,cx,cy,r,active}, releaseAll(), apply() }`.
+  `G.ui.prompt(text)` also feeds the interact button's verb. Wheel: `openTouch()`, `touchVec(dx,dy)`,
+  `touchRelease(commit)`, `touchOpen`. Dialogue: `choosing`, `root`. `UI.mapView` (map pan/zoom, tests).
+- Settings (`defaultSettings`): `touch: 'auto'|'on'|'off'`, `touchSize` 0.7–1.25, `touchAlpha` 0.25–1, `touchSens` 0.3–3
+  (look px per finger px = 2.6 × touchSens; mouse `sens` does not apply to touch). Settings panel: a 触屏 section on
+  any touch-capable device; in touch mode the key list and mouse speed are hidden, 操作 shows the touch guide.
+- Quality (`gpubench.js mobileDevice()`): a phone / tablet starts on 'low' (pixel ratio 1, dynamic resolution on)
+  without the probe; a tier the probe picked on one before is picked again; a tier the player chose is kept.
+
+**Rules for other UI.** New HUD layers that sit over the 3D picture: `pointer-events: none`, created before the touch
+layer or at least below `.mv-dlg` (the touch layer is inserted right after the stage layers); keep clear of the lower
+right (buttons) and the left-lower quarter (stick); a new modal goes in `UI.host` and the touch layer hides itself
+while any modal is open. Never read `Mouse0` / key codes for something a player must do — read actions
+(`G.input.pressed('attack')`), so the touch buttons drive it too.
+
+**Testing.** `.tmp/agents/mobile/run.mjs` (CDP: `Emulation.setDeviceMetricsOverride` mobile + `setTouchEmulationEnabled`,
+real `Input.dispatchTouchEvent`), scenarios `sc-*.mjs` there.

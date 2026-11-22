@@ -1,7 +1,7 @@
 // Elements, materials and tunables of 万物相生 (DESIGN §3.2). Pure data.
 
 export const ELEMENTS = ['fire', 'water', 'ice', 'wind', 'thunder', 'earth', 'sun', 'moon'];
-export const STATUSES = ['burning', 'wet', 'frozen', 'shocked', 'lit'];
+export const STATUSES = ['burning', 'wet', 'frozen', 'shocked', 'lit', 'muddy', 'chilled'];
 
 /**
  * Per-material defaults.
@@ -36,7 +36,14 @@ export const T = {
   CHAIN_RANGE: 8,     // thunder hops this far between conductors
   CHAIN_MAX: 24,
   SPREAD_EVERY: 0.4,  // a burning reactor tries to spread this often
+  MUDDY: 5,           // earth on something wet / standing in mud: slowed (speed × MUD_SLOW)
+  CHILL: 4,           // frost ground / ice sheet / hail: slowed (× CHILL_SLOW); ice freezes it even when dry
+  MUD_SLOW: 0.45,
+  CHILL_SLOW: 0.7,
 };
+
+/** Damage multipliers of the reactions (hinfo.mult): combining elements is worth it. */
+export const MULT = { steam: 1.3, melt: 2, shatter: 3, conduct: 1.6, overload: 1.5 };
 
 /** Ground fire. */
 export const FIRE = {

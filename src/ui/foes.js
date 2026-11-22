@@ -1,0 +1,176 @@
+// Foe plates and the combo meter (combat's UI; ui.js creates it and calls update / late).
+//   plates: up to 6 engaged foes near her (and the lock target): name (elites in gold with their title), a brush-stroke
+//           hp bar with a trailing ghost, the elemental ward as a coloured bar with the element that breaks it,
+//           affix chips and a 破绽 tag while a foe is open (status marks are drawn by ui/reactions.js just below).
+//   combo:  the chain count, 连击, and the rank word of the fight so far; it pops on rank-ups and fades after the window.
+// G.ui.foePlates = true tells enemy.js to hide its old floating 3D bars.
+import * as THREE from 'three';
+import { G } from '../core/game.js';
+import { t } from '../core/i18n.js';
+import { clamp } from '../core/util.js';
+import { UI, el, setText, setOn, replay } from './dom.js';
+import { icon, EL_COLOR, hasIcon } from './icons.js';
+import { addCss } from './style.js';
+
+addCss(`
+.foe-layer { position: absolute; inset: 0; pointer-events: none; }
+.foe-plate { position: absolute; left: 0; top: 0; width: 120u; margin-left: -60u; display: none; will-change: transform; text-align: center; }
+.foe-plate.on { display: block; }
+.foe-plate .nm { font: 600 11u/1.25 var(--fb); letter-spacing: .12em; color: var(--paper); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  text-shadow: 0 1u 2u rgba(8,6,14,.95), 0 0 5u rgba(8,6,14,.7); }
+.foe-plate.elite .nm { color: #ffe08a; font-weight: 700; }
+.foe-plate.lock .nm { color: #fff3d0; }
+.foe-plate .hp { position: relative; height: 7u; margin: 2u 6u 0; background: rgba(14,12,22,.72); overflow: hidden;
+  -webkit-mask: var(--mk-brush1) center / 100% 100% no-repeat; mask: var(--mk-brush1) center / 100% 100% no-repeat; }
+.foe-plate .hp i { position: absolute; inset: 0; transform-origin: 0 50%; will-change: transform; }
+.foe-plate .hp .ghost { background: rgba(255,238,205,.8); }
+.foe-plate .hp .fill { background: linear-gradient(180deg, #ff9a78 0%, #e0503a 50%, #b2301f 100%); }
+.foe-plate.elite .hp .fill { background: linear-gradient(180deg, #ffd58a 0%, #e8962e 50%, #b8661a 100%); }
+.foe-plate .wd { display: none; align-items: center; gap: 3u; margin: 2u 6u 0; }
+.foe-plate .wd.on { display: flex; }
+.foe-plate .wd .bar { flex: 1; height: 4u; border-radius: 2u; background: rgba(14,12,22,.7); overflow: hidden; position: relative; }
+.foe-plate .wd .bar i { position: absolute; inset: 0; transform-origin: 0 50%; background: var(--wc); box-shadow: 0 0 4u var(--wc); }
+.foe-plate .wd .ic { font-size: 10u; color: var(--wc); filter: drop-shadow(0 0 2u rgba(0,0,0,.9)); }
+.foe-plate .wd .ans { font: 600 9u/1 var(--fb); color: var(--ac); text-shadow: 0 1u 2u rgba(0,0,0,.9); white-space: nowrap; }
+.foe-plate .wd.down .bar i { opacity: .25; }
+.foe-plate .ch { display: flex; justify-content: center; gap: 3u; margin-top: 2u; height: 13u; }
+.foe-plate .ch span { display: none; font: 600 9u/13u var(--fb); padding: 0 4u; border-radius: 6u; background: rgba(14,12,22,.72); color: var(--paper);
+  box-shadow: inset 0 0 0 1u currentColor; }
+.foe-plate .ch span.on { display: inline-block; }
+.foe-plate .ch .st { color: var(--sc); padding: 0 3u; }
+.foe-plate .ch .st .ic { font-size: 10u; vertical-align: -1u; }
+.foe-plate .ch .ex { color: #ffe7a4; animation: mv-pulse .5s infinite; }
+.foe-plate .ch .af { color: #ffd27a; }
+
+.foe-combo { position: absolute; right: 34u; top: 46%; text-align: right; opacity: 0; transition: opacity .35s; }
+.foe-combo.on { opacity: 1; }
+.foe-combo .n { font: 700 38u/1 var(--ft); color: var(--paper); letter-spacing: .02em;
+  text-shadow: 0 2u 3u rgba(8,6,14,.95), 0 0 10u rgba(255,200,120,.35); }
+.foe-combo .lb { font: 600 12u/1.2 var(--fb); letter-spacing: .4em; color: var(--gold2); text-shadow: 0 1u 2u rgba(8,6,14,.95); }
+.foe-combo .rk { font: 700 17u/1.3 var(--ft); letter-spacing: .3em; color: #ffe08a; text-shadow: 0 1u 3u rgba(8,6,14,.95), 0 0 8u rgba(255,190,90,.5); min-height: 22u; }
+.foe-combo .rk.pop { animation: foe-pop .5s cubic-bezier(.2,.8,.2,1.4); }
+@keyframes foe-pop { from { transform: scale(1.7); opacity: .2; } }
+`);
+
+const _v = new THREE.Vector3();
+const MAX = 6;
+const AFFIX_SHOW = 2;
+
+export function createFoes(root) {
+  const layer = el('div', 'foe-layer', root);
+  const plates = [];
+  for (let i = 0; i < MAX; i++) {
+    const p = el('div', 'foe-plate', layer);
+    const nm = el('div', 'nm', p);
+    const hp = el('div', 'hp', p);
+    const ghost = el('i', 'ghost', hp), fill = el('i', 'fill', hp);
+    const wd = el('div', 'wd', p);
+    const wic = icon('fire', 'ic', wd);
+    const wbar = el('i', '', el('div', 'bar', wd));
+    const ans = el('span', 'ans', wd);
+    const ch = el('div', 'ch', p);
+    const ex = el('span', 'ex', ch);
+    const af = [];
+    for (let k = 0; k < AFFIX_SHOW; k++) af.push(el('span', 'af', ch));
+    plates.push({ p, nm, ghost, fill, wd, wic, wbar, ans, ex, af, e: null, f: -1, g: 1, gw: -1, wf: -1, key: '', x: -1, y: -1, s: -1, wel: '' });
+  }
+  const combo = el('div', 'foe-combo', root);
+  const cN = el('div', 'n', combo), cL = el('div', 'lb', combo), cR = el('div', 'rk', combo);
+  let comboShown = -1, rankShown = -1;
+  const list = [];
+
+  function nameOf(e) {
+    let n = t('combat.enemy.' + e.type);
+    if ((e.type === 'caster' || e.type === 'raider') && e.data?.el) n = t('combat.plate.mage', { name: n, el: t('core.element.' + e.data.el) });
+    if (e.named) n = t('combat.plate.named', { title: t('combat.elite.' + e.named), name: n });
+    else if (e.elite && e.affixes?.length) n = t('combat.plate.elite', { affix: t('combat.affix.' + e.affixes[0]), name: n });
+    return n;
+  }
+  function pick() {
+    list.length = 0;
+    const C = G.combat, P = G.player;
+    if (!C || !P || G.mode !== 'play') return list;
+    const lt = C.lockTarget;
+    for (const e of C.enemies) {
+      if (e.dead || e.dormant || e.def.noBar || e.boss) continue;
+      const d = e.pos.distanceTo(P.pos);
+      const hot = e.aggro || G.time.t - e.lastHitT < 4 || e === lt;
+      if (!hot || d > 48) continue;
+      list.push({ e, d: e === lt ? -1 : d });
+    }
+    list.sort((a, b) => a.d - b.d);
+    if (list.length > MAX) list.length = MAX;
+    return list;
+  }
+  function bar(pl, frac, rdt) {
+    frac = clamp(frac);
+    if (pl.g < frac) pl.g = frac; else if (pl.g - frac > 0.001) pl.g = Math.max(frac, pl.g - Math.max(0.05, (pl.g - frac) * 1.6) * rdt); else pl.g = frac;
+    const f = Math.round(frac * 200) / 200, g = Math.round(pl.g * 200) / 200;
+    if (f !== pl.f) { pl.f = f; pl.fill.style.transform = `scaleX(${f})`; }
+    if (g !== pl.gw) { pl.gw = g; pl.ghost.style.transform = `scaleX(${g})`; }
+  }
+  const api = {
+    update(rdt) {
+      // combo
+      const K = G.combat?.combo;
+      const on = !!K && G.mode === 'play' && K.count >= 3 && K.t < 3;
+      setOn(combo, on);
+      if (on) {
+        if (K.count !== comboShown) { comboShown = K.count; setText(cN, String(K.count)); setText(cL, t('combat.combo.label')); }
+        if (K.rank !== rankShown) { rankShown = K.rank; setText(cR, K.rankName(K.rank)); if (K.rank > 0) replay(cR, 'pop'); }
+      } else if (K && K.rank !== rankShown && K.rank === 0) { rankShown = 0; setText(cR, ''); }
+    },
+    late(rdt = 0.016) {
+      const cam = G.camera;
+      const L = pick();
+      for (let i = 0; i < MAX; i++) {
+        const pl = plates[i], it = L[i];
+        if (!it || !cam) { if (pl.e) { pl.e = null; setOn(pl.p, false); } continue; }
+        const e = it.e;
+        _v.set(e.pos.x, e.pos.y + e.height + 1.05, e.pos.z).applyMatrix4(cam.matrixWorldInverse);
+        if (_v.z > -0.3) { setOn(pl.p, false); continue; }
+        const depth = -_v.z;
+        _v.applyMatrix4(cam.projectionMatrix);
+        if (Math.abs(_v.x) > 1.1 || Math.abs(_v.y) > 1.1) { setOn(pl.p, false); continue; }
+        setOn(pl.p, true);
+        if (pl.e !== e) { pl.e = e; pl.key = ''; pl.f = -1; pl.g = clamp(e.hp / e.maxHp); pl.gw = -1; pl.wf = -1; pl.wel = ''; }
+        const sx = Math.round((_v.x * 0.5 + 0.5) * UI.w), sy = Math.round((-_v.y * 0.5 + 0.5) * UI.h);
+        const sc = Math.round(clamp(1.25 - depth / 60, 0.72, 1.1) * 20) / 20;
+        if (sx !== pl.x || sy !== pl.y || sc !== pl.s) { pl.x = sx; pl.y = sy; pl.s = sc; pl.p.style.transform = `translate3d(${sx}px,${sy}px,0) translateY(-100%) scale(${sc})`; }
+        const key = e.id + '|' + (e.data?.el || '') + '|' + (G.combat?.lockTarget === e ? 1 : 0);
+        if (key !== pl.key) {
+          pl.key = key;
+          setText(pl.nm, nameOf(e));
+          pl.p.classList.toggle('elite', !!e.elite);
+          pl.p.classList.toggle('lock', G.combat?.lockTarget === e);
+          for (let k = 0; k < AFFIX_SHOW; k++) {
+            const a = e.affixes?.[k + (e.named ? 0 : 1)];
+            setOn(pl.af[k], !!a);
+            if (a) setText(pl.af[k], t('combat.affix.' + a));
+          }
+          setText(pl.ex, t('combat.exposed'));
+        }
+        bar(pl, e.hp / e.maxHp, rdt);
+        // ward
+        const w = e.ward;
+        setOn(pl.wd, !!w);
+        if (w) {
+          if (pl.wel !== w.el) {
+            pl.wel = w.el;
+            pl.wd.style.setProperty('--wc', EL_COLOR[w.el] || '#fff');
+            const c = G.combat?.counterOf?.(w.el)?.[0] || '';
+            pl.wd.style.setProperty('--ac', EL_COLOR[c] || '#fff');
+            if (hasIcon(w.el)) { pl.wic.remove(); pl.wic = icon(w.el, 'ic', pl.wd); pl.wd.insertBefore(pl.wic, pl.wd.firstChild); }
+            setText(pl.ans, c ? t('combat.ward.resist', { el: t('core.element.' + c) }) : '');
+          }
+          const wf = Math.round(clamp(w.hp / w.max) * 100) / 100;
+          if (wf !== pl.wf) { pl.wf = wf; pl.wbar.style.transform = `scaleX(${Math.max(0.001, w.hp > 0 ? wf : clamp(1 - w.downT / w.regen))})`; }
+          pl.wd.classList.toggle('down', w.hp <= 0);
+          if (w.hp <= 0) pl.wbar.style.transform = `scaleX(${Math.max(0.001, clamp(1 - w.downT / w.regen)).toFixed(2)})`;
+        }
+        setOn(pl.ex, e.exposedT > 0);
+      }
+    },
+  };
+  return api;
+}

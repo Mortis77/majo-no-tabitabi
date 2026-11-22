@@ -113,3 +113,20 @@ the same perch instead of settling elsewhere); fish groups `g.R` (home radius). 
 find / init env. Spot positions are copied from the builders' constants: if the shrine stairs or the torii tunnel move, update
 `STEPS` / `TUNNEL` in kinds.js.
 Cost: + up to ~30 agents near those spots (bird cap 96 unchanged), the same ≤ 5 draws; CPU per agent as the ambient ones.
+
+## Map round: herds, tree birds, starlings (2026-11-22)
+- `life/skinned.js` — instanced skinning: `bakeAsset(G, id, { state: [clip, fps] })` plays a rig's clips on the CPU and
+  writes every bone matrix (root space, bind pose folded in) into an RGBA32F texture (row = frame, 3 texels per bone);
+  `bakeProcedural(parts, nBones, pose, clips)` does the same for hand-built bodies; `makeHerdMesh(baked, cap)` = one
+  InstancedMesh (toon + matching depth material) with per-instance `iAnim` (rowA, rowB, mix) and `iTint`. Material /
+  texture colours are baked into vertex colours; the cel rig's outline hulls are skipped.
+- `life/rabbit.js` — procedural wild rabbit (idle sniffing, grazing, alert, hop).
+- `life/herds.js` — `G.life.herds` (also in `G.life.stats().herds`): roe deer (+ a stag), foxes, rabbits, sheep. Fixed
+  sites from the countryside plan (copse / wood edges, meadows, moor and heath, hay fields), streamed 55–260 m around her,
+  recycled past 330 m with a scale fade; graze / look up / wander; the whole herd bolts from her on foot (sooner when she
+  runs), from a low broom pass, from her landing and from every blast / spell / fire / meteor near them (the life
+  threats; `spell:meteor` added). One draw per species; shadows only while one is within 75 m. Caps follow the tier
+  (low ~45 %). `spawnAt(kind, x, z)`, `clear()`, `stats()`.
+- `kinds.js` groups: `treebirds` (finches perched on a real tree crown from `G.flora.treesNear`, bursting out as she
+  passes), `starlings` (one breathing murmuration over open country, scattering from the broom), `bees` now find lavender
+  / poppy fields, the bee garden and the flower valley. Bird cap 96 → 150.

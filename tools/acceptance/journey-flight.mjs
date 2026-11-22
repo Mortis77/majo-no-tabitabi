@@ -30,7 +30,8 @@ try{
     const draw=G.renderFrame.bind(G);
     G.renderFrame=()=>{};
     const tick=async(n=1)=>{for(let i=0;i<n;i++)await clock.step(50);};
-    const start={x:2395,z:55},finish={x:-2395,z:-475};
+    // the finish keeps clear of the enlarged City of Magic: the line passes ~30 m south of its south wall towers
+    const start={x:2395,z:55},finish={x:-2395,z:-430};
     const dx=finish.x-start.x,dz=finish.z-start.z,length=Math.hypot(dx,dz),heading=Math.atan2(dx,dz);
     G.state.abilities.broom=true;G.state.upgrades.broom=0;
     T.teleport(start.x,start.z,91);

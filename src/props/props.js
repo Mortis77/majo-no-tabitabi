@@ -7,7 +7,7 @@
 import * as THREE from 'three';
 import { G } from '../core/game.js';
 import { CATALOG } from './catalog.js';
-import { S, makeProp, removeProp, flushBreaks, updateDebris, updateRockets, debrisCount } from './prop.js';
+import { S, makeProp, removeProp, flushBreaks, updateDebris, updateRockets, debrisCount, looseDebris } from './prop.js';
 import { kitStats } from './models.js';
 import { buildRecords } from './place.js';
 
@@ -128,6 +128,9 @@ export const propsSystem = {
       get live() { return S.live; },
       get records() { return records; },
       cap: CAP,
+      /** Loose physics debris (pooled, capped, fades): debris(kind, pos, vel, { color, scale, life }) -> bool.
+       *  kinds: clod rock splinter chunk plank shard sliver ball (see prop.js looseDebris). */
+      debris: looseDebris,
       /** prop owning a physics body / reactor, or null */
       fromBody(b) { const o = b && b.owner; return o && o.def && o.type ? o : null; },
       /** Rebuild the world layout (props reset). */

@@ -175,7 +175,10 @@ export function createNoiseTexture() {
 // ---- scorch layer -----------------------------------------------------------------------------------------------------
 const TILE = 16, TN = DATA_N / TILE;
 // seconds for a full-strength mark to fade completely
-const FADE = { burn: 200, wet: 45, frost: 75 };
+// Recovery round (destruction): a full burn fades linearly over 6 min. The terrain paints char until ~4 min
+// (shader.js burnK), the grass grows back as it falls from 0.58 to 0 (2.5 -> 6 min, grass.js), so one channel carries
+// both the fading scorch and the regrowth. wet / frost unchanged.
+export const FADE = { burn: 360, wet: 45, frost: 75 };
 const CH = { burn: 0, wet: 1, frost: 2 };
 
 export class ScorchLayer {

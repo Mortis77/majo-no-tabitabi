@@ -15,13 +15,21 @@ import { createBosses } from './bosses.js';
 import { createWildlife } from './wildlife.js';
 import { creaturePoolStats } from '../actors/creature.js';
 import { warmScene, warmCreatures } from '../render/warmup.js';
+import { installBeasts } from './beasts.js';
+import { installRogues } from './rogues.js';
+import { wardHit, updateWard, poiseHit, updatePoise, affixEvent, COUNTER, counterOf } from './wards.js';
+import { updatePatterns, clearPatterns } from './patterns.js';
+import { createEncounters } from './encounters.js';
+import { createCombo } from './combo.js';
+import { createTrials } from './trials.js';
+import { warnAt, shockwave } from './attacks.js';
 
 const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _f = new THREE.Vector3();
-const SLEEP_R = 40;
+const SLEEP_R = 62;
 
 const enemies = [];
 const dying = [];
-let spawner = null, duels = null, bosses = null, wildlife = null;
+let spawner = null, duels = null, bosses = null, wildlife = null, encounters = null, combo = null, trials = null;
 let combatT = -99;
 
 const C = {
@@ -32,6 +40,13 @@ const C = {
   /** true while something is actively fighting the heroine (drives the battle music). */
   inCombat: false,
   campsEnabled: true,
+  /** set by encounters every frame: story scenes / the eclipse crossing / a trial — foes stand down */
+  calm: false,
+  /** tests: spawn journey camps even before the heroine has left home */
+  forceArmed: false,
+  /** the clearing trial (combat/trials.js) while it runs, else null */
+  trial: null,
+  counterOf,
   nestsEnabled: true,
   wildlifeEnabled: true,
   after,
@@ -59,9 +74,17 @@ const C = {
     if (!e || e.dead || !(amount > 0)) return 0;
     if (e.iframes > 0 && !info.dot) return 0;
     let n = amount;
+    let countered = false, exposed = false;
     if (!info.force) {
       if (e.def.damageScale) n *= e.def.damageScale(e, info);
       if (e.material === 'shade') n *= 1 + 0.3 * clamp(e.light);
+      if (e.exposedT > 0 && !info.dot) { n *= 1.5; exposed = true; info.mult = (info.mult || 1) * 1.5; }
+      if (e.ward && e.ward.hp > 0) {
+        const c = COUNTER[e.ward.el];
+        countered = !!(info.element && c && c.includes(info.element));
+        n = Math.max(n > 0 ? 1 : 0, wardHit(e, n, info));
+        if (!e.ward || e.ward.hp <= 0) countered = true;
+      }
     }
     if (e.onDamage) n = e.onDamage(n, info);
     if (!(n > 0)) return 0;
@@ -95,8 +118,9 @@ const C = {
       if (big) { G.hitstop(info.shatter ? 0.09 : 0.05); G.fx?.shake?.(info.shatter ? 0.3 : 0.18, 0.25); }
       if (e.cr && !e.atk && !e.cr.busy && e.cr.has('hit')) e.cr.play('hit', { once: true, speed: 1.4 });
     }
-    G.events.emit('enemy:hit', { enemy: e, amount: n, element: info.element || null, pos: e.pos.clone() });
+    G.events.emit('enemy:hit', { enemy: e, amount: n, element: info.element || null, pos: e.pos.clone(), by: info.source || null, dot: !!info.dot, countered, exposed, reaction: info.reaction || null });
     try { e.def.onDamaged?.(e, n, info); } catch (err) { G.reportError('combat:onDamaged', err); }
+    if (!e.dead) { poiseHit(e, n, info, countered); affixEvent(e, 'onDamaged', n, info); }
     if (e.hp <= 0 && !e.dead) {
       if (e.onZero) { e.hp = 0; e.onZero(info); }
       else C.kill(e, info.by || info.element || 'hit');
@@ -115,6 +139,7 @@ const C = {
     const pos = e.centerOut(new THREE.Vector3());
     e.detach();
     try { e.def.onDeath?.(e, by); } catch (err) { G.reportError('combat:onDeath', err); }
+    if (!o.silent) affixEvent(e, 'onDeath', pos);
     if (!o.silent) {
       G.fx?.burst(e.material === 'paper' ? 'hit_fire' : 'purify', pos, { scale: clamp(0.8 + e.radius * 0.8, 0.8, 3), color: e.def.dissolve });
       if (by === 'sun' || by === 'purify') G.fx?.burst('hit_sun', pos, { scale: 1.2 });
@@ -196,9 +221,22 @@ const C = {
     return C.lockTarget;
   },
 
+  /** A volatile elite's last word: a ring that bursts 1.3 s after it falls. */
+  volatileBlast(at) {
+    warnAt(at, 4.6, 1.3, 0xffb347);
+    C.after(1.3, () => { shockwave(null, at, 4.6, 16, { color: 0xffb347, burst: 'explosion', jumpable: false, knock: 8, shake: 0.35, impulse: 10 }); G.audio?.sfx('explosion', { pos: at }); });
+  },
+  get encounters() { return encounters; },
+  get combo() { return combo; },
+  get trials() { return trials; },
+
   /** Remove every enemy, wave, nest, duel, boss (not the wildlife). */
   clear() {
     duels?.abort(); bosses?.abort();
+    trials?.abort();
+    encounters?.clear();
+    clearPatterns();
+    combo?.reset();
     for (const e of enemies.slice()) C.despawn(e);
     for (const e of dying) e.dispose();
     dying.length = 0;
@@ -209,7 +247,7 @@ const C = {
   stats() {
     return { enemies: enemies.length, dying: dying.length, timers: timerCount(), awake: enemies.filter((e) => !e.dormant).length, ...creaturePoolStats(),
       wildlife: wildlife?.count || 0, camps: spawner?.camps.filter((c) => c.spawned).length || 0, nests: spawner?.nests.filter((n) => n.built).length || 0,
-      duel: duels?.active?.id || null, boss: bosses?.active?.id || null, inCombat: C.inCombat };
+      duel: duels?.active?.id || null, boss: bosses?.active?.id || null, inCombat: C.inCombat, journey: encounters?.stats?.() || null };
   },
   get spawner() { return spawner; },
   get wildlife() { return wildlife; },
@@ -217,7 +255,7 @@ const C = {
 
 function drop(e, pos) {
   const d = e.def.drops;
-  if (!d || !G.gameplay?.spawnPickup) return;
+  if (!d || !G.gameplay?.spawnPickup || e.noDrop) return;
   try {
     if (d.stardust) { const [a, b] = d.stardust; const n = a + Math.floor(Math.random() * (b - a + 1)); if (n > 0) G.gameplay.spawnPickup('stardust', pos, n); }
     // fix2: help when she is hurting — hp under 40 % raises the heart chance (every foe can drop one), under 25 % it is
@@ -242,6 +280,8 @@ function updateEnemies(dt) {
       const k = e.step(dt);
       if (!e.dead && k > 0 && !e.held) e.def.think?.(e, dt * e.k);
       else if (!e.dead && e.def.passive) e.def.passive(e, dt);
+      if (!e.dead) updatePoise(e, dt);
+      if (e.data.eliteAura) e.data.eliteAura.pos.set(e.pos.x, e.pos.y + 0.2, e.pos.z);
     } catch (err) { G.reportError('combat:enemy:' + e.type, err); }
     if (e.aggro && d < 30) combatT = G.time.t;
   }
@@ -266,7 +306,7 @@ function updateEnemies(dt) {
       if (d2 < rr * rr && d2 > 1e-6 && Math.abs(a.pos.y - P.pos.y) < 1.6) { const d = Math.sqrt(d2); a.pos.x += dx / d * (rr - d); a.pos.z += dz / d * (rr - d); }
     }
   }
-  for (const e of enemies) if (!e.dormant || e._lastRender === undefined) { e.render(dt); e._lastRender = 1; }
+  for (const e of enemies) { if (!e.dormant || e._lastRender === undefined) { e.render(dt); e._lastRender = 1; } if (e.ward) updateWard(e, dt); }
   for (let i = dying.length - 1; i >= 0; i--) {
     const e = dying[i];
     let done;
@@ -280,7 +320,13 @@ export const combatSystem = {
   name: 'combat',
   async init(G) {
     G.combat = C;
-    // These chapters only start encounters through their story triggers.
+    installBeasts(TYPES);
+    installRogues(TYPES);
+    spawner = createSpawner(C);        // waves (the clearing trial); the journey's camps live in encounters.js
+    encounters = createEncounters(C);
+    combo = createCombo(C);
+    trials = createTrials(C);
+    trials.install();
     duels = createDuels(C);
     C._duels = duels;
     bosses = createBosses(C);
@@ -340,7 +386,11 @@ export const combatSystem = {
       const lt = C.lockTarget;
       if (lt && (lt.dead || !G.player || lt.pos.distanceTo(G.player.pos) > (lt.lockRange ? lt.lockRange + 10 : 45))) C.lockTarget = null;
 
+      encounters.update(dt);
       updateEnemies(dt);
+      updatePatterns(dt);
+      combo.update(dt);
+      trials.update(dt);
       duels.update(dt);
       bosses.update(dt);
       if (C.wildlifeEnabled) wildlife.update(dt);

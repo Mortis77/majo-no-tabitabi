@@ -379,3 +379,33 @@ from above.
   toggle the visibility of an object handed to either. Used for stone / great lanterns, chests (cut 220 m), altars and
   rest posts (gameplay/collect.js, lanterns.js). setLit / open / greatLanterns behave as before.
 - Town scenes: structure draws 286 → 106 (from above), fox village blocks 87 → 51; triangles flat.
+
+## Map round: landmarks of the open country (2026-11-22)
+`builders/landmarks.js` builds the made pieces of `src/data/landmarks.js` (ids, kind, scale, coordinates, clearance,
+height, element affordances — the list other systems attach discoveries to): peak watchtower, windmill hill (three mills,
+sails turn with the wind), hill-fort beacon keep, trilithon crown, cape lighthouse, ruined aqueduct, ruined brook bridge,
+hermit cottage, four farmsteads (house, barn, shed, pens, hay, cart, well; fields come from the flora plan), stone
+circle, chapel ruin, charcoal camp, shepherd hut, dolmen, quarry derrick, sea pier with boat, cove boathouse, bee
+garden, swing (on the flora oak), cairns, way shrines, benches, well, a stone ring round the giant tree. Each is one Site
+(`lm_<id>` in `G.structures.places`, `.landmark` = its data). Far LODs now honour `place.cut`: small landmarks vanish
+past 320 m, medium past 1100 m, large never. `G.structures.landmarks` = { built, ms }.
+
+## Places round: the Land of Mages and the episode-one rooms (2026-11-22)
+- Plan (`src/data/bellcrown.js`): ring `BELL_WALL` (~460 x 310 m, the south rampart and gate where the story anchors
+  expect them), raised core `CORE` {x 0, z -150, r 78, h 46} (site-local), 15 `BELL_ROADS`, `BELL_SQUARES`.
+  `bellEdge(X, Z)` = signed distance to the ring (2 m cached grid); `bellLevel(x, z, h)` levels the plateau (CITY.y out to
+  9 m beyond the wall line, 24 m blend) and lifts the core; world/ground.js `baseHeightAt` calls it.
+- City life (`CITY_LIFE` in the same file, re-exported by `src/data/city-life.js`; also `places.landOfMages.life`): world
+  coordinates of the gate (13 m wide, 22.5 m high, 16 m deep arch; towers 92 m), practice field, tower tops / spires,
+  squares, street centre lines, wall walk, sky lanes, keep-out zones (crash roof and its flight path, the jeweller,
+  the inn), and — filled during the build, `ready` = true after — balconies / roof pads / footbridges (`kind`) and shop fronts.
+- Builders: `builders/mage-city.js` (walls, gem / cone towers, the great gate, core ring + grand stair + core gate,
+  cathedral x1.45 with the glowing rose window, brick clock tower, white towers, tall houses with painted-window facades
+  (one tinted texture, 4 materials), jettied upper floors, balconies / roof gardens / footbridges as platforms, street
+  lamps with blue orbs, fountains, wells, stalls, planters, rocks at the wall foot). `bellcrown.js` keeps the crash roof
+  (`places.accidentRoof.setRepaired`), the jeweller, the lookout and the east (home) town.
+- Per-place LOD knobs read by structures.js `blockLODs`: `place.blockNear` (near / far swap per block, m) and
+  `place.farCell` (far clustering cell). The town uses 80 / 0.7 (low: 48 / 1.0), 64 m blocks.
+- `journey-rooms.js`: the inn gets three painted upper storeys with street balconies (in the roof group, hidden with
+  it from inside); Fran's parlour, Elaina's hearth, the inn's oil lamps; `places.franSwing` (rope swing tree) and
+  `places.trialRocks` (slate-blue boulders round the storm clearing).

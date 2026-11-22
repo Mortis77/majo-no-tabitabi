@@ -36,7 +36,9 @@ float mvCloudSunAt(vec3 p, vec3 sun, float base) {
   if(p.y>=base+${slab} || mvCloudSunBox.w<.5) return 1.;
   vec2 uv=mvSunFoot(p,sun,base);
   float within=1.-smoothstep(base,base+${slab},p.y);
-  return mix(1.,mvSunColumn(uv).r,mvSunEdge(uv)*within);
+  // a firmer edge than the raw optical depth: drifting cloud shadows read as shapes on the land, not a dimmer day
+  float tr=smoothstep(.12,.82,mvSunColumn(uv).r);
+  return mix(1.,tr,mvSunEdge(uv)*within);
 }`;
 
 const COLUMN_FRAG = /* glsl */ `

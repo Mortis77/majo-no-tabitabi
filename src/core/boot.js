@@ -11,7 +11,7 @@ import { veilAt, moonDirAt, daylightAt, SUN_DIR } from '../world/veil.js';
 import * as i18n from './i18n.js';
 import { t, setLocale } from './i18n.js';
 import { createDynRes } from '../render/dynres.js';
-import { pickQuality } from '../render/gpubench.js';
+import { pickQuality, mobileDevice } from '../render/gpubench.js';
 import { mark, addSpan, sliceDone } from './boottime.js';
 import { compileWorld, warmDraw } from '../render/warmup.js';
 
@@ -68,12 +68,18 @@ async function bootInner(systems) {
   document.title = t('core.title');
   i18n.onLocaleChange(() => { document.title = t('core.title'); });
   { const bt = document.querySelector('#boot .t'); if (bt) bt.textContent = t('core.title'); }
+  // phones / tablets start light (gpubench.js mobileDevice); a tier the probe picked on one before is picked again,
+  // a tier the player chose is kept
+  const mobile = mobileDevice();
+  const qa = G.settings.qualityAuto;
+  const autoStale = mobile && G.save.qualityStored && qa && typeof qa === 'object' && !qa.mobile && qa.tier === G.settings.quality;
   if (G.params.quality) G.settings.quality = G.params.quality;
-  else if ((!G.save.qualityStored && !G.params.autostart && !G.params.nosave) || G.params.qbench) {
+  else if (((!G.save.qualityStored || autoStale) && !G.params.autostart && !G.params.nosave) || G.params.qbench) {
     // first start: pick the tier from a short GPU probe and remember it (the settings menu still overrides it)
-    const pick = pickQuality();
+    const pick = pickQuality({ mobile });
     G.settings.quality = pick.tier;
     G.settings.qualityAuto = { tier: pick.tier, score: pick.score, renderer: pick.renderer.slice(0, 80) };
+    if (pick.mobile) G.settings.qualityAuto.mobile = true;
     if (!G.save.disabled && !G.params.qbench) G.save.writeSettings();
     if (G.params.qbench) console.log('[qbench] ' + JSON.stringify(G.settings.qualityAuto));
   }
@@ -289,7 +295,7 @@ function startLoop(early = []) {
     requestAnimationFrame(frame);
     const rdt = Math.min(Math.max((now - last) / 1000, 0), 0.05);
     last = now;
-    let scale = T.scale;
+    let scale = T.scale * (T.slow > 0 ? T.slow : 1);   // T.slow: duel slow-motion beats (G.fx.duel, eased back to 1)
     if (T.hitstop > 0) { T.hitstop -= rdt; scale *= T.hitstopScale ?? 0.05; }
     const dt = G.paused ? 0 : rdt * scale;
     T.rdt = rdt; T.dt = dt; T.real += rdt; T.t += dt; T.frame++;

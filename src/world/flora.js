@@ -17,6 +17,8 @@ import { FU } from './flora/material.js';
 import { createGrass } from './flora/grass.js';
 import { createLife } from './flora/life.js';
 import { bakeImpostors, ImpostorBatch } from './flora/impostor.js';
+import { createFields } from './flora/fields.js';
+import { countryPlan } from './flora/countryside-plan.js';
 
 const CH = 32, NC = ATLAS_HALF * 2 / CH, ORG = -ATLAS_HALF;
 const chunkOf = (x, z) => {
@@ -199,6 +201,9 @@ export const floraSystem = {
     // ---- grass
     let grass = null;
     try { grass = createGrass(G); } catch (e) { G.reportError('flora:grass', e); }
+    // ---- painted crop fields of the countryside plan (map round): one draw, readable from the broom
+    let fields = null;
+    try { fields = createFields(G, countryPlan(W)); } catch (e) { G.reportError('flora:fields', e); }
 
     // ---- culling / packing state
     const sceneryD = Math.min(950, Math.max(420, (Q.viewDist || 2400) * .4));
@@ -331,6 +336,10 @@ export const floraSystem = {
       /** Per-batch visible counts (debug). */
       batches: () => allBatches.filter((b) => b.count).map((b) => ({ name: b.name, count: b.count, shadow: b.shadowCount, cap: b.cap, parts: b.meshes.length, tris: b.tris })),
       grass,
+      fields,
+      /** map round: the countryside plan (fields, hedges, walls, copses...) and what was planted from it */
+      plan: countryPlan(W),
+      countryside: raw.countryside || null,
       store: S,
       species,
       refresh() { anyDirty = true; },

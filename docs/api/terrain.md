@@ -276,3 +276,101 @@ Rules: anything drawn over open grass after the opaque pass must not assume gras
 
 Cost: draw calls unchanged. high triangles unchanged (555k on g2). med g2 grass is 285k triangles (≈ +30k, mostly
 ring 0). No new passes, textures or samples.
+
+## Destruction round (terrain agent, 2026-11-22)
+Magic now reshapes the land and the land remembers. One new system, `destruction` (`src/world/destruction.js`, plus
+`destruction-ponds.js`; manifest: after `props`), listens to what the spells already announce and decides what each blast
+does to the ground. No spell code was changed.
+
+### What the player sees
+| Cast | On the land |
+| --- | --- |
+| fire bolt | a ragged burnt star, a few sods thrown (no pit) |
+| fire, charged | a scorched pit (r 2.9, 0.85 m), clods and stones flying, dust; trees beside it are thrown down |
+| thunder strike | a small blackened pit (r 1.6, 0.6 m) with forked burn streaks; the great strike a deeper one (r 2.4, 1.3 m) |
+| rock pillar | the ground heaves into a low mound (r 3.6, 1.1 m) with broken rock lying on it |
+| rock, charged (meteor) | its crater (spells/entities.js) + a rim of flying earth and stone, dust ring, rocks within 14 m cracked |
+| sun beam / sun burst | a burnt line where the beam sweeps / a glassy scorched pit |
+| tornado | strips the grass and flowers bare where it stands (they grow back in 1–2 min) and topples small trees |
+| ice | frost (elements) + ice shards; freezes crater ponds into walkable ice (thaws after ~95 s or under fire) |
+| water | mud in bare / burnt earth (shader), fills a crater it lands in (soaks away over minutes) |
+Trees in reach fall away from the blast (stumps stay, charred if burnt or struck), burnt trees stay black, rocks crack
+(darker) and then burst into rubble, dry-stone walls topple into stones, fences splinter into planks and char, hay bales
+burst or burn away. A crater dug near the lake, a river or the low shore reaches the water table and holds a pond.
+
+### Recovery (all on `G.state.playTime`: pauses with the game, carries on after a reload)
+| What | Timeline |
+| --- | --- |
+| burnt ground (scorch) | the burn channel fades linearly over 6 min (`textures.js FADE.burn` = 360 s, was 200). The ground is fully black for ~1 min, the char thins out in patches and is gone by ~4 min (shader `burnK = smoothstep(0.3, 0.8, burn)`) |
+| burnt grass blades | none until the burn has fallen to 0.58 (~2.5 min); then they grow back short → full, edges first, until it reaches 0 (~6 min) (grass `1 - smoothstep(0, 0.58, burn)`) |
+| burnt flowers / bushes (flora plants) | come back from the edge of the burn at 2.5 min to its heart at 5.5 min, each growing in (scale-up) over 18–28 s; never up through her feet (waits while she stands within 1.1 m) |
+| charred tree | black for 8 min; 8–12 min the crown fills out again (crown 0.08 → 1) in young, slightly yellower green that settles to its own colour, bark back by 12 min; then the record is dropped |
+| charred fence | soot weathers off on the same 8 + 4 min |
+| felled tree (magic, any element) | stump for 20 min; then a sapling (12 % size) grows to full size over 10 min (ease-out); its trunk turns solid at half size and never around her; the stump goes at 55 %; full at 30 min, record dropped. If she stands on the stump when it is due, the sapling waits (the clock is pushed back, not the size up). Trees whose ground was dug or heaped more than 0.5 m keep their stumps |
+| rocks, walls, fences, bales broken; cracked rocks | stay (bounded by the 420-record cap) |
+| craters, heaves | stay. Their floor is bare for 10 min, then the grass blades reclaim it to 65 % density by 40 min (the earth tint under them stays) |
+A fresh crater's scorched rim is painted only when it is dug, not when a save replays it. Burnt cells are remembered per
+4 m (≤ 300 saved, dropped once faded) and painted back on load at the strength they had, with the plants under them
+taken away again on the same clock.
+
+### Persistence (all bounded)
+- **Ground**: every edit is a stamp in `G.state.spellScars`. v1 `[x, z, r, amount, rim]` (old saves) replays with the old
+  maths, bit-identical. v2 `[x, z, r, amount, rim, flags]` (every new `deform()`): `STAMP_GUARD` story places resist,
+  `STAMP_SLUMP` walls steeper than ~36° (~30° beside paths) slump into the bowl (mass-conserving, deterministic, diagonals
+  included). `saveSpellScars()` merges repeats at one spot (same x, z, r, rim, flags, sign) and keeps at most
+  `SCAR_SAVE_CAP` = 240 (the newest 48 always; lightest older ones drop out: small old scars heal over a reload).
+  Destruction quantises its stamps (x, z to 0.25 m, r 0.05, amount 0.01) so repeats merge.
+- **Flora**: `G.state.destruction = { v: 2, flora: [x·10, z·10, bits, playTime, …], burns: [x·10, z·10, r·10, s·100,
+  playTime, …], scarT: [x·4, z·4, playTime, …] }` (≤ 420 flora records, charred-only / cracked-only ones drop first;
+  healed ones are dropped; a v1 triple list loads with its clocks starting at load). Bits `G.flora.wreck.BITS`: CHARRED 1, FELLED 2 (stump), GONE 4 (shattered; rubble for stone ≥ 0.9 m),
+  CRACKED 8. Records point at instances by position (10 cm), so a density change only skips (and keeps) what is missing.
+  Written on `'save:collect'`; re-applied whenever `G.state` is replaced (load / new game), after resetting this run's wreck.
+- **Derived, nothing saved**: crater ponds (water table), broken rock on heaves (the heave stamp has r = 3.6, rim 0).
+- A maxed save (240 stamps): ~0.2 s to replay + one coalesced terrain refresh on the next frame (was ~1.4 s before the
+  terrain batched restore refreshes). Save size ≈ 7 KB scars + ≤ 7 KB flora.
+
+### Protection
+`G.world.carveGuard(x, z)` 0..1 = max(protectionAt, story zones): the city (r 172 around CITY), the hometown (POI r + 12),
+Fran's cottage (26 m), her practice clearing and the farewell hill (POI r + 8), and 14 m around every JOURNEY_ANCHOR, each
+fading over 10 m. Guarded ground is never carved by v2 stamps (meteor included), and nothing there is wrecked or recorded.
+Enemy magic only scuffs (a few clods), never carves or wrecks. Blasts high above the ground, on decks / roofs / bridges
+or on water leave the land alone. Repeated blasts drill one spot only so far (fire 2.6 m, thunder 2.2, sun 2.6; heaves 2.2 m
+high). Debris is `group: 'debris'` (never blocks or carries the heroine).
+
+### APIs
+- `G.world`: `deform(x, z, r, amount, { rim, flags, source })` (API unchanged; flags default GUARD | SLUMP),
+  `carveGuard(x, z)`, `spellScarList()` (live, read-only), `STAMP_GUARD`, `STAMP_SLUMP`, `SCAR_SAVE_CAP` (ground.js exports).
+  The deform event also carries `source` ('destruction' for this system's own carves).
+- `G.destruction`: `blast(element, pos, radius, power, { team, heavy })` (queue a blast as if a spell applied it),
+  `carve(x, z, r, amount, rim, cap)`, `throwEarth(x, y, z, n, opts)`, `canCarve(x, z)`, `ponds`, `remnants`, `burns`,
+  `scarTime(x, z)`, `TIMES`, `resync()`, `stats()`.
+- `G.flora.wreck`: `records(cap)`, `apply(list, stride)`, `reset()`, `of(i)`, `since(i)`, `recover()`, `stats()`,
+  `bruise(i, element, power, info)`, `rocksNear(x, z, r)`, `BITS`, `TIMES` (life.js `RECOVER`). A regrowing sapling has
+  flora state 4 (not in treesNear, not registered with elements, cannot be felled until grown). `G.flora.fell(tree, dir)` unchanged (life's `fell` takes opts `{ splinter, char }`).
+- `G.props.debris(kind, pos, vel, { color, scale, life, material })`: pooled loose debris shared with the props' shards
+  (cap 140, oldest recycled), new kinds `clod`, `rock`, `splinter`; every piece now shrinks away over its last 0.6 s.
+- `G.flora.grass.scarFeed` (set by destruction): persistent bare discs nearest the camera (12 of the 24 crater slots;
+  transient `clear()` keeps 12). `refreshScars()`.
+
+### Ground look (shader.js)
+Pits show earth from ~0.1 m deep (was 0.25–1.3); crater lips and heaves (small positive offsets) are thrown soil in
+frayed clumps; heaps above ~0.75 m turn to rock; burns only brown bare earth (a pit stays readable inside a grass fire);
+water on bare / burnt earth is dark warm mud with a sky sheen. A fine 2.7 m noise frays every edge (one extra noise
+fetch per terrain fragment).
+
+### Events read
+`'element:applied'` (with the apply's options as `e.info`: `noGround` skips the ground, except the rock pillar's heavy
+earth blow, which is what heaves it; `dir` marks an aimed gust, which never strips like a lingering tornado),
+`'spell:meteor'` (the meteor's own earth / fire applies at that spot are swallowed by it), `'physics:impact'` (heavy
+bodies ≥ 120 kg landing ≥ 9 m/s kick up dust and sods), `'terrain:deformed'` (grass feed, ponds, rock remnants),
+`'save:collect'` (flora wreck into the save). Everything is queued and handled in `update()` (one frame later), merged per
+frame. Without `e.info` it infers the ground from the height above the land.
+
+### Known gaps
+- Marks follow the 2 m deform grid / 1.6 m vertex spacing: a 1.6 m lightning pit is a few vertices; edges are frayed by
+  noise, but very small marks stay soft.
+- Ground fire (elements) blackens large areas around fire / thunder casts; the pits read best after rain or where the
+  grass did not catch.
+- Props are not placed in the world in this branch (props.js start() keeps no records), so the breakable field
+  furniture is the countryside flora (fences, dry-stone walls, hay bales). Felled trees still spawn rolling `log` props.
+- Tornado strips grass but leaves no scour mark of its own (no spare scorch channel).

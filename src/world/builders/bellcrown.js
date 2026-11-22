@@ -8,12 +8,16 @@ import { mageResidents } from './mage-folk.js';
 import { box, cone, cyl, sphere, torus } from '../../core/geo.js';
 import { Site, mat, M, beam } from './kit.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { glow } from '../../core/mats.js';
+import { cityWalls, coreWorks, cathedral, clockTower, whiteTower, layoutHouses, streetProps, wallRocks, reservedBoxes, obb, isFree, ROOF } from './mage-city.js';
+import { CITY_LIFE } from '../../data/city-life.js';
+import { CORE } from '../../data/bellcrown.js';
 
 const H = BELL.y;
 const stone = mat.stone(0xd5c5ae),
   light = mat.plaster(0xeee1c5),
   foot = mat.stone(0xad9685);
-const tile = [0xc99456, 0xbf5b38, 0x358878, 0xd79d4c, 0x42768e, 0xa39179, 0xcaa15d].map((c) => mat.tile(c));
+const tile = [0xd39e43, 0xbe532f, 0x5a6a7b, 0xd0723a, 0xa8472d, 0x9a5938, 0xc99456].map((c) => mat.tile(c));
 const plaster = [light, mat.plaster(0xe7c5a4), mat.plaster(0xd6b398), mat.plaster(0xe2c7a5)];
 const wood = mat.wood(0x724e40),
   trim = mat.wood(0xac7955),
@@ -195,31 +199,6 @@ function house(site, x, z, w, d, h, rot, seed, baseY = H) {
     site.platBox(x + lx * Math.cos(rot), z - lx * Math.sin(rot), w / 14, d / 2, rot, top, 0.22);
   }
 }
-function spire(g, x, z, r, h, tip, roof = tile[4], pennant = false) {
-  g.add(cyl(r * 0.91, r, h, light, x, h / 2, z, 12), cyl(r * 1.08, r * 1.05, 0.58, foot, x, 0.38, z, 12));
-  for (const y of [h * 0.61, h - 0.59, h + 0.03]) g.add(cyl(r * 1.015, r * 0.98, 0.25, stone, x, y, z, 12));
-  for (let j = 0; j < 8; j++) {
-    const a = (j * Math.PI) / 4;
-    const win = box(
-      r * 0.3,
-      r * 0.74,
-      0.15,
-      dark,
-      x + Math.sin(a) * r * 0.925,
-      h - r * 0.64,
-      z + Math.cos(a) * r * 0.925
-    );
-    win.rotation.y = a;
-    g.add(win);
-  }
-  g.add(
-    cyl(r * 1.17, r * 1.04, 0.42, roof, x, h + 0.29, z, 12),
-    cyl(r * 0.48, r * 1.19, tip * 0.4, roof, x, h + 0.48 + tip * 0.2, z, 12),
-    cone(r * 0.5, tip * 0.6, roof, x, h + 0.48 + tip * 0.7, z, 12),
-    sphere(0.19, brass, x, h + tip + 0.43, z, 8, 5)
-  );
-  if (pennant) flag(g, x, h + tip + 0.44, z, 1.5, red);
-}
 function paving(site) {
   const g = new THREE.Group();
   const apron = new THREE.Shape();
@@ -271,25 +250,6 @@ function paving(site) {
     ray.rotation.y = a;
   }
   site.add(g, 0, H, 0);
-}
-function market(site) {
-  for (const [x, z, i] of [
-    [-16, 8, 0],
-    [14, 5, 1],
-    [-14, 29, 2],
-    [34, 23, 3]
-  ]) {
-    const g = new THREE.Group();
-    band(g, 0, 1, 0, 3.7, 0.29, 1.5, wood);
-    for (const xx of [-1.71, 1.71]) for (const zz of [-0.65, 0.65]) band(g, xx, 1.3, zz, 0.12, 2.6, 0.12, trim);
-    for (let j = -3; j <= 3; j++) {
-      const o = band(g, j * 0.56, 2.67, 0, 0.55, 0.16, 2.14, (j + i) % 2 === 0 ? light : i % 2 ? blue : red);
-      o.rotation.x = 0.14;
-    }
-    for (let j = -2; j <= 2; j++) g.add(cyl(0.31, 0.24, 0.39, j % 2 ? brass : foot, j * 0.52, 1.31, 0.04, 6));
-    site.add(g, x, H, z);
-    site.colBox(x, z, 1.78, 0.74, 0, H, H + 1.2);
-  }
 }
 // Each background rider is one coloured mesh, shared by the three flight paths.
 function riders(ctx) {
@@ -363,203 +323,6 @@ function riders(ctx) {
   });
 }
 
-function turret(site, x, z, r, h, cap, roof) {
-  const g = new THREE.Group();
-  spire(g, 0, 0, r, h, cap, roof);
-  site.add(g, x, H, z);
-  site.colCyl(x, z, r * 0.94, H, H + h + cap * 0.55);
-  site.platDisc(x, z, r * 0.82, H + h, 0.35);
-}
-function rampart(site, x0, z0, x1, z1, height = 12.8) {
-  const len = Math.hypot(x1 - x0, z1 - z0),
-    x = (x0 + x1) / 2,
-    z = (z0 + z1) / 2,
-    yaw = Math.atan2(x1 - x0, z1 - z0),
-    g = new THREE.Group();
-  band(g, 0, height / 2, 0, 2.55, height, len + 0.2, stone);
-  band(g, 0, 1, 0, 3.26, 2, len + 0.25, foot);
-  band(g, 0, height - 0.56, 0, 2.9, 0.59, len + 0.15, light);
-  band(g, 0, height + 0.12, 0, 2.85, 0.28, len + 0.25, stone);
-  const bays = Math.ceil(len / 8);
-  for (let j = 0; j < bays; j++) {
-    const q = ((j + 0.5) * len) / bays - len / 2;
-    band(g, 0, height * 0.48, q, 3.1, height * 0.96, 0.6, light);
-  }
-  const teeth = Math.ceil(len / 3.9);
-  band(g, -1.18, height + 0.41, 0, 0.41, 0.49, len, light);
-  for (let j = 0; j < teeth; j++)
-    band(g, -1.15, height + 0.78, ((j + 0.5) * len) / teeth - len / 2, 0.58, 0.76, 1.14, stone);
-  site.add(g, x, H, z, yaw);
-  site.colBox(x, z, 1.3, len / 2, yaw, H, H + height + 0.15);
-  site.platBox(x, z, 1.1, len / 2, yaw, H + height + 0.2, 0.35);
-}
-function pointed(g, x, y, z, w, h, material) {
-  const s = new THREE.Shape();
-  s.moveTo(-w / 2, 0);
-  s.lineTo(w / 2, 0);
-  s.lineTo(w / 2, h * 0.62);
-  s.quadraticCurveTo(w * 0.46, h * 0.87, 0, h);
-  s.quadraticCurveTo(-w * 0.46, h * 0.87, -w / 2, h * 0.62);
-  s.closePath();
-  const o = new THREE.Mesh(
-    new THREE.ExtrudeGeometry(s, { depth: 0.18, bevelEnabled: false, curveSegments: 7 }),
-    material
-  );
-  o.position.set(x, y, z);
-  g.add(o);
-  return o;
-}
-function tracery(g, x, y, z, w, h) {
-  pointed(g, x, y - 0.35, z, w + 0.77, h + 0.9, brass);
-  pointed(g, x, y, z + 0.14, w, h, mat.paint(0x7f9fa8));
-  for (let i = 1; i <= 5; i++) {
-    const t = i / 6,
-      xx = x + (t - 0.5) * w,
-      hh = h * (1 - 0.49 * Math.abs(t - 0.5) * 2);
-    band(g, xx, y + hh / 2, z + 0.37, 0.1, hh, 0.12, light);
-  }
-  for (const qq of [0.19, 0.4, 0.6]) band(g, x, y + h * qq, z + 0.37, w * 0.99, 0.12, 0.12, light);
-  const o = torus(w * 0.185, 0.18, light, x, y + h * 0.74, z + 0.39, 6, 23);
-  g.add(o);
-}
-function townWall(site) {
-  const p = [[5.7, 61], ...BELL_WALL.slice(1), BELL_WALL[0], [-5.7, 61]];
-  for (let i = 1; i < p.length; i++) {
-    const [a, b] = p[i - 1],
-      [c, d] = p[i];
-    if (a === 74 && b === 23) {
-      rampart(site, a, b, a + (c - a) * 0.3, b + (d - b) * 0.3);
-      rampart(site, a + (c - a) * 0.7, b + (d - b) * 0.7, c, d);
-    } else rampart(site, a, b, c, d, 12.8);
-  }
-  for (const [i, [x, z]] of BELL_WALL.entries())
-    if (i % 2 === 0 || z > 42)
-      turret(site, x, z, 1.9 + (i % 3) * 0.33, 13.7 + (i % 2) * 2.3, 4.5, tile[i % tile.length]);
-  const g = new THREE.Group(),
-    R = 5.6;
-  for (let i = 0; i < 17; i++) {
-    const a = (i * Math.PI) / 16,
-      block = band(g, R * Math.cos(a), 6.6 + R * Math.sin(a), 0, 1.68, 1.28, 3.85, i % 2 ? stone : light);
-    block.rotation.z = a;
-  }
-  for (const side of [-1, 1]) {
-    const x = side * 7.7;
-    turret(site, x, 61, 2.72, 19.2, 6.6, tile[3]);
-    turret(site, side * 11.2, 57.5, 2.03, 22.0, 5.4, tile[2]);
-    band(g, side * 5.63, 3.3, 0, 1.55, 6.6, 3.85, stone);
-    site.colBox(side * 5.63, 61, 0.77, 1.92, 0, H, H + 7.4);
-  }
-  band(g, 0, 13.56, 0, 12.9, 2.2, 3.96, stone);
-  band(g, 0, 14.77, 0, 13.25, 0.31, 4.27, light);
-  // A sky-blue jewel in an open lancet window crowns the ceremonial front gate.
-  for (const side of [-1, 1]) band(g, side * 2.75, 17.27, 0, 0.58, 5.15, 2.05, light);
-  for (let i = 0; i < 8; i++) {
-    const u = i / 8,
-      v = (i + 1) / 8;
-    for (const side of [-1, 1]) {
-      const ax = side * 2.75 * (1 - u),
-        bx = side * 2.75 * (1 - v);
-      g.add(beam(ax, 19.7 + 3.2 * Math.sin(u * 1.35), 0, bx, 19.7 + 3.2 * Math.sin(v * 1.35), 0, 0.49, 1.88, light));
-    }
-  }
-  const orb = sphere(1.1, mat.paint(0x64b7b4), 0, 17.87, 0.51, 14, 9);
-  g.add(orb, torus(1.31, 0.14, brass, 0, 17.87, 0.61, 6, 24));
-  site.add(g, 0, H, 61);
-  site.colBox(0, 61, 5.2, 1.95, 0, H + 11.9, H + 15.0);
-}
-function greatHall(site) {
-  const x = -4,
-    z = -54,
-    g = new THREE.Group(),
-    w = 22,
-    d = 26,
-    e = 21.2;
-  band(g, 0, 0.7, 0, w + 3, 1.4, d + 2, foot);
-  band(g, 0, e * 0.5, 0, w, e, d, light);
-  gable(g, w + 1.5, 8.4, d + 2, tile[2], 0, e, 0);
-  // High arched glazed facade with two stepped aisles; readable from the approach over the roofs.
-  const f = d / 2 + 0.42;
-  pointed(g, 0, 2.1, f, 17.4, 28, stone);
-  tracery(g, 0, 8.0, f + 0.27, 10.45, 18.8);
-  pointed(g, 0, 0.4, f + 0.55, 4.7, 6.8, wood);
-  for (const side of [-1, 1]) {
-    for (const offset of [5.6, 8.8]) {
-      const c = offset === 5.6 ? 25.3 : 22.4;
-      band(g, side * offset, c / 2, f, 0.86, c, 1.43, foot);
-      g.add(cone(0.97, 3.55, brass, side * offset, c + 1.7, f, 5));
-    }
-    for (const k of [-8, 0, 8]) {
-      band(g, side * 11.05, 10.5, k, 0.8, 21, 1.0, stone);
-      tracery(g, side * 8.3, 6.5, f + 0.1, 2.2, 10.1);
-    }
-    const lowX = side * 15.3;
-    band(g, lowX, 6.6, -0.4, 7.3, 13.2, 23, stone);
-    gable(g, 8.5, 4.1, 24, tile[3], lowX, 13.2, -0.4);
-    for (const zz of [-11, 11]) spire(g, lowX, zz, 1.43, 15.7, 6.1, tile[3]);
-  }
-  g.scale.y = 1.2;
-  site.add(g, x, H, z);
-  site.colBox(x, z, 18.9, 13.7, 0, H, H + 25.2);
-  site.platBox(x, z, 7.1, 11.8, 0, H + 31.2, 0.9);
-}
-function streetBlock(site, x, z, w, d, h, rot, seed, baseY = H) {
-  const g = new THREE.Group(),
-    body = plaster[seed % plaster.length],
-    roof = tile[seed % tile.length];
-  band(g, 0, h / 2, 0, w, h, d, body);
-  band(g, 0, h - 0.13, 0, w + 0.22, 0.27, d + 0.2, trim);
-  gable(g, w + 0.62, w * 0.49, d + 0.65, roof, 0, h, 0);
-  for (const yy of [0.28, 0.72])
-    for (const xx of [-0.28, 0, 0.28]) {
-      band(g, xx * w, yy * h, d / 2 + 0.06, 0.89, 1.49, 0.13, glass);
-      band(g, xx * w, yy * h - 0.72, d / 2 + 0.15, 1.08, 0.12, 0.22, stone);
-    }
-  band(g, 0, 1.09, d / 2 + 0.11, 1.19, 2.18, 0.14, wood);
-  band(g, -w * 0.23, h + w * 0.36, -d * 0.24, 0.65, w * 0.47, 0.65, tile[1]);
-  // The upper rooms project above the masonry ground floor. Windows and roof
-  // dormers also face the side lanes, so the roofs remain legible from a broom.
-  band(g, 0, h * 0.48, 0, w + 0.18, 0.18, d + 0.2, trim);
-  for (const side of [-1, 1])
-    for (const zz of [-0.26, 0.26]) {
-      band(g, side * w * 0.502, h * 0.72, zz * d, 0.16, 1.72, 1.03, wood);
-      band(g, side * (w * 0.502 + 0.09), h * 0.74, zz * d, 0.06, 1.42, 0.79, glass);
-      band(g, side * (w * 0.502 + 0.13), h * 0.74, zz * d, 0.05, 1.41, 0.085, light);
-    }
-  for (const sx of [-0.29, 0.29]) {
-    band(g, sx * w, h * 0.67, -d * 0.503, 0.99, 1.51, 0.14, glass);
-    band(g, sx * w, h * 0.67, -d * 0.514, 0.09, 1.53, 0.08, trim);
-  }
-  if (seed % 3 !== 0) {
-    const side = seed % 2 === 0 ? 1 : -1;
-    const dormer = new THREE.Group();
-    band(dormer, 0, 0.59, 0, 1.45, 1.18, 1.3, body);
-    gable(dormer, 1.87, 0.88, 1.61, roof, 0, 1.18, 0);
-    band(dormer, 0, 0.65, 0.7, 0.87, 0.75, 0.09, wood);
-    band(dormer, 0, 0.66, 0.76, 0.65, 0.63, 0.06, glass);
-    dormer.position.set(side * w * 0.32, h + w * 0.14, d * 0.16);
-    dormer.rotation.y = (side * Math.PI) / 2;
-    g.add(dormer);
-  }
-  if (seed % 6 === 1) {
-    upstairsDoor(g, w, d, h);
-    const a = w * 0.14,
-      b = d / 2 + 1.02;
-    site.platBox(
-      x + a * Math.cos(rot) + b * Math.sin(rot),
-      z - a * Math.sin(rot) + b * Math.cos(rot),
-      1.37,
-      1.0,
-      rot,
-      baseY + h * 0.53 + 0.01,
-      0.22
-    );
-  }
-  if(baseY===H || seed%4===0)finishFrontage(g,{w,d,h,rise:w*.49,seed,shop:baseY===H&&seed%4<2,shutters:seed%3!==0});
-  site.add(g, x, baseY, z, rot);
-  site.colBox(x, z, w / 2, d / 2, rot, baseY, baseY + h);
-  site.platBox(x, z, w * 0.27, d / 2, rot, baseY + h + w * 0.37, 0.53);
-}
-
 function insideWall(x, z, margin) {
   let inside = false,
     edge = 1e6;
@@ -574,6 +337,8 @@ function insideWall(x, z, margin) {
   }
   return inside && edge > margin;
 }
+// The roof Elaina crashes through (episode two): plum tiles over grey-blue plaster, and on the south gable the wooden
+// balcony with its heavy round handrail and the blue magic orbs on the rail posts (the still after the crash).
 function accident(ctx, site) {
   const x = -14,
     z = 37,
@@ -582,11 +347,26 @@ function accident(ctx, site) {
     h = 7.4,
     slope = 0.65,
     g = new THREE.Group();
-  band(g, 0, h / 2, 0, w, h, d, plaster[1]);
+  const wallM = mat.plaster(0xc7cdcd),
+    orbM = glow(0x8ccfff, 1.75);
+  band(g, 0, h / 2, 0, w, h, d, wallM);
+  band(g, 0, 0.3, 0, w + 0.2, 0.6, d + 0.2, foot);
+  band(g, 0, 3.95, 0, w + 0.14, 0.16, d + 0.14, trim);
   gable(g, w, h * 0.03, d + 0.45, foot, 0, h - 0.08, 0);
-  for (const u of [-2.45, 0, 2.45]) casement(g, u, 4.8, d * 0.5 + 0.03, 1.12, 1.95);
-  const plain = mat.tile(0x9a6a58),
-    lightClay = mat.tile(0xb78369);
+  gable(g, w - 0.06, w * 0.5 * slope, d - 0.06, wallM, 0, h, 0);
+  for (const u of [-2.45, 2.45]) {
+    casement(g, u, 2.0, d * 0.5 + 0.03, 1.12, 1.5);
+    casement(g, u, 5.55, d * 0.5 + 0.03, 1.0, 1.55);
+  }
+  const rear = new THREE.Group();
+  rear.rotation.y = Math.PI;
+  for (const u of [-2.45, 2.45]) casement(rear, u, 4.9, d * 0.5 + 0.03, 1.12, 1.6);
+  g.add(rear);
+  band(g, 0, 1.15, d / 2 + 0.05, 1.2, 2.3, 0.1, wood);
+  band(g, 0, 5.3, d / 2 + 0.05, 1.25, 2.25, 0.1, wood);
+  band(g, 0, 5.55, d / 2 + 0.11, 0.8, 1.3, 0.04, glass);
+  const plain = mat.tile(0x7d4658),
+    lightClay = mat.tile(0x935a6b);
   const patched = new THREE.Group(),
     shards = new THREE.Group();
   for (let i = -5; i <= 5; i++)
@@ -598,21 +378,38 @@ function accident(ctx, site) {
       const b = band(fixed ? patched : g, xx, y, zz, 0.99, 0.17, 0.97, (i + j) % 4 ? plain : lightClay);
       b.rotation.z = i > 0 ? -Math.atan(slope) : i < 0 ? Math.atan(slope) : 0;
       if (fixed) {
-        const fragment = band(
-          shards,
-          xx + 0.13,
-          y - 0.26,
-          j * 0.898 + 0.1,
-          0.57,
-          0.13,
-          0.49,
-          (i + j) % 2 ? lightClay : plain
-        );
+        const fragment = band(shards, xx + 0.13, y - 0.26, j * 0.898 + 0.1, 0.57, 0.13, 0.49, (i + j) % 2 ? lightClay : plain);
         fragment.rotation.set(0.14 + i * 0.12, 0.28 * j, 0.18 * i);
       }
     }
+  // the balcony on the upper floor of the south gable
+  const by = 4.15,
+    bz = d / 2,
+    bd = 2.1,
+    bw = 6.4;
+  band(g, 0, by, bz + bd / 2, bw, 0.18, bd, wood);
+  for (const s of [-1, 0, 1]) g.add(beam(s * 2.6, by - 1.25, bz + 0.05, s * 2.6, by - 0.1, bz + bd * 0.85, 0.16, 0.16, wood));
+  const fz = bz + bd - 0.12;
+  for (const [px, pz] of [[-bw / 2 + 0.12, fz], [bw / 2 - 0.12, fz], [-bw / 2 + 0.12, bz + 0.2], [bw / 2 - 0.12, bz + 0.2], [-1.05, fz], [1.05, fz]]) {
+    band(g, px, by + 0.82, pz, 0.22, 1.64, 0.22, wood);
+    g.add(cyl(0.17, 0.12, 0.15, brass, px, by + 1.7, pz, 8), sphere(0.3, orbM, px, by + 2.02, pz, 10, 8));
+  }
+  const front = cyl(0.1, 0.1, bw, wood, 0, by + 1.02, fz, 8);
+  front.rotation.z = Math.PI / 2;
+  g.add(front);
+  for (const s of [-1, 1]) {
+    const side = cyl(0.1, 0.1, bd, wood, s * (bw / 2 - 0.12), by + 1.02, bz + bd / 2, 8);
+    side.rotation.x = Math.PI / 2;
+    g.add(side);
+    for (let k = 1; k < 4; k++) band(g, s * (bw / 2 - 0.12), by + 0.5, bz + (bd * k) / 4, 0.07, 0.86, 0.07, wood);
+    g.add(beam(s * (bw / 2 - 0.5), by + 0.1, fz - 0.05, s * (bw / 2 - 0.5), h - 0.55, fz + 0.18, 0.2, 0.2, wood));
+  }
+  for (let k = 1; k < 13; k++) band(g, -bw / 2 + (bw * k) / 13, by + 0.5, fz, 0.07, 0.86, 0.07, wood);
+  const pent = band(g, 0, h - 0.35, bz + bd / 2 + 0.25, bw + 0.7, 0.16, bd + 0.9, plain);
+  pent.rotation.x = 0.3;
   site.add(g, x, H, z);
   site.colBox(x, z, w / 2, d / 2, 0, H, H + h);
+  site.platBox(x, z + bz + bd / 2, bw / 2, bd / 2, 0, H + by + 0.09, 0.25);
   for (let i = -5; i <= 5; i++)
     site.platBox(x + i * 0.807, z, 0.416, 5.0, 0, H + h + (w * 0.5 - Math.abs(i * 0.807)) * slope + 0.09, 0.19);
   for (const b of [patched, shards]) {
@@ -696,41 +493,6 @@ function jeweller(site) {
   site.add(g, x, H, z);
   site.platBox(x, z, half, depth, 0, H + height + 1.45, 0.34);
 }
-async function residential(ctx, site) {
-  const fixed = [
-    [-4, -54, 22, 17],
-    [41, 5, 11.8, 15],
-    [-14, 37, 6.1, 6.4],
-    [-15, -7, 5.2, 5.0],
-    [15.8, 33, 2.0, 14.5],
-    [21.5, 47.8, 8.0, 3.4],
-    [28, 52.9, 2.3, 5.5]
-  ];
-  let n = 0;
-  for (let row = 0; row < 12; row++) {
-    for (let col = 0; col < 21; col++) {
-      const x = -112 + col * 11 + 2.3 * Math.sin(row * 0.94 + col),
-        z = -85 + row * 12.1 + 1.55 * Math.cos(col * 1.73 + row);
-      const seed = row * 31 + col * 7,
-        w = 6.5 + (seed % 4) * 0.49,
-        d = 6.8 + (seed % 5) * 0.52,
-        r = Math.hypot(w / 2, d / 2);
-      if (
-        !insideWall(x, z, r + 1.8) ||
-        fixed.some(([a, b, u, v]) => Math.abs(x - a) < u + w / 2 && Math.abs(z - b) < v + d / 2)
-      )
-        continue;
-      if (G.world.roadDist(BELL.x + x, BELL.z + z) < r + 1.55) continue;
-      const yaw = (seed % 3 === 1 ? 0.5 * Math.PI : 0) + 0.16 * Math.sin(row + col);
-      const h = 6.8 + (seed % 7) * 0.78 + Math.max(0, -z) * 0.029;
-      if (Math.abs(x) < 34 && z > -34 && n % 2 === 0) house(site, x, z, w, d, h, yaw, seed);
-      else streetBlock(site, x, z, w, d, h, yaw, seed);
-      n++;
-    }
-    await ctx.step('mages:residential');
-  }
-  return n;
-}
 // A second route through this block begins at the market crossing. The masonry
 // stair rises onto a public roof terrace and connects to the curved south wall.
 function lookoutWalk(site) {
@@ -773,13 +535,13 @@ function lookoutWalk(site) {
       }
   }
   deck(21.1, 47.7, 13.45, 4.24);
-  deck(27.68, 53.2, 4.1, 10.5);
+  deck(27.68, 50.6, 4.1, 5.2);
   for (const [a, b, c, d] of [
     [14.42, 45.8, 14.42, 49.7],
     [14.42, 49.7, 26.3, 49.7],
     [17.18, 45.73, 27.47, 45.73],
-    [29.65, 46.0, 29.65, 56.45],
-    [25.72, 50.04, 25.72, 56.4]
+    [29.65, 46.0, 29.65, 53.1],
+    [25.72, 50.04, 25.72, 53.1]
   ]) {
     const dx = c - a,
       dz = d - b,
@@ -797,116 +559,68 @@ function lookoutWalk(site) {
 }
 
 function courtyardTrees(site) {
-  const point = new THREE.Vector3();
+  const point = new THREE.Vector3(),
+    lite = G.quality?.name === 'low';
   let planted = 0;
-  for (let i = 0; i < 680 && planted < 55; i++) {
-    const x = -116 + (((i + 11) * 89) % 235),
-      z = -85 + (((i + 8) * 59) % 149);
+  for (let i = 0; i < 2600 && planted < (lite ? 60 : 150); i++) {
+    const x = -226 + (((i + 11) * 89) % 460),
+      z = -242 + (((i + 8) * 59) % 306);
+    const core = Math.hypot(x - CORE.x, z - CORE.z) < CORE.r - 2;
     if (!insideWall(x, z, 3.5) || G.world.roadDist(BELL.x + x, BELL.z + z) < 3.8) continue;
+    if (!core && Math.hypot(x - CORE.x, z - CORE.z) < CORE.r + 9) continue;
     if (
       (Math.abs(x - 41) < 12.5 && Math.abs(z - 5) < 15) ||
-      Math.hypot(x + 14, z - 37) < 6.0 ||
+      Math.hypot(x + 14, z - 37) < 8.0 ||
       (Math.abs(x - 15.8) < 2.4 && z > 18 && z < 46) ||
-      (x > 13 && x < 30 && z > 44 && z < 57)
+      (x > 13 && x < 30 && z > 44 && z < 57) ||
+      (Math.abs(x) < 6 && z < -30 && z > -76)
     )
       continue;
-    point.set(BELL.x + x, H + 0.12, BELL.z + z);
+    const y = core ? CORE.h : H;
+    point.set(BELL.x + x, y + 0.12, BELL.z + z);
     if (G.world.resolveCollisions(point, 2.05, 2)) continue;
-    const west=x< -22 && z> -43, upper=z< -46, inn=x>28 && z> -7;
-    const key=west?(i%3?'ginkgo1':'broad2'):upper?(i%3?'maple1':'broad2'):inn?'birch':'broad2';
-    const palette=west?[0xcba45b,0xd1ad63,0xb3a063]:upper?[0x995f69,0x956f77,0xab8075]:
-      inn?[0xa1b193,0xa2ac81,0x95ab83]:[0x81975e,0x8d9c67,0x738b5d];
-    const tint=palette[i%3];
-    site.add(procTree(key,.68+.065*(i%4),tint),x,H-.035,z,i*1.73);
-    site.colCyl(x,z,.21,H,H+3.6);
+    const west = x < -60,
+      upper = z < -120,
+      inn = x > 28 && z > -7;
+    const key = west ? (i % 3 ? 'ginkgo1' : 'broad2') : upper ? (i % 3 ? 'maple1' : 'broad2') : inn ? 'birch' : 'broad2';
+    const palette = west ? [0xcba45b, 0xd1ad63, 0xb3a063] : upper ? [0x995f69, 0x956f77, 0xab8075] : inn ? [0xa1b193, 0xa2ac81, 0x95ab83] : [0x81975e, 0x8d9c67, 0x738b5d];
+    site.add(procTree(key, 0.68 + 0.065 * (i % 4), palette[i % 3]), x, y - 0.035, z, i * 1.73);
+    site.colCyl(x, z, 0.21, y, y + 3.6);
     planted++;
   }
 }
 export async function buildBellcrown(ctx) {
   const site = new Site('landOfMages', BELL.x, BELL.z);
+  for (const k of ['balconies', 'roofPads', 'bridges', 'shopFronts']) CITY_LIFE[k].length = 0;
+  CITY_LIFE.ready = false;
   paving(site);
-  townWall(site);
-  greatHall(site);
+  cityWalls(site);
+  coreWorks(site);
+  cathedral(site);
+  clockTower(site, 22, -52);
   await ctx.step('mages:walls');
-  const count = await residential(ctx, site);
+  const taken = reservedBoxes();
+  // slim pale towers rise out of the far districts
+  for (const [x, z, r, h, i] of [[-77, -25, 2.3, 44, 0], [-170, -110, 2.4, 48, 1], [-100, -170, 2.2, 46, 2], [110, -120, 2.3, 50, 3], [180, -60, 2.2, 44, 4], [-60, 30, 2.0, 40, 5], [150, 0, 2.1, 42, 6], [-195, -25, 2.2, 40, 7], [70, -34, 2.1, 42, 8]]) {
+    const o = obb(x, z, 0, r + 1.2, r + 1.2);
+    if (!isFree(taken, o) || G.world.roadDist(BELL.x + x, BELL.z + z) < r + 3.2) continue;
+    whiteTower(site, x, z, r, h, [ROOF.slate, ROOF.gold, ROOF.red][i % 3]);
+    taken.push(o);
+  }
+  const count = await layoutHouses(ctx, site, taken);
   accident(ctx, site);
   jeweller(site);
   lookoutWalk(site);
+  const props = streetProps(site, taken);
+  await ctx.step('mages:props');
   courtyardTrees(site);
-  market(site);
-  // Thin civic towers punctuate the dense roofs without taking over the silhouette of the central arched hall.
-  for (const [x, z, r, h] of [
-    [-77, -25, 2.1, 21],
-    [70, -34, 2.0, 22],
-    [-34, -65, 1.7, 26],
-    [32, -59, 1.8, 20],
-    [82, -66, 1.6, 21]
-  ]) {
-    if (G.world.roadDist(BELL.x + x, BELL.z + z) > r + 1.7)
-      turret(site, x, z, r, h, 6.8, tile[(Math.abs(x) + 2) % tile.length]);
-  }
-  await site.bakeBlocksSliced(42, ctx.step);
-  ctx.place('landOfMages', { group: site.baked, blocks: site.blocks, site, houses: count });
+  const rocks = wallRocks(site);
+  await site.bakeBlocksSliced(64, ctx.step);
+  CITY_LIFE.ready = true;
+  const lite = G.quality?.name === 'low';
+  ctx.place('landOfMages', { group: site.baked, blocks: site.blocks, site, houses: count, props, rocks, why: layoutHouses.why, life: CITY_LIFE, blockNear: lite ? 48 : 80, farCell: lite ? 1.0 : 0.7 });
   riders(ctx);
   mageResidents(ctx);
-  const upper = new Site('upperMageDistrict', -2085, -682),
-    base = 46;
-  for (let j = -3; j <= 3; j++)
-    for (let i = -5; i <= 5; i++) {
-      const x = i * 9.8 + 2 * Math.sin(j),
-        z = j * 10.7 + 2 * Math.cos(i),
-        seed = (j + 3) * 11 + i + 5;
-      if ((x / 57) ** 2 + (z / 38) ** 2 > 1 || Math.abs(x) < 3.9) continue;
-      streetBlock(
-        upper,
-        x,
-        z,
-        5.2 + (seed % 3) * 0.62,
-        5.8 + (seed % 2) * 0.83,
-        6.9 + (seed % 6) * 0.7,
-        ((i % 3) * Math.PI) / 2,
-        seed,
-        base
-      );
-    }
-  const curve = [
-    [-6, 37],
-    [-31, 34],
-    [-48, 22],
-    [-57, 0],
-    [-44, -25],
-    [-25, -37],
-    [14, -39],
-    [46, -27],
-    [57, 0],
-    [48, 26],
-    [28, 36],
-    [6, 37]
-  ];
-  for (let i = 1; i < curve.length; i++) {
-    const [x, z] = curve[i - 1],
-      [u, v] = curve[i],
-      l = Math.hypot(x - u, z - v),
-      yaw = Math.atan2(u - x, v - z),
-      g = new THREE.Group();
-    band(g, 0, 3.7, 0, 1.39, 7.4, l + 0.1, stone);
-    band(g, 0, 7.36, 0, 1.72, 0.32, l, light);
-    upper.add(g, (x + u) / 2, base, (v + z) / 2, yaw);
-    upper.colBox((x + u) / 2, (z + v) / 2, 0.7, l / 2, yaw, base, base + 7.4);
-  }
-  for (const [x, z] of [
-    [-47, 22],
-    [46, -27],
-    [-27, -35],
-    [27, 35]
-  ]) {
-    const g = new THREE.Group();
-    spire(g, 0, 0, 2.0, 12.6, 4.1, tile[3]);
-    upper.add(g, x, base, z);
-    upper.colCyl(x, z, 1.97, base, base + 16);
-  }
-  await upper.bakeBlocksSliced(42, ctx.step);
-  ctx.place('upperMageDistrict', { group: upper.baked, blocks: upper.blocks, site: upper });
 }
 export async function buildEastTown(ctx) {
   const site = new Site('peacefulCountry', 2220, 48),

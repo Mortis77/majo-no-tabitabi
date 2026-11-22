@@ -72,7 +72,7 @@ export function createSpawner(C) {
         if (e) {
           wave.members.add(e);
           e.centerOut(_v);
-          G.fx?.burst('summon', _v, { color: type === 'paper' ? 0xfff1c4 : DARK, scale: 0.9 });
+          G.fx?.burst('summon', _v, { color: opts.color ?? (type === 'paper' ? 0xfff1c4 : DARK), scale: 0.9 });
           opts.onSpawn?.(e);
         }
         check(wave);

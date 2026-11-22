@@ -21040,8 +21040,8 @@
   "license": "Original mesh and garment construction inspired by the anime character design. Humanoid skeleton based on pixiv VRoid HairSample_Female (CC0).",
   "author": "Journey character team",
   "source": "tools/journey/build-cast.mjs",
-  "bytes": 3854044,
-  "tris": 57556,
+  "bytes": 3859120,
+  "tris": 57700,
   "size": [
    1.305,
    1.543,

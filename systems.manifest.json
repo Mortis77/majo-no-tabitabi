@@ -11,6 +11,7 @@
   { "name": "life",       "path": "world/life.js",         "export": "lifeSystem" },
   { "name": "structures", "path": "world/structures.js",   "export": "structuresSystem" },
   { "name": "props",      "path": "props/props.js",        "export": "propsSystem" },
+  { "name": "destruction", "path": "world/destruction.js", "export": "destructionSystem" },
   { "name": "gameplay",   "path": "gameplay/gameplay.js",  "export": "gameplaySystem" },
   { "name": "player",     "path": "player/player.js",      "export": "playerSystem" },
   { "name": "spells",     "path": "spells/spells.js",      "export": "spellsSystem" },

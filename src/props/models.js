@@ -379,9 +379,14 @@ const DEBRIS_SHAPES = {
   chunk: () => lumpy(0.14, flat(0xffffff, { surface: 'rock' }), 0, 0, 0, 0.22, 3, 7, 5),
   sliver: () => rbox(0.2, 0.012, 0.09, toon(0xffffff, { surface: 'paper', look: { trans: 0.3 } }), 0, 0, 0, 0.005, 1),
   ball: () => sphere(0.07, toon(0xffffff, { surface: 'none', look: { spec: 0.25, specPower: 30 } }), 0, 0, 0, 10, 7),
+  // destruction (terrain agent): thrown earth, broken stone, burst trunks
+  clod: () => lumpy(0.15, toon(0xffffff, { surface: 'earth' }), 0, 0, 0, 0.32, 5, 7, 5, 1, 0.72, 0.9),
+  rock: () => lumpy(0.14, flat(0xffffff, { surface: 'rock' }), 0, 0, 0, 0.3, 11, 5, 4, 1.1, 0.8, 0.95),
+  splinter: () => rbox(0.52, 0.05, 0.08, toon(0xffffff, { surface: 'wood' }), 0, 0, 0, 0.01, 1),
 };
 /** Half extents of each debris shape (collider). */
-export const DEBRIS_HALF = { plank: [0.17, 0.03, 0.05], shard: [0.085, 0.02, 0.065], chunk: [0.12, 0.12, 0.12], sliver: [0.1, 0.01, 0.045], ball: [0.06, 0.06, 0.06] };
+export const DEBRIS_HALF = { plank: [0.17, 0.03, 0.05], shard: [0.085, 0.02, 0.065], chunk: [0.12, 0.12, 0.12], sliver: [0.1, 0.01, 0.045], ball: [0.06, 0.06, 0.06],
+  clod: [0.13, 0.1, 0.12], rock: [0.13, 0.1, 0.12], splinter: [0.26, 0.025, 0.04] };
 export function getDebrisKit(kind) {
   const id = 'debris:' + kind;
   let k = kits.get(id);

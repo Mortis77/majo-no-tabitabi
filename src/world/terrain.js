@@ -89,14 +89,44 @@ export const terrainSystem = {
     G.terrain = api;
     api.paddies = createPaddies(G,q);
 
+    // a save being loaded replays every scar at once: collect those rectangles and refresh them together next update
+    // (one sweep over the chunks instead of rebuilding the chunks in view once per scar — 240 scars went from ~1.3 s)
+    const pending = [];
+    const flushPending = () => {
+      if (!pending.length) return;
+      // merge overlapping rectangles first (a cluster of scars re-samples its texels once)
+      for (let a = 0; a < pending.length; a++) {
+        const A = pending[a];
+        for (let b = pending.length - 1; b > a; b--) {
+          const B = pending[b];
+          if (B[0] > A[1] || B[1] < A[0] || B[2] > A[3] || B[3] < A[2]) continue;
+          A[0] = Math.min(A[0], B[0]); A[1] = Math.max(A[1], B[1]); A[2] = Math.min(A[2], B[2]); A[3] = Math.max(A[3], B[3]);
+          pending.splice(b, 1); b = pending.length;
+        }
+      }
+      let ux0 = Infinity, ux1 = -Infinity, uz0 = Infinity, uz1 = -Infinity;
+      for (const r of pending) { refreshDataRect(data, r[0], r[1], r[2], r[3]); ux0 = Math.min(ux0, r[0]); ux1 = Math.max(ux1, r[1]); uz0 = Math.min(uz0, r[2]); uz1 = Math.max(uz1, r[3]); }
+      for (let s = 0; s < lod.slots; s++) {
+        const n = lod.slotNode[s];
+        if (!n || n.x0 > ux1 + 2 || n.x0 + n.size < ux0 - 2 || n.z0 > uz1 + 2 || n.z0 + n.size < uz0 - 2) continue;
+        let hit = false;
+        for (const r of pending) if (!(n.x0 > r[1] + 2 || n.x0 + n.size < r[0] - 2 || n.z0 > r[3] + 2 || n.z0 + n.size < r[2] - 2)) { hit = true; break; }
+        if (!hit) continue;
+        n.dirty = true;
+        if (n.drawTag === lod.tag) lod._build(n);
+      }
+      pending.length = 0;
+    };
+    this._flushPending = flushPending;
     G.events.on('terrain:deformed', (e) => {
       try {
-        api.refresh(e.x0 - 2, e.x1 + 2, e.z0 - 2, e.z1 + 2);
+        if ((e.kind === 'restoreSpell' || e.kind === 'resetSpell') && pending.length < 4096) pending.push([e.x0 - 2, e.x1 + 2, e.z0 - 2, e.z1 + 2]);
+        else { flushPending(); api.refresh(e.x0 - 2, e.x1 + 2, e.z0 - 2, e.z1 + 2); }
         if(e.kind==='trialLake') {water.onTrialLakeChange?.(e);return;}
         if(e.kind==='resetSpell')return;
         api.paddies.disturb(e.x,e.z,e.r,true);
-        // a dug crater leaves a scorched, broken rim
-        if (e.amount < 0) scorch.paint(e.x, e.z, e.r * 0.85, 'burn', Math.min(0.45, 0.18 + -e.amount * 0.05));
+        // a freshly dug crater leaves a scorched, broken rim (a crater replayed from a save is old: its rim has healed)
+        if (e.amount < 0 && e.kind === 'spell') scorch.paint(e.x, e.z, e.r * 0.85, 'burn', Math.min(0.85, 0.6 + -e.amount * 0.06));
       } catch (err) { G.reportError('terrain:deformed', err); }
     });
     G.events.on('terrain:scorch', (e) => {
@@ -115,6 +145,7 @@ export const terrainSystem = {
   },
 
   start() {
+    try { this._flushPending?.(); } catch (e) { this._G?.reportError('terrain:flush', e); }
     this._refine?.(Infinity);
     // wall shade (damp ground, leaf drifts along building walls): once, after every builder has registered its walls
     const G = this._G;
@@ -129,8 +160,10 @@ export const terrainSystem = {
 
   update(dt) {
     const U = this._U; if (!U) return;
+    try { this._flushPending?.(); } catch (e) { this._G?.reportError('terrain:flush', e); }
     U.trTime.value += dt;
-    this._scorch.tick(dt);
+    // marks heal on the same clock as G.state.playTime (only while she plays), so a reload picks the fade up exactly
+    if (this._G?.mode === 'play') this._scorch.tick(dt);
     this._water.update(dt);
   },
 
