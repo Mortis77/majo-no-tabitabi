@@ -547,7 +547,7 @@ function hookEvents() {
     evSfx(name, { pos: p.pos });
   });
   on('race:start', () => sfx('taiko_roll', { vol: 0.8 }));
-  on('race:finish', () => sfx('festival', { vol: 0.8 }));
+  on('race:finish', (e) => { if (!e?.aborted) sfx('festival', { vol: 0.8 }); });   // an abandoned ring course is no fanfare
   on('checkpoint', () => sfx('checkpoint', { vol: 0.8 }));
 }
 

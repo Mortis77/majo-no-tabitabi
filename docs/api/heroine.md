@@ -158,6 +158,10 @@ back: run, sprint, stop, jump, roll, glide, broom, swim), q7_dusk_night, q8_whol
 - Posed layer check (`tools/costume/check.mjs`) was not re-run this round; checked by in-game pictures only.
 
 ## Wardrobe (installed 2026-11-18)
+> Original-engine wardrobe (灯里: miko / swim_a / swim_b, `tools/costume/wardrobe-build.mjs`). In 《魔女之旅》 the table,
+> unlock rules, files and page are those of **"Wardrobe (journey)"** at the end of this file; the API, the change mechanics
+> (`rig.adopt`, `heroineOwned`) and the picture tool below still hold.
+
 The shipped heroine is the base figure with long silver hair and a brass hair cuff, in one of three outfits the player changes at any time
 (pause scroll → 衣装), worn everywhere (combat, broom, swimming, dialogue included). All three are owned from the start.
 
@@ -357,3 +361,71 @@ than the first hair's crown; env `HAIR2_BAND_Y/HALF/K` at build time).
 node tools/costume/wardrobe-build.mjs --rebuild-hair --install
 node tools/costume/wardrobe-pics.mjs
 ```
+
+## Wardrobe (journey) — Elaina's four outfits (2026-11-22)
+Pause scroll → 衣装 (tab between 行囊 and 设置; touch: tap the tab, tap a card). Four cards, each with her painted picture,
+name and a two-line description; the worn card is sealed 着.
+
+| id | zh-CN | manifest model | file | built by | picture | the player may pick it |
+|---|---|---|---|---|---|---|
+| `apprentice` | 日常服 | `char_elaina_apprentice` (preload) | `models/journey/elaina_apprentice.glb` | `tools/journey/build-cast.mjs --only apprentice` | `ui_outfit_apprentice` | from `majo_named` |
+| `elaina` | 魔女服 | `char_elaina` (preload) | `models/journey/elaina.glb` | `tools/journey/build-cast.mjs --only elaina` | `ui_outfit_elaina` | from `majo_named` |
+| `swim_a` | 潮祭水着 | `char_elaina_swim_a` (preload false) | `models/journey/elaina_swim_a.glb` | `tools/journey/swimwear.mjs` | `ui_outfit_swim_a` | from `majo_finished` |
+| `swim_b` | 暮海水着 | `char_elaina_swim_b` (preload false) | `models/journey/elaina_swim_b.glb` | `tools/journey/swimwear.mjs` | `ui_outfit_swim_b` | from `majo_finished` |
+
+**Who chooses (owner's decisions, keep them).** Elaina is 14–15 in episode one and a grown travelling witch after the
+three-year skip, so the swimsuits open only after both episodes (`majo_finished`, the free travel after the credits).
+`src/data/outfits.js`:
+- `storyOutfit(state)`: `'apprentice'` before her naming, `'elaina'` from `majo_named`, `null` once `majo_finished`.
+- `journeyOutfit(state)` (load, title preview, `player.start`): the story's outfit while it chooses; afterwards the saved
+  `G.state.outfit` if it is unlocked, else `'elaina'`.
+- `outfitUnlocked(o, state)`: `o.unlock` flag set → the 衣装 page lets the player pick it. The API (`G.player.setOutfit`) does
+  not check unlocks: the story may dress her in anything.
+- `src/story/story.js syncOutfit()` applies `storyOutfit` on load (`applyWorld`), at her naming (`grant`), and **before every
+  story beat** (`interact()` before the quest dialogue / scene, `S.crash` before the roof collision cutscene), awaiting the
+  change so the first frame of the beat already shows the story's clothes (measured: the swap lands in the same frame the
+  dialogue starts, `.tmp/play/wardrobe-6`). After `majo_finished` it does nothing; `?outfit=` (developer) also disables it.
+  So in episode two the player may switch between 日常服 and 魔女服 while travelling, the story puts her back in the witch's
+  clothes for its scenes, and a reload starts in the witch's clothes (the page says so in a note under the cards).
+- Old saves: the field `outfit` exists since the first release (default `'apprentice'`), and the old code always stored
+  `'elaina'` from her naming on, so every existing save loads exactly as before.
+
+**The swimsuits** (`tools/journey/swimwear.mjs [--only a,b] [--no-install]`, ~1 s). Source: the original engine's swim files
+`assets/models/chars/char_akari_swim_{a,b}.glb` (docs/api/heroine-swim-*.md describe their build; the A doc predates the
+final cut). They are the same sculpted base figure as Elaina (skeleton 201 joints, face + 13 shapes, body, silver hair) with
+the complete body under the suit, every garment layer, the lining and the skirts/wraps with their own chains and riding fold
+(`sideSaddleFold`). The tool keeps all of that and:
+1. replaces `akari_hair` / `akari_ribbon` by Elaina's uncovered hair from `elaina_apprentice.glb` (`akari_hair`,
+   `akari_ribbon` = brass cuff, `apprentice_hair` + `apprentice_hairGlint` = the crown curl), copying meshes only and
+   remapping JOINTS_0 by bone name; every used joint's inverse bind must match the suit's skeleton (1e-4) or the build stops;
+2. tints the iris with build-cast's `eyes()` (now `tools/journey/eyes.mjs`, `ELAINA_IRIS` [133,144,218]) — the result is
+   byte-identical to Elaina's own iris texture;
+3. keeps the suits' colours (white / lavender / deep indigo already sit in her palette; `TINT` in the tool can re-tint);
+4. refuses to write a file whose suit layers are missing (`akari_body` + top/bottom/lining/skirt per suit).
+Manifest rows: journey-cast license/author, `source` names both inputs, bones / hipsHeight / clipsFrom / morphs from the source
+row, `secondaryChains` + `springDefaults` from the source row (hair chains identical to `char_elaina`'s; skirt, sash, charm,
+ruffle chains the suit's own), `preload: false` (loaded on demand when picked; the old model stays on screen meanwhile).
+Size: A 75 871 tris / 4.3 MB, B 70 118 tris / 3.9 MB.
+
+**Everywhere.** `HEROINE_ASSETS` (outfits.js) makes every outfit a heroine rig: `rig.js` (landing-knee fit, flight dynamics)
+and `core/assets.js` (`bindFlightCloth`: skirt, beach shirt, cord, neckline / waist ruffles already have flight-cloth rules in
+`actors/flight-cloth.js`). Brooch / hats: `setJourneyAccessories` scales the joint `Journey_Brooch`, which only `elaina.glb`
+has; the swim files have no brooch joint and no hat mesh, so neither ever appears on a swimsuit. Checked in play
+(`.tmp/agents/wardrobe/*.js`, pictures in `.tmp/play/wardrobe-*`): standing front/side/back and broom seat for all four
+(`wardrobe-1`), walk, run, a small and a charged cast, the Fran rematch duel (`wardrobe-2`), swimming in the trial lake
+(`wardrobe-3`: swim_a, swim_b, witch), face close-ups (`wardrobe-4`: same iris, curl and cuff on all four), a Fran two-shot
+dialogue in swim_b (`wardrobe-8`), the page in its three states with click / keys (`wardrobe-5`) and by touch at 844×390
+(`wardrobe-7`), save → reload in a throwaway profile (`wardrobe-save-*` / `wardrobe-load-*`: after `majo_finished` swim_b
+comes back with no swap; in episode two a saved 日常服 loads as 魔女服).
+
+**Pictures.** `node tools/costume/wardrobe-pics.mjs` (default ids `apprentice,elaina,swim_a,swim_b`; ~1 min) renders her in the
+game over two flat grounds and cuts her out. The scene pass's light shafts are switched off while shooting (they streak the
+grounds and broke the matting). `ui_outfit_miko.webp` (the old heroine's picture) is no longer referenced.
+
+**The page** (`src/ui/wardrobe.js`, strings `src/locales/zh-CN/ui.wardrobe.js`): 4 columns; a card the player may not pick yet
+(and is not wearing) shows no picture — the robe-stand pictogram, a lock and when it opens (`ui.wardrobe.lock.<flag>`);
+tapping it shakes the card. On touch the line under the selected card reads 轻触换上 instead of the Enter key.
+
+**A fifth outfit**: a model on the same skeleton (+ manifest row with chains), a row in `OUTFITS` (with `unlock`), the
+strings in `ui.wardrobe.js`, a pictogram in `icons.js`, a `WASH` colour in `ui/wardrobe.js`, the id in wardrobe-pics' default
+list; five cards need `.wd-grid` columns changed.

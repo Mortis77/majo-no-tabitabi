@@ -40,11 +40,14 @@ for (const id in ITEMS) if (ITEMS[id].kind === 'food' || ITEMS[id].kind === 'ing
 PICKUPS.mana_orb = PICKUPS.mana;
 
 /** Upgrades (levels 0..max live in G.state.upgrades). Prices for shops: price[level]. */
+// activities round (2026-11-22): prices retuned against the open country's income — about 2400 星屑 from stray stars,
+// landmark finds, cairns, the 17 landmark chests and the ring courses, plus ~500 from foes — and the 6 free levels the
+// wilds give (2 beacon chests, 4 star milestones): a thorough explorer ends near 15 of 20 levels, a straight run near 8.
 export const UPGRADES = {
-  hp:    { max: 5, icon: 'heart', price: [160, 260, 400, 580, 800] },
-  mana:  { max: 5, icon: 'spirit', price: [160, 260, 400, 580, 800] },
-  broom: { max: 5, icon: 'broom', price: [120, 200, 320, 480, 700] },
-  charm: { max: 5, icon: 'charm', price: [100, 180, 300, 450, 650] },
+  hp:    { max: 5, icon: 'heart', price: [120, 200, 300, 430, 600] },
+  mana:  { max: 5, icon: 'spirit', price: [120, 200, 300, 430, 600] },
+  broom: { max: 5, icon: 'broom', price: [100, 170, 260, 380, 520] },
+  charm: { max: 5, icon: 'charm', price: [80, 140, 220, 320, 450] },
 };
 /** 月之泪: this many tears buy one hp / mana point at an altar. */
 export const TEARS_PER_POINT = 4;

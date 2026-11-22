@@ -169,3 +169,76 @@ T.errors() was empty in every run. Stats: fps 60, calls 173–467, triangles 0.6
 ## As-built updates (fix2, 2026-11)
 - `G.gameplay.litLanterns(near?, range = Infinity)` → `[{ id, kind: 'stone'|'lotus', pos, firePos, reactor, dist, douse(info) }]`, nearest first when `near` is given. Great lanterns are never listed. The moth boss uses it to fly to a lamp and eat it (douse); lotus lamps relight by fire or by hand.
 - `G.gameplay.useItem(id)` is called by the items menu.
+
+## Activities round: the open country's discovery loop (2026-11-22)
+Files: `src/gameplay/wilds.js` (core: stars, landmark finds, lookouts, rewards, providers), `wilds-puzzles.js`,
+`wilds-rings.js`, `src/data/wilds.js` (all ids / coordinates), `src/ui/wilds-page.js` (journal page),
+`src/locales/zh-CN/gameplay.wilds.js` (every word). Created in `gameplaySystem.init` (`G.wilds = createWilds()`),
+`start()` / `update(dt)` are called from the gameplay system (pausable). Everything hangs off `src/data/landmarks.js` ids;
+placements are local to the landmark's built Site (`G.structures.places['lm_<id>'].site`, rotation included) with a y
+mode (`h`, `h0`, `top`, `abs`, `pool`, `lip`, `clear` = first height above every collider standing there).
+
+**Player experience**
+- 迷星 (stray stars, 48): pale silver-blue gem stars (one InstancedMesh) on landmark tops, under the brook bridge's arch
+  and the aqueduct, in the dolmen hollow, on the well's water, plus the 9 most prominent hilltops (offline survey). A
+  far glint (one `THREE.Points`, depth-tested, 40–900 m, twinkling) pulls the eye. Touch (2.6 m from her chest, also on
+  the broom) collects: +3 星屑, toast n/48. Every `STAR_STEP` (6) stars: `STAR_REWARDS[k]` (星屑, a free upgrade level at
+  12/24/36/48) and one line of the careless witch's note (`note.1..8`, journal).
+- Landmark finds: within `r + 18` m the first time → toast (`toast.found`), or `G.ui.banner` with `sub.<id>` for the
+  large ones; +5 星屑; a map pin.
+- Lookouts: the 5 cairns have an interact (`prompt.cairn`) → +10 星屑 and every star within 700 m is marked on the map;
+  standing high on the watchtower / lighthouse / keep / aqueduct (`PERCHES`) does the same once.
+- Puzzles (17, `PUZZLES`): see the header of `wilds-puzzles.js`. Each is a `G.elements` reactor answered by the general
+  rules: `beacon` (kind 'lantern' reactor: fire / sun → lit; the sealed chest beside it opens), `bramble` (wood, burns
+  out → thicket gone; water mid-burn puts it out), `rubble` (stone: `on.shatter` from thunder, or earth ≥ 1.1 / heavy),
+  `drift` (material 'water' over the pool: ice → frozen 40 s, ice sheet + platform, the drifting chest stops; fire / time
+  thaws it; while unfrozen the chest slips away from her), `ember` (water / ice hit or `on.wet` from rain → cooled),
+  `circle` (13 stone reactors at the builder's exact seeded positions, immune to thunder while dry; `on.wet` lifts the
+  immunity, so wet stones conduct and one strike chains through all 13 → solved; dry strikes do nothing), `wheel`
+  (wind hits add spin; ≥ 2.8 → lid opens), `lantern` (fire / sun → it rises on the heat and drifts with
+  `G.elements.windAt`; touch it to catch it; after 55 s or 95 m up it sinks and waits where it lands: never lost).
+  Unsolved chests answer `prompt.look` with a hint (`hint.<kind>`). Chests, the beacon baskets and idle lanterns have
+  small G.world colliders so projectiles burst on them (projectiles only stop on hostile reactors and world statics).
+- Ring courses (3, `RINGS`): the first ring always hangs as an invitation; flying through it on the broom starts the
+  clock. Next ring bright + compass marker (`setMarkers(…, 'race')`), HUD tracker; given up when off the broom > 4 s,
+  > 320 m from the next ring or > 300 s. Medals calibrated by the acceptance bot at cruise (heart 50.3 s, coast 95.6 s,
+  vale 66.6 s; gold ≈ ×0.88, silver ≈ ×1.04, bronze ≈ ×1.35); a better medal pays the difference of `RING_PAY`.
+- Journal: fourth sub-tab 「旅途见闻」 (menu.js → wilds-page.js): 迷星 + the note lines, one entry per region
+  (`WILD_REGIONS`, `regionOf(x, z)`: places found, stars, chests, the names found), the ring courses (best, medal).
+- Map: discovered landmarks (pin + name, small ones without a label), sighted uncollected stars, seen unopened chests /
+  unlit lanterns, ring starts. story.js concatenates `G.wilds.markers()`; without the story the gameplay fallback does.
+
+**API** (`G.wilds`)
+- `ready`, `markersDirty` (set true to refresh), `markers()`, `journal()` → `{ stars: { n, of, lines, step, next },
+  regions: [{ id, name, desc, found, of, stars, starsOf, chests, chestsOf, places }], rings, found, foundOf }`.
+- `stars` → `[{ id, pos, got, region, lm }]`, `starCount()`, `starTotal()`, `collectStar(id, { silent })`,
+  `discover(lmId, { silent })`, `isFound(lmId)`, `cairnStone(id)`, `sightFrom(pos, reach)`, `grant(loot, pos)`,
+  `resolveAt(lmId, rec, out?)`.
+- `puzzles`: `list`, `get(id)`, `state(id)` (null | 'solved' | 'open'), `openChest(id)`, `debugOpen(id)`, `counts()`.
+- `rings`: `courses`, `running` (id | null; also reported by `G.gameplay.raceRunning`), `next`, `cancel()`, `ring(id, i)`,
+  `journal()`.
+- Events: `wilds:star` {id, n, of}, `wilds:found` {id, region}, `wilds:solved` {id, kind, lm}, `wilds:chest` {id, lm},
+  `race:start` {id} / `race:finish` {id, time, best, medal | aborted} (quests.js re-pushes its tracker on finish).
+
+**State** `G.state.wilds` (defaultState in core/save.js; `wstate()` fills old saves): `lm`, `stars`, `sighted`,
+`puzzles`, `rings` ({ best, medal }), `cairns`, `perches`, `seen`, `steps`.
+
+**Economy**: `UPGRADES` prices lowered (items.js comment): hp / mana 120..600, broom 100..520, charm 80..450 (5,940 for
+all 20 levels). The wilds pay ~2,400 星屑 (stars 144 + star steps 380 + finds 225 + cairns 50 + chests ~1,300 + rings
+300) and 6 free levels (keep beacon: broom, lighthouse: charm, star steps: broom, charm, mana, hp).
+
+**Tests**: `node tools/acceptance/journey-activities.mjs` (virtual clock, throwaway profile): every puzzle kind solved by
+`G.spells.cast` (beacon fire, bramble fire, rubble thunder, drift ice big after the chest slipped away, ember water,
+circle: a dry strike charges nothing, rain then one strike charges 13, wheel 3 gusts, lantern fire + catch), 7 stars by
+touch, a cairn, the heart course flown by a steering bot (`ACT_RINGS=all`: all three), `G.save.write → reset → load`
+with identical `G.state.wilds` and restored visuals, screenshots of the map and the journal page.
+
+**Known gaps**
+- Projectiles fly through neutral reactors, so a fireball aimed past a small target lands where the aim ray hits; the
+  colliders on chests / baskets / lanterns fix the common cases, the bramble and rubble have their own colliders.
+- `G.physics` mirrors new colliders a few hundred per frame (70k at boot): for ~a minute after boot a projectile can
+  pass through a puzzle object far from the start. Tests call `G.physics.syncStatics()`.
+- The drift chest has no collider (it moves); only area casts (ice big, or ice on the pool floor) freeze the pool
+  reliably — the small ice lance must land in the pool.
+- No wayside errands / lost-hat chase yet (the sky lantern is the only chase).
+- Star tops on the giant tree / oak crowns are fixed offsets (49 m / 15 m), not measured from the plant models.

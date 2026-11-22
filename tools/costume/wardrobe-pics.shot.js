@@ -1,8 +1,8 @@
-// In-game half of tools/costume/wardrobe-pics.mjs (runs inside tools/play.mjs): 灯里 in each outfit, standing, front three-
+// In-game half of tools/costume/wardrobe-pics.mjs (runs inside tools/play.mjs): Elaina in each outfit, standing, front three-
 // quarter, everything else hidden, drawn twice over two flat grounds (dark / light) so the cut-out can be solved exactly
 // (difference matting: edges, ink lines and soft shading keep their true alpha). No UI, no text in the frame.
 const P = G.player, sleep = (ms) => T.wait(ms), OUT = { shots: [] };
-const IDS = (G.params.ids || 'miko,swim_a,swim_b').split(',');
+const IDS = (G.params.ids || 'apprentice,elaina,swim_a,swim_b').split(',');
 try { G.env.setHour?.(10.5); } catch (e) { /* */ }
 // no UI: hide every page element beside the game canvas (and its ancestors' other children)
 const hiddenDom = [];
@@ -27,6 +27,8 @@ for (const id of IDS) {
   P.rig.group.traverse((o) => { if (o.layers.test(G.camera.layers)) { visible.push(o); o.layers.enable(LAYER); } });
   const lights = []; G.scene.traverse((o) => { if (o.isLight && !o.layers.isEnabled(LAYER)) { o.layers.enable(LAYER); lights.push(o); } });
   const camMask = G.camera.layers.mask; G.camera.layers.set(LAYER); hideDom(); vigOff(true);
+  // no light shafts (they streak the flat grounds radially from the sun and break the matting)
+  const sp = G.post?.pipe?.scenePass, keepShafts = sp?.shafts; if (sp) sp.shafts = false;
   const keepBg = G.scene.background, fog = G.scene.fog, keepFog = fog && { d: fog.density, n: fog.near, f: fog.far };
   if (fog) { if (fog.isFogExp2) fog.density = 0; else { fog.near = 1e5; fog.far = 2e5; } }   // (the renderer reads scene.fog: thin it out, never remove it)
   // no cast shadow of the (hidden) world on her: a tree's shadow made her grey
@@ -39,7 +41,7 @@ for (const id of IDS) {
     cam(); await T.frames(2); cam(); await T.shot(`${id}_${nm}`);
   }
   G.scene.background = keepBg; if (fog) { if (fog.isFogExp2) fog.density = keepFog.d; else { fog.near = keepFog.n; fog.far = keepFog.f; } }
-  for (const o of rs) o.receiveShadow = true; vigOff(false); G.camera.layers.mask = camMask; for (const o of lights) o.layers.disable(LAYER); visible.forEach((o) => o.layers.disable(LAYER));
+  if (sp) sp.shafts = keepShafts; for (const o of rs) o.receiveShadow = true; vigOff(false); G.camera.layers.mask = camMask; for (const o of lights) o.layers.disable(LAYER); visible.forEach((o) => o.layers.disable(LAYER));
   G.time.scale = ts; T.cam();
 }
 for (const e of hiddenDom) e.style.opacity = '';

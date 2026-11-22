@@ -10,6 +10,7 @@ import { createMapTab } from './map.js';
 import { spellSlots, selectedId } from './model.js';
 import { createWardrobe } from './wardrobe.js';   // wardrobe: 衣装 page
 import { notesEntries, notesCount, noteRow, noteDetail } from './reactions.js';   // 元素笔记: the third journal page
+import { wildsEntries, wildsCount, wildsRow, wildsDetail } from './wilds-page.js';   // 旅途见闻: the fourth journal page
 
 addCss(`
 .mv-menu > .mv-paper { width: 1160u; height: 640u; padding: 26u 40u 20u; display: flex; flex-direction: column; }
@@ -44,8 +45,8 @@ addCss(`
 .mn-list { width: 400u; flex: none; display: flex; flex-direction: column; min-height: 0; }
 .mn-list .scroll { flex: 1; min-height: 0; padding-right: 6u; }
 .mn-det { flex: 1; min-width: 0; position: relative; padding: 8u 10u 0 28u; border-left: 1u solid rgba(35,31,29,.14); overflow: hidden; }
-.mn-subtabs { display: flex; gap: 6u; margin-bottom: 10u; }
-.mn-subtabs .st { padding: 4u 14u; font: 700 14u/1.4 var(--ft); letter-spacing: .2em; color: var(--ink3); cursor: pointer; pointer-events: auto; border-bottom: 2u solid transparent; }
+.mn-subtabs { display: flex; flex-wrap: nowrap; gap: 2u; margin-bottom: 10u; } /* four journal pages share one row */
+.mn-subtabs .st { padding: 4u 8u; white-space: nowrap; font: 700 14u/1.4 var(--ft); letter-spacing: .08em; color: var(--ink3); cursor: pointer; pointer-events: auto; border-bottom: 2u solid transparent; }
 .mn-subtabs .st.on { color: var(--ink); border-color: var(--red); }
 .mn-subtabs .st .n { font: 500 11u/1 var(--fb); color: var(--ink3); margin-left: 4u; letter-spacing: 0; }
 .mn-row { position: relative; display: flex; align-items: center; gap: 10u; padding: 9u 12u 9u 14u; cursor: pointer; pointer-events: auto; border-bottom: 1u dashed rgba(35,31,29,.13); }
@@ -136,10 +137,10 @@ addCss(`
 .mv-ui.touch .mn-close { display: block; }
 .mn-close { display: none; z-index: 3; }
 .mv-ui.touch .mn-tab { min-height: 44px; align-items: flex-end; }
-.mv-ui.touch .mn-subtabs .st { padding: 8u 16u; }
+.mv-ui.touch .mn-subtabs .st { padding: 8u 8u; }
 `);
 
-const TABS = ['map', 'journal', 'spells', 'items', 'settings'];   // wardrobe: 衣装 between items and settings
+const TABS = ['map', 'journal', 'spells', 'items', 'wardrobe', 'settings'];   // wardrobe: 衣装 between items and settings
 const TAB_ICON = { map: 'map', journal: 'journal', spells: 'spells', items: 'items', wardrobe: 'wardrobe', settings: 'settings' };
 const ARTS = ['charm', 'dodge', 'broom', 'wings', 'guard', 'shikigami', 'kinkan'];
 const INNATE = new Set(['charm', 'dodge']);
@@ -163,17 +164,19 @@ function createJournal(parent, providers) {
   const D = el('div', 'mn-det', R);
   let mode = 'quests', nav = null, data = [];
   const st = {
-    quests: el('div', 'st', sub), lore: el('div', 'st', sub), notes: el('div', 'st', sub),
+    quests: el('div', 'st', sub), lore: el('div', 'st', sub), notes: el('div', 'st', sub), wilds: el('div', 'st', sub),
   };
   st.quests.addEventListener('click', () => { mode = 'quests'; render(); sfx('ui_page', 0.6); });
   st.lore.addEventListener('click', () => { mode = 'lore'; render(); sfx('ui_page', 0.6); });
   st.notes.addEventListener('click', () => { mode = 'notes'; render(); sfx('ui_page', 0.6); });
+  st.wilds.addEventListener('click', () => { mode = 'wilds'; render(); sfx('ui_page', 0.6); });
 
   function detail(i) {
     clear(D);
     const q = data[i];
     if (!q) return;
     if (mode === 'notes') { noteDetail(D, q); return; }
+    if (mode === 'wilds') { wildsDetail(D, q); return; }
     if (mode === 'quests') {
       el('div', 'ghost', D, t(q.main ? 'ui.seal.main' : 'ui.seal.side'));
       const k = el('div', 'kick', D);
@@ -203,9 +206,11 @@ function createJournal(parent, providers) {
     clear(st.lore); tel('span', '', st.lore, 'ui.journal.lore'); el('span', 'n', st.lore, String(lore.length));
     const nc = notesCount();
     clear(st.notes); tel('span', '', st.notes, 'elements.ui.tab'); el('span', 'n', st.notes, nc.n + '/' + nc.of);
-    st.quests.classList.toggle('on', mode === 'quests'); st.lore.classList.toggle('on', mode === 'lore'); st.notes.classList.toggle('on', mode === 'notes');
+    const wc = wildsCount();
+    clear(st.wilds); tel('span', '', st.wilds, 'gameplay.wilds.page.tab'); el('span', 'n', st.wilds, wc.n + '/' + wc.of);
+    st.quests.classList.toggle('on', mode === 'quests'); st.lore.classList.toggle('on', mode === 'lore'); st.notes.classList.toggle('on', mode === 'notes'); st.wilds.classList.toggle('on', mode === 'wilds');
     // active first, main first
-    data = mode === 'quests' ? quests.slice().sort((a, b) => ((a.state === 'done') - (b.state === 'done')) || ((b.main ? 1 : 0) - (a.main ? 1 : 0))) : mode === 'notes' ? notesEntries() : lore;
+    data = mode === 'quests' ? quests.slice().sort((a, b) => ((a.state === 'done') - (b.state === 'done')) || ((b.main ? 1 : 0) - (a.main ? 1 : 0))) : mode === 'notes' ? notesEntries() : mode === 'wilds' ? wildsEntries() : lore;
     clear(listEl); clear(D);
     if (!data.length) {
       nav = null;
@@ -215,6 +220,7 @@ function createJournal(parent, providers) {
     }
     const rows = data.map((q) => {
       if (mode === 'notes') { const r = el('div', 'mn-row rx-note' + (q.known ? '' : ' unk'), listEl); noteRow(r, q); return r; }
+      if (mode === 'wilds') { const r = el('div', 'mn-row', listEl); wildsRow(r, q); return r; }
       const r = el('div', 'mn-row' + (mode === 'quests' && q.state === 'done' ? ' done' : ''), listEl);
       if (mode === 'quests') el('span', 'seal' + (q.main ? '' : ' side'), r, t(q.main ? 'ui.seal.main' : 'ui.seal.side'));
       else icon('ema', '', r);
@@ -227,7 +233,7 @@ function createJournal(parent, providers) {
   return {
     el: R, render, show: render,
     keys() {
-      if (K.L || K.R) { const ms = ['quests', 'lore', 'notes']; mode = ms[(ms.indexOf(mode) + (K.L ? 2 : 1)) % 3]; render(); sfx('ui_page', 0.6); return; }
+      if (K.L || K.R) { const ms = ['quests', 'lore', 'notes', 'wilds']; mode = ms[(ms.indexOf(mode) + (K.L ? ms.length - 1 : 1)) % ms.length]; render(); sfx('ui_page', 0.6); return; }
       nav?.keys();
     },
     hints: (h) => { hint(h, 'ui.menu.hintMove', { up: '↑', down: '↓' }); hint(h, 'ui.menu.hintSub', { key: '← →' }); },
@@ -443,6 +449,7 @@ export function createMenu(host, stage, providers) {
     panes.journal = { el: pane('journal') }; panes.journal.view = createJournal(panes.journal.el, providers);
     panes.spells = { el: pane('spells') }; panes.spells.view = createSpells(panes.spells.el, providers);
     panes.items = { el: pane('items') }; panes.items.view = createItems(panes.items.el, providers);
+    panes.wardrobe = { el: pane('wardrobe') }; panes.wardrobe.view = createWardrobe(panes.wardrobe.el);   // 衣装 (src/ui/wardrobe.js)
     panes.settings = { el: pane('settings') };
     const sw = el('div', 'scroll', panes.settings.el); sw.style.cssText = 'position:absolute;inset:0;';
     panes.settings.view = createSettings(sw);

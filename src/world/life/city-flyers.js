@@ -275,7 +275,7 @@ export function createCityLife(G, root, tier) {
     const fx0 = F.x + Math.sin(F.yaw) * lead + Math.sin(F.cyaw) * look, fz0 = F.z + Math.cos(F.yaw) * lead + Math.cos(F.cyaw) * look;
     const cx = fx0 + (P.cx - fx0) * 0.25, cz = fz0 + (P.cz - fz0) * 0.25, hy = Math.max(P.ground + 22, F.y);
     ctrlStart(a, 10);
-    if (Math.random() < 0.3 && Math.hypot(a.x - F.x, a.z - F.z) > 50) {
+    if (Math.random() < 0.3 && Math.hypot(a.x - F.x, a.z - F.z) > 50 && !inKeepOut(st.keep, F.x, F.y, F.z, 25)) {
       const fx = Math.sin(F.yaw), fz = Math.cos(F.yaw), ahead = F.speed > 3 ? rnd(25, 45) : rnd(12, 20);
       const px = F.x + fx * ahead, pz = F.z + fz * ahead, py = Math.max(P.skyAt(px, pz) + 5, F.y + rnd(-3, 5));
       // in from her side, across, out the other side
@@ -291,7 +291,10 @@ export function createCityLife(G, root, tier) {
         let x = cx + Math.sin(ang) * r, z = cz + Math.cos(ang) * r;
         const dc = Math.hypot(x - P.cx, z - P.cz);
         if (dc > P.R * 0.92) { x = P.cx + ((x - P.cx) * P.R * 0.92) / dc; z = P.cz + ((z - P.cz) * P.R * 0.92) / dc; }
-        add(x, airY(x, z, hy + rnd(-8, 26)), z);
+        // never through a story zone: push the waypoint out of it
+        const y = airY(x, z, hy + rnd(-8, 26)), k = inKeepOut(st.keep, x, y, z, 10);
+        if (k) { const dx = x - k.x, dz = z - k.z, dl = Math.hypot(dx, dz) || 1; x = k.x + (dx / dl) * (k.r + 14); z = k.z + (dz / dl) * (k.r + 14); }
+        add(x, airY(x, z, y), z);
       }
       a.leg = 'local'; a.vT = a.flySpeed;
     }
@@ -614,8 +617,12 @@ export function createCityLife(G, root, tier) {
     a.escortT -= dt;
     const fx = Math.sin(H.yaw), fz = Math.cos(H.yaw), rx = -fz, rz = fx;
     const tx = H.x + rx * a.side * 4.3 - fx * 1.0, tz = H.z + rz * a.side * 4.3 - fz * 1.0, ty = H.y + 0.4 + Math.sin(st.time * 1.7) * 0.3;
+    // ride along with her; close the gap at most ~10 m/s faster than she flies (a joiner swoops in, it does not teleport)
     const k = Math.min(1, dt * 2.2);
-    a.x += st.hv.x * dt + (tx - a.x) * k; a.y += st.hv.y * dt + (ty - a.y) * k; a.z += st.hv.z * dt + (tz - a.z) * k;
+    let cx = (tx - a.x) * k, cy = (ty - a.y) * k, cz = (tz - a.z) * k;
+    const cl = Math.hypot(cx, cy, cz), cm = 10 * dt;
+    if (cl > cm) { cx *= cm / cl; cy *= cm / cl; cz *= cm / cl; }
+    a.x += st.hv.x * dt + cx; a.y += st.hv.y * dt + cy; a.z += st.hv.z * dt + cz;
     const yd = angDiff(a.yaw, H.yaw) * Math.min(1, dt * 3);
     a.yaw += yd; a.yawRate += (yd / Math.max(dt, 1e-3) - a.yawRate) * Math.min(1, dt * 4);
     a.v = Math.hypot(st.hv.x, st.hv.z);
@@ -624,7 +631,7 @@ export function createCityLife(G, root, tier) {
     a.flutter = Math.min(1, a.v / 14);
     if (a.clip === 'rwave' && a.clipT > 1.65) setClip(a, 'ride');
     if (a.clip !== 'rwave') setClip(a, a.v > 17 ? 'boost' : 'ride');
-    const tooFar = Math.hypot(a.x - H.x, a.z - H.z) > 30;
+    const tooFar = Math.hypot(a.x - H.x, a.z - H.z) > 90;
     if (a.escortT <= 0 || !H.broom || tooFar || H.mode !== 'play' || st.plan.skyAt(a.x, a.z) > a.y - 1) {
       // peel off: bank away from her, then back to the lanes
       st.escorts = Math.max(0, st.escorts - 1);
@@ -659,6 +666,23 @@ export function createCityLife(G, root, tier) {
     H.yaw = H.speed > 2 ? Math.atan2(st.hv.x, st.hv.z) : (pl?.yaw ?? PL.yaw);
     st.threats = threats;
     st.escortCd -= dt;
+    // when she flies fast and straight for a while, a witch nearby swoops in to fly beside her for a few seconds
+    st.straightT = H.broom && H.speed > 8 && Math.abs(angDiff(st.lastYaw ?? H.yaw, H.yaw)) < 0.02 ? (st.straightT || 0) + dt : 0;
+    st.lastYaw = H.yaw;
+    if (st.straightT > 3 && st.escortCd <= 0 && st.escorts < (tier >= 1 ? 2 : 1) && G.mode === 'play') {
+      let best = null, bd = 70;
+      for (const a of st.flyers) {
+        if (a.mode !== 'fly' || a.lead || a.role === 'trio' || a.loopYaw !== null || a.s < 0.9 || (a.leg !== 'local' && a.leg !== 'lane' && a.leg !== 'flyby')) continue;
+        const d = Math.hypot(a.x - H.x, a.y - H.y, a.z - H.z);
+        if (d < bd && d > 8) { bd = d; best = a; }
+      }
+      if (best) {
+        best.mode = 'escort'; best.escortT = rnd(6, 9); st.escorts++; st.escortCd = rnd(14, 24); st.straightT = 0;
+        const rx = -Math.cos(H.yaw), rz = Math.sin(H.yaw);
+        best.side = ((best.x - H.x) * rx + (best.z - H.z) * rz) >= 0 ? 1 : -1;
+        setClip(best, 'rwave'); best.waveCd = 30;
+      } else st.escortCd = 2;
+    }
     st.keepT -= dt;
     if (st.keepT <= 0) {
       st.keepT = 0.5; activeKeepOut(G, st.plan, st.keep);

@@ -41,6 +41,14 @@
 - **地形破坏**（`src/world/destruction.js`，`docs/api/terrain.md` “Destruction round”）：坑、隆起、倒树、碎石、断墙都会存档；`G.world.carveGuard()` 保护城镇、故乡、剧情锚点。**恢复**（按 `playTime`）：焦痕约 4 分钟褪去，草 2.5～6 分钟长回，烧焦的树 8 分钟后 4 分钟内长回新叶，倒下的树 20 分钟后长出树苗、30 分钟长成；坑本身保留，坑底 10 分钟后慢慢长草。
 - **特效与决斗演出**（`src/fx/circles.js`、`src/fx/duel.js`）：施法魔法阵、彗星光尾、格挡蜂巢与星芒、慢动作节拍、决斗取景。
 - **手机**（`src/ui/touch.js`，`docs/api/ui.md` “Touch and small screens”）：左摇杆、右侧拖视角、随状态变化的按钮；动作经 `G.input.virtual` 注入，玩法代码只读 action，不读原始键码。
+- **衣装**（`src/data/outfits.js`、`src/ui/wardrobe.js`，`docs/api/heroine.md` “Wardrobe (journey)”）：日常服、魔女服、潮祭水着、暮海水着四套。伊蕾娜第一话只有十四五岁，所以两套水着要等两话都走完（`majo_finished`）才开放；日常服和魔女服在授名（`majo_named`）后可自由挑选。两话进行中由剧情决定衣装（第一话日常服、第二话魔女服），读档和每个剧情节点前都会换回，过场里不会穿错；通关后玩家的选择在读档时保留，剧情不再改动。水着模型由 `node tools/journey/swimwear.mjs` 从原引擎的两套水着生成（换上伊蕾娜的发型与瞳色），衣装图用 `node tools/costume/wardrobe-pics.mjs` 重拍。
+- **野外探索**（`src/gameplay/wilds*.js`，数据 `src/data/wilds.js`，文字 `gameplay.wilds.*`，`docs/api/gameplay.md` “Activities round”）：借鉴《旷野之息》的方法，内容原创。
+  - **迷星**：48 颗（39 颗挂在地标上：塔顶、风车帽、桥洞下、石棚里、井口；9 颗在各区最高的山顶），远处一闪一闪（每颗一个点精灵，一次绘制），碰到即拾，骑帚也行。每 6 颗发一次奖励并浮现一句「漏星魔女的手记」，第 12/24/36/48 颗各送一级成长。
+  - **地标**：首次靠近弹出名字（大地标用横幅），记入地图和手记「旅途见闻」页（按 6 个区统计地方、迷星、匣子）。石堆可以「添一块石头」，高处（望楼、灯塔、古堡顶、水道桥）会自动把附近的迷星标在地图上。
+  - **机关**（17 处，只靠元素规则解）：点火（烽火篮、灯塔灯）、烧荆棘、雷或岩击碎落石、冰冻水潭定住漂流的匣子、水或冰浇灭余烬、淋湿后一道雷走遍十三块立石、三阵风吹转风车桩、点燃天灯后追上它。状态存 `G.state.wilds.puzzles`；冻住的水面、飞走的天灯属于物理状态，不存档，重来即可。
+  - **飞行环线**：3 条（海岬、古树、南谷），穿过第一个光环就开始计时，奖章与最佳成绩存 `G.state.wilds.rings`。奖章时间由验收脚本里的自动驾驶在巡航速度下标定。
+  - **经济**：探索约给 2400 星屑和 6 级免费成长；`UPGRADES` 价格已下调，彻底探索的玩家一周目大约能到 15/20 级。
+  - 都不进城市、故乡和剧情锚点的保护范围，不碰剧情步骤；验收：`node tools/acceptance/journey-activities.mjs`（`ACT_RINGS=all` 飞全部三条环线）。
 
 ## 6. 验收与维护工具
 
@@ -51,6 +59,7 @@
 | `node tools/acceptance/journey-cloud-weather.mjs` | 云量变化与存档时间重现 |
 | `node tools/acceptance/journey-city-clouds.mjs` | 城墙被云遮住再出现、云隙光 |
 | `node tools/acceptance/journey-eclipse.mjs` | 渡湖日食与水面反射 |
+| `node tools/acceptance/journey-activities.mjs` | 野外探索：八类机关用真实法术解开、拾迷星、石堆、飞一条环线、存档往返、地图与手记页截图 |
 | `node tools/check-i18n.mjs src` | 代码里没有写死的中文 |
 | `node tools/dead-code.mjs` | 列出没被打包进游戏的源文件（清理引擎遗留用） |
 | `node tools/play.mjs --name x --script f.js [--mobile]` | 无头运行、截图、触屏模拟 |

@@ -1,12 +1,13 @@
 #!/usr/bin/env node
-// The painted pictures of the 衣装 page (src/ui/wardrobe.js): 灯里 in each outfit, rendered ONCE by the game itself (headless,
+// The painted pictures of the 衣装 page (src/ui/wardrobe.js): Elaina in each outfit, rendered ONCE by the game itself (headless,
 // tools/play.mjs + wardrobe-pics.shot.js: standing, front three-quarter, the world hidden, drawn over a dark and a light flat
 // ground), cut out by difference matting (the two frames differ only where the ground shows through: alpha and colour
-// solve exactly, ink lines and soft edges included), cropped to one frame for all three, written as small WebP files with
+// solve exactly, ink lines and soft edges included), cropped to one frame for all four, written as small WebP files with
 // alpha and entered in the manifest (tools/manifest-patch.mjs, these ids only). No text is baked in; the frame round the
 // picture is drawn by the page (brush-torn masks of the scroll).
-//   node tools/costume/wardrobe-pics.mjs [--only miko,swim_a] [--no-shoot] (re-cut the last shots) [--no-install]
-// Re-run it after a wardrobe rebuild (tools/costume/wardrobe-build.mjs) when an outfit's look changed.
+//   node tools/costume/wardrobe-pics.mjs [--only elaina,swim_a] [--no-shoot] (re-cut the last shots) [--no-install]
+// Re-run it after an outfit's look changed (tools/journey/build-cast.mjs, tools/journey/swimwear.mjs). --only keeps the shared
+// frame only when the tallest outfit (the witch's hat: elaina) is among the ids.
 // Out: assets/textures/ui/ui_outfit_<id>.webp (manifest ui_outfit_<id>, type texture), work files in .tmp/wardrobe-pics/.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -16,7 +17,7 @@ import sharp from 'sharp';
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../..');
 const args = process.argv.slice(2);
 const optv = (n) => { const i = args.indexOf('--' + n); return i >= 0 ? args[i + 1] : null; };
-const IDS = (optv('only') || 'miko,swim_a,swim_b').split(',');
+const IDS = (optv('only') || 'apprentice,elaina,swim_a,swim_b').split(',');
 const tmpRoot = process.env.MV_TMP ? path.resolve(process.env.MV_TMP) : path.join(ROOT, '.tmp');
 const WORK = path.join(tmpRoot, 'wardrobe-pics'); fs.mkdirSync(WORK, { recursive: true });
 const SHOTS = path.join(tmpRoot, 'play/wardrobe_pics');
@@ -47,7 +48,7 @@ for (const id of IDS) {
   }
   cuts.push({ id, rgba, w, h, box: [x0, y0, x1, y1] });
 }
-// one frame for all three (same scale, feet on the same line): the tallest figure fills the height
+// one frame for all four (same scale, feet on the same line): the tallest figure fills the height
 const fh = Math.max(...cuts.map((c) => c.box[3] - c.box[1])) * 1.035, fw = Math.round(fh * ASPECT);
 for (const c of cuts) {
   const cx = Math.round((c.box[0] + c.box[2]) / 2), bottom = c.box[3] + Math.round(fh * 0.01);
@@ -61,7 +62,7 @@ for (const c of cuts) {
   console.log(`ui_outfit_${c.id}: ${path.relative(ROOT, file)} ${Math.round(H * ASPECT)}x${H}, ${(buf.length / 1024).toFixed(1)} KB (figure box ${c.box.join(',')})`);
   frag[`ui_outfit_${c.id}`] = { file: `textures/ui/ui_outfit_${c.id}.webp`, type: 'texture', preload: false, license: 'In-game render of the project heroine; see matching character asset for visual reference and credits.', size_px: [Math.round(H * ASPECT), H],
     author: 'rendered for this project from the game itself (tools/costume/wardrobe-pics.mjs)',
-    source: `tools/costume/wardrobe-pics.mjs: 灯里 in the "${c.id}" outfit (src/data/outfits.js), front three-quarter, cut out by difference matting`,
+    source: `tools/costume/wardrobe-pics.mjs: Elaina in the "${c.id}" outfit (src/data/outfits.js), front three-quarter, cut out by difference matting`,
     notes: 'picture on the 衣装 page of the pause scroll (src/ui/wardrobe.js); transparent around her, no text; the page draws the frame. Re-make after a wardrobe rebuild.' };
 }
 if (!args.includes('--no-install')) {

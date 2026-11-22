@@ -229,7 +229,7 @@ export async function bakeHumanoid(G, id) {
     if (out.length > tris * 3 * 1.6) [out] = MeshoptSimplifier.simplifySloppy(src, pos, 3, null, tris * 3, err * 4);
     return out;
   };
-  const lodIdx = [simp(Ifull, 16000, 0.004), simp(Ilod, 5000, 0.02), simp(Ilod, 1300, 0.06)];
+  const lodIdx = [simp(Ifull, 16000, 0.004), simp(Ilod, 3600, 0.03), simp(Ilod, 1000, 0.08)];
   const geos = lodIdx.map((ix, l) => {
     const g = new THREE.BufferGeometry();
     for (const k in attrs) g.setAttribute(k, attrs[k]);
@@ -341,7 +341,7 @@ export function createBodyPool(root, bodies, tier = 1) {
   const uTime = { value: 0 };
   const CAP = [4, 24, 110];
   // whole-city budgets for the two near LODs (the LOD distances adapt to keep within them)
-  const BUDGET = [tier < 0.5 ? 3 : 6, tier < 0.5 ? 14 : 30];
+  const BUDGET = [tier < 0.5 ? 2 : 4, tier < 0.5 ? 12 : 24];
   const used = [0, 0], asked = [0, 0];
   const meshes = bodies.map((b) => (b ? CAP.map((c, l) => { const m = makeBodyMesh(b, l, c, uTime); root.add(m); return m; }) : null));
   const counts = bodies.map(() => [0, 0, 0]);

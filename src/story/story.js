@@ -8,6 +8,7 @@ import { createCast } from './episode-cast.js';
 import { createScenes } from './episode-scenes.js';
 import { createFranMeteor } from './fran-meteor.js';
 import { createFranSpar } from './fran-spar.js';
+import { storyOutfit, outfitById } from '../data/outfits.js';
 
 const S = {
   busy: false,
@@ -60,6 +61,8 @@ const S = {
     S.busy = true;
     const session = S.session;
     try {
+      await syncOutfit();   // wardrobe: the cutscene shows her in the story's clothes
+      if (session !== S.session) return;
       await S.scenes.crash();
       if (session !== S.session) return;
       await G.dialogue.play('collision', { npc: 'saya' });
@@ -83,6 +86,8 @@ async function interact() {
   S.busy = true;
   try {
     const checkpoint = () => session === S.session && S.current() === step;
+    await syncOutfit();   // wardrobe: a story beat is played in the story's clothes
+    if (!checkpoint()) return;
     if (step.id === 'repair') {
       await S.scenes.repair();
       if (!checkpoint()) return;
@@ -111,9 +116,13 @@ async function interact() {
     if (session === S.session) S.busy = false;
   }
 }
+// Until both episodes are done the story chooses her clothes (src/data/outfits.js storyOutfit): on load, at her naming
+// and before every story beat (a quest dialogue, the roof collision). Afterwards the player's choice is never overridden.
+// The developer switch ?outfit= wins. Resolves once she wears it (at once when she already does).
 function syncOutfit() {
-  const outfit = G.state.flags.majo_named ? 'elaina' : 'apprentice';
-  G.player?.setOutfit?.(outfit, { quiet: true });
+  const outfit = storyOutfit(G.state);
+  if (!outfit || outfitById(G.params?.outfit)) return Promise.resolve(true);
+  return Promise.resolve(G.player?.setOutfit?.(outfit, { quiet: true }));
 }
 function applyWorld() {
   syncOutfit();
@@ -233,7 +242,7 @@ export const storySystem = {
     if (G.quests.isDone('apprentice') && !G.state.quests.mages) G.quests.start('mages', { silent: true });
     if (G.ui?.providers) {
       G.ui.providers.journal = () => G.quests.journal();
-      G.ui.providers.mapMarkers = () => mapMarkers().concat(G.travelNotes?.markers() || []);
+      G.ui.providers.mapMarkers = () => mapMarkers().concat(G.travelNotes?.markers() || [], G.wilds?.markers?.() || []);
       G.ui.providers.lore = () =>
         journalNotes
           .filter((id) => G.state.flags[id])

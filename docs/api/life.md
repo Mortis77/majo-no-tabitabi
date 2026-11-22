@@ -130,3 +130,70 @@ Cost: + up to ~30 agents near those spots (bird cap 96 unchanged), the same ≤ 
 - `kinds.js` groups: `treebirds` (finches perched on a real tree crown from `G.flora.treesNear`, bursting out as she
   passes), `starlings` (one breathing murmuration over open country, scattering from the broom), `bees` now find lavender
   / poppy fields, the bee garden and the flower valley. Bird cap 96 → 150.
+
+## Citylife round: witches and townsfolk of the City of Magic (2026-11-22)
+Files: `life/city-flyers.js` (system part, `G.life.city`, flyer behaviour, broom trails), `life/city-crowds.js`
+(townsfolk), `life/city-flyers-bake.js` (instanced skinned humanoids), `life/city-flyers-plan.js` (layout adapter + grids).
+Registered in `life.js` (marked "citylife round"); `?nocity=1` turns it off (A/B). Purely visual: no colliders, no save
+state, no gameplay events, no player-visible text.
+
+**What a player sees.** From ~1.5 km out the bodies bake (once, ~0.5 s, async). The sky over the town fills with witches
+on brooms: apprentices in dark robes, travelling witches in purple / blue / wine / green / white, a few grey-haired
+elders; hats on or off, gold / red / white trims, many hair colours. Roles (high tier, about 115 flyers):
+| role | what |
+|---|---|
+| `local` (40) | the sky round the heroine: waypoints within ~15–95 m of her (mostly in front of the camera, ahead of her when she flies), about her height and up; 30 % are fly-bys that cross her path 12–45 m ahead |
+| `lane` (28) + `looper` (2) | the exported sky lanes (street-canyon lanes between the house fronts, the high ring, the gate lane) plus derived rings and chords over the roofs; spread across each lane's width, both ways, 200–450 m stretches; loopers throw a loop-the-loop |
+| `hop` (22) + `delivery` (3) | the heart: stand on a balcony / terrace / footbridge / rampart walk (idle, chat, lean on the rail, wave), mount the broom, a short arc across the canyon (lifted over anything in between), slow approach, dismount and stand; sometimes step inside for 10–30 s; delivery witches carry a parcel and hop further |
+| `circle` (8) | laps round spire and tower tips |
+| `commute` (10) | in and out over the walls (and through the gate arch, low and slow); while she is out on the approach most come in past her |
+| `trio` (3) | three apprentices in a V flying a figure-eight over the practice field |
+Flight: arc-length paths (Catmull-Rom, ≤ 160 samples per flyer, rebuilt only when a leg starts), every sample lifted over
+the roofs (`sky` grid; exported canyon lanes use the exact `top` grid), bank from yaw rate, pitch from climb / dive,
+`boost` clip above 17 m/s, robe-hem and hair flutter in the vertex shader, a faint additive trail from the brush (one draw,
+a minimum on-screen width so far brooms still draw a line). Traffic is focused on her: legs started more than 230 m
+from her head back towards her part of town.
+The heroine: flyers wave (`rwave`, ride + Wave on the right arm) when she flies within 18 m (cool-down 22–40 s); they give
+way inside 10 m (a sprung offset, never through her) and scatter from blasts (the life threats); after 3 s of fast
+straight flight a nearby witch swoops in beside her for 6–9 s (catch-up capped at +10 m/s), then peels off. A balcony she
+is landing on / standing on is hers for 4 s: perched witches hop away, landing witches pick another, folk step aside.
+Townsfolk (`city-crowds.js`, high tier ~80: 50 on balconies, 16 walkers, 14 at shop fronts): mostly up on the balconies / terraces / bridges / ramparts (rail lean, chats in
+pairs facing each other, calling out, waving at a passing broom or at her, looking up, turning to talk to a witch who
+lands beside them); few in the dim streets: walkers on the exported street lines (merchants carrying, mages, children
+jogging; never into a wall cell of the 2 m walk grid, sidestep / stop for her, pause to look up at a low broom) and
+browsers at the lamp-lit shop fronts. Folk far from her, or behind the camera, are moved to balconies 20–70 m ahead of
+where she looks / streets / shop fronts near her (one move per 0.5 s, never someone the camera can see).
+**Story safety.** Active keep-out zones (refreshed twice a second): the exported `CITY_LIFE.keepOut` (accident roof, crash
+flight path, jeweller flight, inn) always; the crash roof r 34 during quest steps `collision` / `repair`; the inn; the
+practice field (r + 45 m, up to field + 70 m) during `teach` / `course` / `praise`; the gate (r 42 m) during `gate` /
+`depart` (the gate lanes and gate commuters are not used then). Nobody inside an active zone is drawn (scale fade), local
+waypoints are pushed out of them, perches inside them are not used. While `G.mode !== 'play'` every flyer within 40 m of
+her or the camera, and every townsperson within 16 m of her, fades out.
+**Data.** `src/data/bellcrown.js` `CITY_LIFE` (places agent): `bounds`, `ground`, `gate` (archW / archH / depth / face),
+`practice`, `spires`, `towers`, `squares`, `streets`, `skyLanes` ({ y, width, loop, pts }), `wallWalk`, `keepOut`,
+`balconies` (filled by the builder; kinds balcony / roof / bridge), `shopFronts`, `ready`. The plan waits for `ready`.
+Anything missing is derived (rooftop perches from platforms, slim tall colliders as spires, straight street runs through
+open walk cells, rings / chords as lanes). Grids (built once): `sky` (4 m, highest collider / platform top, padded 2.5 m),
+`top` (exact), `walk` (2 m, street-level obstacles). Inside test: `bellEdge` (exported) or the level terraces.
+**Drawing.** Five bodies baked from the journey cast GLBs (read raw with GLTFLoader for clean material names):
+char_saya, char_exam_witch, char_fran (witches), char_innkeeper, char_elaina_father (townsfolk). Materials → parts
+(robe / hat / hair / trim / hat trim recoloured per instance from four palette colours with the texture's own shading kept;
+skin, eyes, leather kept); flags per instance: hatless, parcel. States (same rows for every body): ride, boost, rwave,
+mount, dismount, idle, walk, jog, talk, listen (fold arms), rail, call, lookup (neck + head pitched back), wave, carry. A
+broom (and parcel) on an extra bone: on in the ride states, collapsed on foot. LODs by meshopt: ~16k (with face
+details) / ~3.6k / ~1k triangles. One InstancedMesh per (body, LOD): ≤ 15 draws + 1 trail draw; shadows only from the
+two near LODs. Near-LOD budgets for the whole town (high: 4 at LOD0, 24 at LOD1; low: 2 / 12) with adaptive distances
+(LOD0 ≤ 14 m, LOD1 ≤ 55 m); agents beyond 700 m (flyers) / 280 m (balcony folk) / 150 m (street folk) or outside the
+frustum (beyond 20–25 m) are not drawn. No per-frame allocations in the update / draw loops. Counts scale with
+`G.quality.density` (× 0.7 more on low).
+**API** (`G.life.city`): `phase` ('wait' | 'loading' | 'live' | 'off'), `flyers`, `crowds.folk`, `plan`, `load()` (tests:
+start baking now), `clear()`, `stats()` → { flyers, visible, modes, escorts, perches, lanes, spires, streets, crowd,
+draws, tris, ms, keepOut }. Also in `G.life.stats().city`. Tests only: `G.life.city.st.forceLod`; a view-only camera
+(`T.viewCam`) is honoured for LOD / culling through `G.debug.fixedCam`.
+**Measured** (high, play.mjs with the game camera, shared GPU so no fps): flying in over the gate and across the town on
+the broom 6–9 draws, 30–160k triangles (the high end while a witch flies beside her at LOD0); on foot in a street 6–8
+draws, 32–35k triangles; update + draw ≈ 0.12–0.25 ms per frame. (Test view cameras disable frustum culling, so
+`.tmp/agents/citylife/shots.js` reports up to ~300k.)
+**Known gaps.** Instanced bodies have no ink outline and no faces beyond vertex colour (fine from ~5 m; the closest
+fly-bys are LOD0). Flyers do not avoid each other (lanes are spread across their width). Paths are lifted over roofs, so
+apart from the exported canyon lanes and balcony hops nobody flies low through the streets. No sound.

@@ -1,8 +1,9 @@
-// 灯里's wardrobe at runtime (docs/api/heroine.md "Wardrobe"): G.player.outfit / G.player.setOutfit(id).
+// Elaina's wardrobe at runtime (docs/api/heroine.md "Wardrobe (journey)"): G.player.outfit / G.player.setOutfit(id).
+// Which outfit the story or the player chooses, and when, is src/data/outfits.js (storyOutfit / journeyOutfit).
 // A change loads the other outfit's model on demand while the old one stays on screen, waits while a cutscene, a ceremony
 // or an art's close-up owns her, then — inside one player update, before anything draws — builds the new rig, hands it
-// everything the old rig held (rig.adopt: clips + times, face, look-at, hand IK, the props attached to her bones: gohei,
-// hip lantern, wings), poses it, resets the spring chains to that pose, puts it where the old one was and frees the old one.
+// everything the old rig held (rig.adopt: clips + times, face, look-at, hand IK, the props attached to her bones: her
+// wand, wings), poses it, resets the spring chains to that pose, puts it where the old one was and frees the old one.
 // Petals and light motes and a soft cloth / sparkle sound cover the frame of the change. There is never a frame without
 // her, never a T-pose (a placeholder model is refused) and never the base figure alone (no such asset is in the table).
 import { setJourneyAccessories } from '../actors/journey-accessories.js';
@@ -10,7 +11,7 @@ import { G } from '../core/game.js';
 import { OUTFITS, DEFAULT_OUTFIT, outfitById, journeyOutfit } from '../data/outfits.js';
 
 const valid = (id) => !!outfitById(id);
-/** The outfit she wears when the game opens: ?outfit=, else the stored save's, else the default. */
+/** The outfit she wears when the game opens: ?outfit=, else what the stored save loads in (journeyOutfit). */
 export function initialOutfit() {
   const p = String(G.params?.outfit || '');
   if (valid(p)) return p;

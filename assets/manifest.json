@@ -19870,19 +19870,6 @@
   "bytes": 4152764,
   "tris": 72563
  },
- "ui_outfit_miko": {
-  "file": "textures/ui/ui_outfit_miko.webp",
-  "type": "texture",
-  "preload": false,
-  "license": "In-game render of the project heroine; see matching character asset for visual reference and credits.",
-  "size_px": [
-   384,
-   640
-  ],
-  "author": "rendered for this project from the game itself (tools/costume/wardrobe-pics.mjs)",
-  "source": "tools/costume/wardrobe-pics.mjs: 灯里 in the \"miko\" outfit (src/data/outfits.js), front three-quarter, cut out by difference matting",
-  "notes": "picture on the 衣装 page of the pause scroll (src/ui/wardrobe.js); transparent around her, no text; the page draws the frame. Re-make after a wardrobe rebuild."
- },
  "ui_outfit_swim_a": {
   "file": "textures/ui/ui_outfit_swim_a.webp",
   "type": "texture",
@@ -19893,7 +19880,7 @@
    640
   ],
   "author": "rendered for this project from the game itself (tools/costume/wardrobe-pics.mjs)",
-  "source": "tools/costume/wardrobe-pics.mjs: 灯里 in the \"swim_a\" outfit (src/data/outfits.js), front three-quarter, cut out by difference matting",
+  "source": "tools/costume/wardrobe-pics.mjs: Elaina in the \"swim_a\" outfit (src/data/outfits.js), front three-quarter, cut out by difference matting",
   "notes": "picture on the 衣装 page of the pause scroll (src/ui/wardrobe.js); transparent around her, no text; the page draws the frame. Re-make after a wardrobe rebuild."
  },
  "ui_outfit_swim_b": {
@@ -19906,7 +19893,7 @@
    640
   ],
   "author": "rendered for this project from the game itself (tools/costume/wardrobe-pics.mjs)",
-  "source": "tools/costume/wardrobe-pics.mjs: 灯里 in the \"swim_b\" outfit (src/data/outfits.js), front three-quarter, cut out by difference matting",
+  "source": "tools/costume/wardrobe-pics.mjs: Elaina in the \"swim_b\" outfit (src/data/outfits.js), front three-quarter, cut out by difference matting",
   "notes": "picture on the 衣装 page of the pause scroll (src/ui/wardrobe.js); transparent around her, no text; the page draws the frame. Re-make after a wardrobe rebuild."
  },
  "sculpt_prop_broom": {
@@ -21498,5 +21485,752 @@
     "hit": 0.065
    }
   }
+ },
+ "char_elaina_swim_a": {
+  "file": "models/journey/elaina_swim_a.glb",
+  "type": "model",
+  "license": "Original mesh and garment construction inspired by the anime character design. Humanoid skeleton based on pixiv VRoid HairSample_Female (CC0).",
+  "author": "Journey character team",
+  "source": "tools/journey/swimwear.mjs: assets/models/chars/char_akari_swim_a.glb + Elaina's hair from assets/models/journey/elaina_apprentice.glb",
+  "bytes": 4264596,
+  "tris": 75871,
+  "size": [
+   1.305,
+   1.567,
+   0.407
+  ],
+  "meshes": [
+   "akari_face",
+   "akari_body",
+   "akari_swim",
+   "akari_swim_lining",
+   "akari_skirt",
+   "akari_cord",
+   "akari_wrist",
+   "akari_beach_shirt",
+   "akari_zori",
+   "akari_hair",
+   "akari_ribbon",
+   "apprentice_hair",
+   "apprentice_hairGlint"
+  ],
+  "materials": [
+   "FaceMouth",
+   "EyeWhite",
+   "FaceEyelash",
+   "EyeIris",
+   "EyeHighlight",
+   "Face",
+   "Body",
+   "cloth_white",
+   "cloth_trim",
+   "cloth_frill",
+   "cloth_voile",
+   "cloth_seam",
+   "Hair",
+   "Ribbon",
+   "Hair_apprentice_hair",
+   "Hair_apprentice_hairGlint"
+  ],
+  "scale": 1,
+  "clipsFrom": [
+   "anim_ual",
+   "anim_miko"
+  ],
+  "bones": {
+   "head": "J_Bip_C_Head",
+   "chest": "J_Bip_C_Chest",
+   "upperChest": "J_Bip_C_UpperChest",
+   "spine": "J_Bip_C_Spine",
+   "hips": "J_Bip_C_Hips",
+   "handR": "J_Bip_R_Hand",
+   "handL": "J_Bip_L_Hand",
+   "neck": "J_Bip_C_Neck",
+   "footR": "J_Bip_R_Foot",
+   "footL": "J_Bip_L_Foot"
+  },
+  "hipsHeight": 0.887,
+  "morphs": [
+   "blink",
+   "blink_l",
+   "blink_r",
+   "joy",
+   "fun",
+   "angry",
+   "sorrow",
+   "surprised",
+   "a",
+   "i",
+   "u",
+   "e",
+   "o"
+  ],
+  "morphMesh": "akari_face",
+  "preload": false,
+  "secondaryChains": [
+   {
+    "root": "J_Sec_Hakama_1_01",
+    "joints": [
+     "J_Sec_Hakama_1_01",
+     "J_Sec_Hakama_1_02",
+     "J_Sec_Hakama_1_03"
+    ],
+    "tail": "J_Sec_Hakama_1_end",
+    "parent": "J_Bip_L_UpperLeg",
+    "kind": "skirt",
+    "theta": 0.314
+   },
+   {
+    "root": "J_Sec_Hakama_2_01",
+    "joints": [
+     "J_Sec_Hakama_2_01",
+     "J_Sec_Hakama_2_02",
+     "J_Sec_Hakama_2_03"
+    ],
+    "tail": "J_Sec_Hakama_2_end",
+    "parent": "J_Bip_L_UpperLeg",
+    "kind": "skirt",
+    "theta": 0.942
+   },
+   {
+    "root": "J_Sec_Hakama_3_01",
+    "joints": [
+     "J_Sec_Hakama_3_01",
+     "J_Sec_Hakama_3_02",
+     "J_Sec_Hakama_3_03"
+    ],
+    "tail": "J_Sec_Hakama_3_end",
+    "parent": "J_Bip_L_UpperLeg",
+    "kind": "skirt",
+    "theta": 1.571
+   },
+   {
+    "root": "J_Sec_Hakama_4_01",
+    "joints": [
+     "J_Sec_Hakama_4_01",
+     "J_Sec_Hakama_4_02",
+     "J_Sec_Hakama_4_03"
+    ],
+    "tail": "J_Sec_Hakama_4_end",
+    "parent": "J_Bip_L_UpperLeg",
+    "kind": "skirt",
+    "theta": 2.199
+   },
+   {
+    "root": "J_Sec_Hakama_5_01",
+    "joints": [
+     "J_Sec_Hakama_5_01",
+     "J_Sec_Hakama_5_02",
+     "J_Sec_Hakama_5_03"
+    ],
+    "tail": "J_Sec_Hakama_5_end",
+    "parent": "J_Bip_L_UpperLeg",
+    "kind": "skirt",
+    "theta": 2.827
+   },
+   {
+    "root": "J_Sec_Hakama_6_01",
+    "joints": [
+     "J_Sec_Hakama_6_01",
+     "J_Sec_Hakama_6_02",
+     "J_Sec_Hakama_6_03"
+    ],
+    "tail": "J_Sec_Hakama_6_end",
+    "parent": "J_Bip_R_UpperLeg",
+    "kind": "skirt",
+    "theta": 3.456
+   },
+   {
+    "root": "J_Sec_Hakama_7_01",
+    "joints": [
+     "J_Sec_Hakama_7_01",
+     "J_Sec_Hakama_7_02",
+     "J_Sec_Hakama_7_03"
+    ],
+    "tail": "J_Sec_Hakama_7_end",
+    "parent": "J_Bip_R_UpperLeg",
+    "kind": "skirt",
+    "theta": 4.084
+   },
+   {
+    "root": "J_Sec_Hakama_8_01",
+    "joints": [
+     "J_Sec_Hakama_8_01",
+     "J_Sec_Hakama_8_02",
+     "J_Sec_Hakama_8_03"
+    ],
+    "tail": "J_Sec_Hakama_8_end",
+    "parent": "J_Bip_R_UpperLeg",
+    "kind": "skirt",
+    "theta": 4.712
+   },
+   {
+    "root": "J_Sec_Hakama_9_01",
+    "joints": [
+     "J_Sec_Hakama_9_01",
+     "J_Sec_Hakama_9_02",
+     "J_Sec_Hakama_9_03"
+    ],
+    "tail": "J_Sec_Hakama_9_end",
+    "parent": "J_Bip_R_UpperLeg",
+    "kind": "skirt",
+    "theta": 5.341
+   },
+   {
+    "root": "J_Sec_Hakama_10_01",
+    "joints": [
+     "J_Sec_Hakama_10_01",
+     "J_Sec_Hakama_10_02",
+     "J_Sec_Hakama_10_03"
+    ],
+    "tail": "J_Sec_Hakama_10_end",
+    "parent": "J_Bip_R_UpperLeg",
+    "kind": "skirt",
+    "theta": 5.969
+   },
+   {
+    "root": "J_Sec_SashTailL_1_01",
+    "joints": [
+     "J_Sec_SashTailL_1_01",
+     "J_Sec_SashTailL_1_02",
+     "J_Sec_SashTailL_1_03"
+    ],
+    "tail": "J_Sec_SashTailL_1_end",
+    "parent": "J_Bip_C_Hips",
+    "kind": "tail"
+   },
+   {
+    "root": "J_Sec_SashTailR_1_01",
+    "joints": [
+     "J_Sec_SashTailR_1_01",
+     "J_Sec_SashTailR_1_02",
+     "J_Sec_SashTailR_1_03"
+    ],
+    "tail": "J_Sec_SashTailR_1_end",
+    "parent": "J_Bip_C_Hips",
+    "kind": "tail"
+   },
+   {
+    "root": "J_Sec_Charm_1_01",
+    "joints": [
+     "J_Sec_Charm_1_01",
+     "J_Sec_Charm_1_02"
+    ],
+    "tail": "J_Sec_Charm_1_end",
+    "parent": "J_Bip_C_Hips",
+    "kind": "charm"
+   },
+   {
+    "root": "J_Sec_RibbonL_1_01",
+    "joints": [
+     "J_Sec_RibbonL_1_01",
+     "J_Sec_RibbonL_1_02",
+     "J_Sec_RibbonL_1_03"
+    ],
+    "tail": "J_Sec_RibbonL_1_end",
+    "parent": "J_Bip_C_Head",
+    "kind": "tail"
+   },
+   {
+    "root": "J_Sec_RibbonR_1_01",
+    "joints": [
+     "J_Sec_RibbonR_1_01",
+     "J_Sec_RibbonR_1_02",
+     "J_Sec_RibbonR_1_03"
+    ],
+    "tail": "J_Sec_RibbonR_1_end",
+    "parent": "J_Bip_C_Head",
+    "kind": "tail"
+   },
+   {
+    "root": "J_Sec_HairBack_1_01",
+    "joints": [
+     "J_Sec_HairBack_1_01",
+     "J_Sec_HairBack_1_02",
+     "J_Sec_HairBack_1_03",
+     "J_Sec_HairBack_1_04"
+    ],
+    "tail": "J_Sec_HairBack_1_end",
+    "parent": "J_Bip_C_Head",
+    "kind": "cape"
+   },
+   {
+    "root": "J_Sec_HairBack_2_01",
+    "joints": [
+     "J_Sec_HairBack_2_01",
+     "J_Sec_HairBack_2_02",
+     "J_Sec_HairBack_2_03",
+     "J_Sec_HairBack_2_04"
+    ],
+    "tail": "J_Sec_HairBack_2_end",
+    "parent": "J_Bip_C_Head",
+    "kind": "cape"
+   },
+   {
+    "root": "J_Sec_HairBack_3_01",
+    "joints": [
+     "J_Sec_HairBack_3_01",
+     "J_Sec_HairBack_3_02",
+     "J_Sec_HairBack_3_03",
+     "J_Sec_HairBack_3_04"
+    ],
+    "tail": "J_Sec_HairBack_3_end",
+    "parent": "J_Bip_C_Head",
+    "kind": "cape"
+   },
+   {
+    "root": "J_Sec_HairBack_4_01",
+    "joints": [
+     "J_Sec_HairBack_4_01",
+     "J_Sec_HairBack_4_02",
+     "J_Sec_HairBack_4_03",
+     "J_Sec_HairBack_4_04"
+    ],
+    "tail": "J_Sec_HairBack_4_end",
+    "parent": "J_Bip_C_Head",
+    "kind": "cape"
+   },
+   {
+    "root": "J_Sec_HairBack_5_01",
+    "joints": [
+     "J_Sec_HairBack_5_01",
+     "J_Sec_HairBack_5_02",
+     "J_Sec_HairBack_5_03",
+     "J_Sec_HairBack_5_04"
+    ],
+    "tail": "J_Sec_HairBack_5_end",
+    "parent": "J_Bip_C_Head",
+    "kind": "cape"
+   },
+   {
+    "root": "J_Sec_HairSideL_1_01",
+    "joints": [
+     "J_Sec_HairSideL_1_01",
+     "J_Sec_HairSideL_1_02",
+     "J_Sec_HairSideL_1_03"
+    ],
+    "tail": "J_Sec_HairSideL_1_end",
+    "parent": "J_Bip_C_Head",
+    "kind": "hair"
+   },
+   {
+    "root": "J_Sec_HairSideR_1_01",
+    "joints": [
+     "J_Sec_HairSideR_1_01",
+     "J_Sec_HairSideR_1_02",
+     "J_Sec_HairSideR_1_03"
+    ],
+    "tail": "J_Sec_HairSideR_1_end",
+    "parent": "J_Bip_C_Head",
+    "kind": "hair"
+   }
+  ],
+  "springDefaults": {
+   "skirt": {
+    "stiffness": 0.95,
+    "gravityPower": 0.5,
+    "dragForce": 0.5,
+    "hitRadius": 0.05,
+    "colliders": [
+     "thighs",
+     "shins"
+    ]
+   },
+   "tail": {
+    "stiffness": 0.4,
+    "gravityPower": 0.4,
+    "dragForce": 0.4,
+    "hitRadius": 0.025,
+    "colliders": [
+     "hips",
+     "thighs"
+    ]
+   },
+   "charm": {
+    "stiffness": 0.2,
+    "gravityPower": 1,
+    "dragForce": 0.3,
+    "hitRadius": 0.015,
+    "colliders": [
+     "hips",
+     "thighs"
+    ]
+   },
+   "hair": {
+    "stiffness": 0.55,
+    "drag": 0.45,
+    "gravity": 0.45,
+    "hit": 0.014
+   },
+   "cape": {
+    "stiffness": 0.25,
+    "drag": 0.6,
+    "gravity": 1,
+    "hit": 0.065
+   }
+  },
+  "notes": "Elaina's 潮祭 swimsuit (衣装 page, unlocked after both episodes). The original engine's swim A file (white frilled suit, frill skirt, sheer beach shirt, sandals) with her uncovered hair and iris. Costume reference: TAITO Coreful Elaina Swimsuit (2025), https://www.taito.co.jp/taito-prize/0451877100."
+ },
+ "char_elaina_swim_b": {
+  "file": "models/journey/elaina_swim_b.glb",
+  "type": "model",
+  "license": "Original mesh and garment construction inspired by the anime character design. Humanoid skeleton based on pixiv VRoid HairSample_Female (CC0).",
+  "author": "Journey character team",
+  "source": "tools/journey/swimwear.mjs: assets/models/chars/char_akari_swim_b.glb + Elaina's hair from assets/models/journey/elaina_apprentice.glb",
+  "bytes": 3927432,
+  "tris": 70118,
+  "size": [
+   1.305,
+   1.566,
+   0.39
+  ],
+  "meshes": [
+   "akari_face",
+   "akari_body",
+   "akari_swim_top",
+   "akari_swim_shorts",
+   "akari_swim_neckline",
+   "akari_swim_waist",
+   "akari_swim_stars",
+   "akari_swim_scrunchie",
+   "akari_hair",
+   "akari_ribbon",
+   "apprentice_hair",
+   "apprentice_hairGlint"
+  ],
+  "materials": [
+   "FaceMouth",
+   "EyeWhite",
+   "FaceEyelash",
+   "EyeIris",
+   "EyeHighlight",
+   "Face",
+   "Body",
+   "cloth_white",
+   "float_organza",
+   "float_wrist",
+   "float_gold",
+   "Hair",
+   "Ribbon",
+   "Hair_apprentice_hair",
+   "Hair_apprentice_hairGlint"
+  ],
+  "scale": 1,
+  "clipsFrom": [
+   "anim_ual",
+   "anim_miko"
+  ],
+  "bones": {
+   "head": "J_Bip_C_Head",
+   "chest": "J_Bip_C_Chest",
+   "upperChest": "J_Bip_C_UpperChest",
+   "spine": "J_Bip_C_Spine",
+   "hips": "J_Bip_C_Hips",
+   "handR": "J_Bip_R_Hand",
+   "handL": "J_Bip_L_Hand",
+   "neck": "J_Bip_C_Neck",
+   "footR": "J_Bip_R_Foot",
+   "footL": "J_Bip_L_Foot"
+  },
+  "hipsHeight": 0.887,
+  "morphs": [
+   "blink",
+   "blink_l",
+   "blink_r",
+   "joy",
+   "fun",
+   "angry",
+   "sorrow",
+   "surprised",
+   "a",
+   "i",
+   "u",
+   "e",
+   "o"
+  ],
+  "morphMesh": "akari_face",
+  "preload": false,
+  "secondaryChains": [
+   {
+    "root": "J_Sec_Hakama_1_01",
+    "joints": [
+     "J_Sec_Hakama_1_01",
+     "J_Sec_Hakama_1_02",
+     "J_Sec_Hakama_1_03"
+    ],
+    "tail": "J_Sec_Hakama_1_end",
+    "parent": "J_Bip_L_UpperLeg",
+    "kind": "skirt",
+    "theta": 0.297
+   },
+   {
+    "root": "J_Sec_Hakama_2_01",
+    "joints": [
+     "J_Sec_Hakama_2_01",
+     "J_Sec_Hakama_2_02",
+     "J_Sec_Hakama_2_03"
+    ],
+    "tail": "J_Sec_Hakama_2_end",
+    "parent": "J_Bip_L_UpperLeg",
+    "kind": "skirt",
+    "theta": 0.912
+   },
+   {
+    "root": "J_Sec_Hakama_3_01",
+    "joints": [
+     "J_Sec_Hakama_3_01",
+     "J_Sec_Hakama_3_02",
+     "J_Sec_Hakama_3_03"
+    ],
+    "tail": "J_Sec_Hakama_3_end",
+    "parent": "J_Bip_L_UpperLeg",
+    "kind": "skirt",
+    "theta": 1.535
+   },
+   {
+    "root": "J_Sec_Hakama_4_01",
+    "joints": [
+     "J_Sec_Hakama_4_01",
+     "J_Sec_Hakama_4_02",
+     "J_Sec_Hakama_4_03"
+    ],
+    "tail": "J_Sec_Hakama_4_end",
+    "parent": "J_Bip_L_UpperLeg",
+    "kind": "skirt",
+    "theta": 2.166
+   },
+   {
+    "root": "J_Sec_Hakama_6_01",
+    "joints": [
+     "J_Sec_Hakama_6_01",
+     "J_Sec_Hakama_6_02",
+     "J_Sec_Hakama_6_03"
+    ],
+    "tail": "J_Sec_Hakama_6_end",
+    "parent": "J_Bip_R_UpperLeg",
+    "kind": "skirt",
+    "theta": 3.472
+   },
+   {
+    "root": "J_Sec_Hakama_8_01",
+    "joints": [
+     "J_Sec_Hakama_8_01",
+     "J_Sec_Hakama_8_02",
+     "J_Sec_Hakama_8_03"
+    ],
+    "tail": "J_Sec_Hakama_8_end",
+    "parent": "J_Bip_R_UpperLeg",
+    "kind": "skirt",
+    "theta": 4.748
+   },
+   {
+    "root": "J_Sec_Hakama_10_01",
+    "joints": [
+     "J_Sec_Hakama_10_01",
+     "J_Sec_Hakama_10_02",
+     "J_Sec_Hakama_10_03"
+    ],
+    "tail": "J_Sec_Hakama_10_end",
+    "parent": "J_Bip_R_UpperLeg",
+    "kind": "skirt",
+    "theta": 5.986
+   },
+   {
+    "root": "J_Sec_Charm_1_01",
+    "joints": [
+     "J_Sec_Charm_1_01",
+     "J_Sec_Charm_1_02"
+    ],
+    "tail": "J_Sec_Charm_1_end",
+    "parent": "J_Bip_C_Hips",
+    "kind": "tail"
+   },
+   {
+    "root": "J_Sec_RibbonL_1_01",
+    "joints": [
+     "J_Sec_RibbonL_1_01",
+     "J_Sec_RibbonL_1_02",
+     "J_Sec_RibbonL_1_03"
+    ],
+    "tail": "J_Sec_RibbonL_1_end",
+    "parent": "J_Bip_C_Head",
+    "kind": "tail"
+   },
+   {
+    "root": "J_Sec_RibbonR_1_01",
+    "joints": [
+     "J_Sec_RibbonR_1_01",
+     "J_Sec_RibbonR_1_02",
+     "J_Sec_RibbonR_1_03"
+    ],
+    "tail": "J_Sec_RibbonR_1_end",
+    "parent": "J_Bip_C_Head",
+    "kind": "tail"
+   },
+   {
+    "root": "J_Sec_HairBack_1_01",
+    "joints": [
+     "J_Sec_HairBack_1_01",
+     "J_Sec_HairBack_1_02",
+     "J_Sec_HairBack_1_03",
+     "J_Sec_HairBack_1_04"
+    ],
+    "tail": "J_Sec_HairBack_1_end",
+    "parent": "J_Bip_C_Head",
+    "kind": "cape"
+   },
+   {
+    "root": "J_Sec_HairBack_2_01",
+    "joints": [
+     "J_Sec_HairBack_2_01",
+     "J_Sec_HairBack_2_02",
+     "J_Sec_HairBack_2_03",
+     "J_Sec_HairBack_2_04"
+    ],
+    "tail": "J_Sec_HairBack_2_end",
+    "parent": "J_Bip_C_Head",
+    "kind": "cape"
+   },
+   {
+    "root": "J_Sec_HairBack_3_01",
+    "joints": [
+     "J_Sec_HairBack_3_01",
+     "J_Sec_HairBack_3_02",
+     "J_Sec_HairBack_3_03",
+     "J_Sec_HairBack_3_04"
+    ],
+    "tail": "J_Sec_HairBack_3_end",
+    "parent": "J_Bip_C_Head",
+    "kind": "cape"
+   },
+   {
+    "root": "J_Sec_HairBack_4_01",
+    "joints": [
+     "J_Sec_HairBack_4_01",
+     "J_Sec_HairBack_4_02",
+     "J_Sec_HairBack_4_03",
+     "J_Sec_HairBack_4_04"
+    ],
+    "tail": "J_Sec_HairBack_4_end",
+    "parent": "J_Bip_C_Head",
+    "kind": "cape"
+   },
+   {
+    "root": "J_Sec_HairBack_5_01",
+    "joints": [
+     "J_Sec_HairBack_5_01",
+     "J_Sec_HairBack_5_02",
+     "J_Sec_HairBack_5_03",
+     "J_Sec_HairBack_5_04"
+    ],
+    "tail": "J_Sec_HairBack_5_end",
+    "parent": "J_Bip_C_Head",
+    "kind": "cape"
+   },
+   {
+    "root": "J_Sec_HairSideL_1_01",
+    "joints": [
+     "J_Sec_HairSideL_1_01",
+     "J_Sec_HairSideL_1_02",
+     "J_Sec_HairSideL_1_03"
+    ],
+    "tail": "J_Sec_HairSideL_1_end",
+    "parent": "J_Bip_C_Head",
+    "kind": "hair"
+   },
+   {
+    "root": "J_Sec_HairSideR_1_01",
+    "joints": [
+     "J_Sec_HairSideR_1_01",
+     "J_Sec_HairSideR_1_02",
+     "J_Sec_HairSideR_1_03"
+    ],
+    "tail": "J_Sec_HairSideR_1_end",
+    "parent": "J_Bip_C_Head",
+    "kind": "hair"
+   }
+  ],
+  "springDefaults": {
+   "skirt": {
+    "stiffness": 0.6,
+    "gravityPower": 0.5,
+    "dragForce": 0.5,
+    "hitRadius": 0.05,
+    "colliders": [
+     "thighs",
+     "shins"
+    ]
+   },
+   "sleeve": {
+    "stiffness": 0.35,
+    "gravityPower": 1,
+    "dragForce": 0.45,
+    "hitRadius": 0.035,
+    "colliders": [
+     "hips",
+     "thighs",
+     "chest"
+    ]
+   },
+   "tail": {
+    "stiffness": 0.4,
+    "gravityPower": 0.4,
+    "dragForce": 0.4,
+    "hitRadius": 0.025,
+    "colliders": [
+     "hips",
+     "thighs"
+    ]
+   },
+   "charm": {
+    "stiffness": 0.2,
+    "gravityPower": 1,
+    "dragForce": 0.3,
+    "hitRadius": 0.015,
+    "colliders": [
+     "hips",
+     "thighs"
+    ]
+   },
+   "hair": {
+    "stiffness": 0.55,
+    "drag": 0.45,
+    "gravity": 0.45,
+    "hit": 0.014
+   },
+   "cape": {
+    "stiffness": 0.25,
+    "drag": 0.6,
+    "gravity": 1,
+    "hit": 0.065
+   }
+  },
+  "notes": "Elaina's 暮海 swimsuit (衣装 page, unlocked after both episodes). The original engine's swim B file (deep indigo suit, lavender organza ruffles, gold stars, wrist scrunchie) with her uncovered hair and iris. Costume reference: TAITO Aqua Float Girls Elaina (2022), https://www.taito.co.jp/taito-prize/0451504900."
+ },
+ "ui_outfit_apprentice": {
+  "file": "textures/ui/ui_outfit_apprentice.webp",
+  "type": "texture",
+  "preload": false,
+  "license": "In-game render of the project heroine; see matching character asset for visual reference and credits.",
+  "size_px": [
+   384,
+   640
+  ],
+  "author": "rendered for this project from the game itself (tools/costume/wardrobe-pics.mjs)",
+  "source": "tools/costume/wardrobe-pics.mjs: Elaina in the \"apprentice\" outfit (src/data/outfits.js), front three-quarter, cut out by difference matting",
+  "notes": "picture on the 衣装 page of the pause scroll (src/ui/wardrobe.js); transparent around her, no text; the page draws the frame. Re-make after a wardrobe rebuild."
+ },
+ "ui_outfit_elaina": {
+  "file": "textures/ui/ui_outfit_elaina.webp",
+  "type": "texture",
+  "preload": false,
+  "license": "In-game render of the project heroine; see matching character asset for visual reference and credits.",
+  "size_px": [
+   384,
+   640
+  ],
+  "author": "rendered for this project from the game itself (tools/costume/wardrobe-pics.mjs)",
+  "source": "tools/costume/wardrobe-pics.mjs: Elaina in the \"elaina\" outfit (src/data/outfits.js), front three-quarter, cut out by difference matting",
+  "notes": "picture on the 衣装 page of the pause scroll (src/ui/wardrobe.js); transparent around her, no text; the page draws the frame. Re-make after a wardrobe rebuild."
  }
 }
