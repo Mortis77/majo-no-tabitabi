@@ -139,18 +139,18 @@ addCss(`
 
 /* phones and tablets: the grimoire fills the screen, the side blocks shrink, long details scroll */
 .mv-ui.compact .mv-menu > .mv-paper { width: min(1180u, calc(100vw - 12px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)));
-  height: min(660u, calc(100dvh - 8px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))); padding: 10u 20u 8u; }
+  height: min(660u, calc(100dvh - 8px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))); padding: 6u 18u 6u; }
 .mv-ui.compact .mv-menu > .mv-paper > .bg::after { inset: 4u; border-width: 18u; border-image-width: 18u; }
 .mv-ui.compact .mn-side { width: 150u; }
 .mv-ui.compact .mn-top > .mn-side:last-child { width: 40u; }
 .mv-ui.compact .mn-info { font-size: 11u; }
 .mv-ui.compact .mn-info b { font-size: 14u; }
-.mv-ui.compact .mn-tab { padding: 8u 11u 11u; letter-spacing: .08em; }
+.mv-ui.compact .mn-tab { padding: 6u 11u 9u; letter-spacing: .08em; }
 .mv-ui.compact .mn-sub { display: none; }
-.mv-ui.compact .mn-body { margin-top: 8u; }
+.mv-ui.compact .mn-body { margin-top: 4u; }
 .mv-ui.compact .mn-body::before { inset: 4u; border-width: 16u; border-image-width: 16u; }
-.mv-ui.compact .mn-pane { inset: 14u 18u 10u; }
-.mv-ui.compact .mn-foot { margin-top: 5u; }
+.mv-ui.compact .mn-pane { inset: 11u 15u 7u; }
+.mv-ui.compact .mn-foot { margin-top: 2u; }
 .mv-ui.compact .mn-split { gap: 18u; }
 .mv-ui.compact .mn-list { width: 36%; }
 .mv-ui.compact .mn-list.wide { width: 40%; }
@@ -159,6 +159,10 @@ addCss(`
 .mv-ui.compact .mn-det .txt { margin-top: 8u; line-height: 1.8; }
 .mv-ui.compact .mn-det .ghost { position: fixed; display: none; }
 .mv-ui.compact .sp-forms { gap: 12u; margin-top: 10u; }
+.mv-ui.compact .sp-cell { padding: 5u 2u 4u; gap: 4u; }
+.mv-ui.compact .sp-cell .orb { width: 46u; height: 46u; font-size: 24u; }
+.mv-ui.compact .sp-grid.arts .orb { width: 38u; height: 38u; font-size: 18u; }
+.mv-ui.compact .sp-h { margin: 2u 0 6u; }
 /* touch: no key caps or key hints, a close mark in the corner, fingertip rows */
 .mv-ui.touch .mn-tabs > .keycap, .mv-ui.touch .mn-hint { visibility: hidden; }
 .mv-ui.touch .mn-close { display: block; }
