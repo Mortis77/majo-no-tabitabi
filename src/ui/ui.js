@@ -20,6 +20,8 @@ import { applyKeyBindings } from './panels.js';
 import { createReactions } from './reactions.js';   // 元素交织: reaction callouts, foe status marks, discoveries
 import { createTouch } from './touch.js';   // touch controls (phones / tablets): above the HUD, below every full-screen layer
 import { createFoes } from './foes.js';   // combat: foe plates (hp, ward, affixes, 破绽) and the combo meter
+import { episodes, countries, countryOfRegion, episodeById, episodeOfQuest, registerEpisodes } from '../data/episodes.js';   // the episode / country registry
+import { stampArt } from './stamps.js';   // a country's passport stamp (procedural SVG)
 
 let hud = null, stage = null, dialogue = null, wheel = null, title = null, menu = null, shop = null, cer = null, touch = null;
 const offs = [];
@@ -72,6 +74,8 @@ export const uiSystem = {
       say: (o) => dialogue.say(o),
       /** portraitOf(who) -> url | null: the in-game portrait of a story speaker (say({ portrait })) */
       portraitOf,
+      /** the episode / country registry (src/data/episodes.js): read by the journal, map, title cards; register() for data packs and probes */
+      episodes: { list: episodes, countries, countryOfRegion, episodeOfQuest, register: registerEpisodes, stampArt },
       // ---- full-screen layers ----
       openMenu: (tab) => menu.open(tab),
       closeMenu: () => menu.close(false),
@@ -93,7 +97,10 @@ export const uiSystem = {
       stampVisit(e && e.id);   // the journal's travel stamps (map page), before any early return
       if (G.mode !== 'play' || !e || !e.id || e.id === 'sea' || hud.bossOn) return;
       const sub = has('world.sub.' + e.id) ? t('world.sub.' + e.id) : '';
-      stage.banner(t('world.place.' + e.id), sub, { seal: e.major && has('core.major.' + e.major) ? t('core.major.' + e.major) : '' });
+      // a country of the registry (src/data/episodes.js): the episode over the name, its passport stamp beside it
+      const country = countryOfRegion(e.id), ep = country ? episodeById(country.episode) : null;
+      stage.banner(t('world.place.' + e.id), sub, { country, episode: ep && ep.title ? t(ep.title) : '',
+        seal: e.major && has('core.major.' + e.major) ? t('core.major.' + e.major) : '' });
     }));
     // pointer lock lost while playing (the player pressed Esc, or switched windows): open the scroll
     offs.push(G.events.on('input:lockLost', () => {

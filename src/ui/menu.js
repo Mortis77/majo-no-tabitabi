@@ -12,6 +12,7 @@ import { spellSlots, selectedId } from './model.js';
 import { createWardrobe } from './wardrobe.js';   // wardrobe: 衣装 page
 import { notesEntries, notesCount, noteRow, noteDetail } from './reactions.js';   // 元素笔记: the third journal page
 import { wildsEntries, wildsCount, wildsRow, wildsDetail } from './wilds-page.js';   // 旅途见闻: the fourth journal page
+import { episodes, episodeOfQuest } from '../data/episodes.js';   // journal chapters: one per episode of the registry
 
 addCss(`
 /* the grimoire: a night-blue cover (tabs + footer) holding a parchment page (.mn-body) */
@@ -81,6 +82,20 @@ addCss(`
 .mn-row .chip { font: 400 12u/1 var(--fb); color: var(--ink3); letter-spacing: .06em; white-space: nowrap; }
 .mn-row .chip.act { color: var(--wine); }
 .mn-list.wide { width: 440u; }
+/* journal quests: filter chips over the list, a chapter line per episode (not a row: the keys and the hooks skip it) */
+.mn-filt { display: flex; gap: 6u; margin: -2u 0 6u; }
+.mn-filt .fc { padding: 4u 12u; border-radius: 12u; font: 600 12.5u/1.3 var(--fd); letter-spacing: .08em; color: var(--ink3); cursor: pointer; pointer-events: auto;
+  box-shadow: inset 0 0 0 1u rgba(148,113,47,.3); transition: color .15s, background-color .15s, box-shadow .15s; display: flex; align-items: center; gap: 5u; }
+.mn-filt .fc:hover { color: var(--ink2); }
+.mn-filt .fc.on { color: var(--ink); background: rgba(148,113,47,.13); box-shadow: inset 0 0 0 1u var(--brass3); }
+.mn-filt .fc .n { font: 500 11u/1 var(--fd); color: var(--ink3); letter-spacing: 0; }
+.mn-ch { display: flex; align-items: center; gap: 8u; margin: 12u 4u 3u 6u; font: 600 12.5u/1.4 var(--fd); color: var(--brass3); letter-spacing: .1em; white-space: nowrap; }
+.mn-ch:first-child { margin-top: 2u; }
+.mn-ch::before { content: ''; width: 9u; height: 9u; flex: none; background: var(--brass3); -webkit-mask: var(--mk-star) center / contain no-repeat; mask: var(--mk-star) center / contain no-repeat; }
+.mn-ch .tt { overflow: hidden; text-overflow: ellipsis; }
+.mn-ch::after { content: ''; flex: 1; min-width: 12u; height: 1u; background: linear-gradient(90deg, rgba(148,113,47,.45), transparent); order: 2; }
+.mn-ch .n { order: 3; font: 500 11u/1 var(--fd); color: var(--ink3); letter-spacing: .04em; }
+.mn-ch.done .tt { color: var(--ink3); }
 .mn-det .kick .seal { width: 24u; height: 24u; font-size: 12u; }
 .mn-det .kick .seal::before { inset: 2.5u; }
 .kick.gap { margin-top: 14u; }
@@ -173,11 +188,14 @@ addCss(`
 .mn-close { display: none; z-index: 3; }
 .mv-ui.touch .mn-tab { min-height: 44px; }
 .mv-ui.touch .mn-subtabs .st { padding: 9u 9u; min-height: 40px; }
+.mv-ui.touch .mn-filt .fc { min-height: 44px; padding: 0 14u; }
+.mv-ui.compact .mn-ch { margin-top: 8u; }
 `);
 
 const TABS = ['map', 'journal', 'spells', 'items', 'wardrobe', 'settings'];   // wardrobe: 衣装 between items and settings
 const TAB_ICON = { map: 'map', journal: 'journal', spells: 'spells', items: 'items', wardrobe: 'wardrobe', settings: 'settings' };
 const ARTS = ['charm', 'dodge', 'broom', 'wings', 'guard', 'shikigami', 'kinkan'];
+const EL_COLS = 4, ART_COLS = 7;   // the spell page's two grids (.sp-grid / .sp-grid.arts); more arts wrap into more rows and the list scrolls
 const INNATE = new Set(['charm', 'dodge']);
 
 function callProvider(providers, k) {
@@ -195,12 +213,19 @@ function createJournal(parent, providers) {
   const R = el('div', 'mn-split', parent);
   const L = el('div', 'mn-list', R);
   const sub = el('div', 'mn-subtabs', L);
+  const filt = el('div', 'mn-filt', L);   // quests: all / active / done
   const listEl = el('div', 'scroll', L);
   const D = el('div', 'mn-det', R);
-  let mode = 'quests', nav = null, data = [];
+  let mode = 'quests', nav = null, data = [], filter = 'all';
   const st = {
     quests: el('div', 'st', sub), lore: el('div', 'st', sub), notes: el('div', 'st', sub), wilds: el('div', 'st', sub),
   };
+  const FILTERS = ['all', 'active', 'done'];
+  const chips = FILTERS.map((k) => {
+    const c = el('div', 'fc', filt);
+    c.addEventListener('click', () => { if (filter !== k) { filter = k; render(); sfx('ui_move', 0.5); } });
+    return c;
+  });
   st.quests.addEventListener('click', () => { mode = 'quests'; render(); sfx('ui_page', 0.6); });
   st.lore.addEventListener('click', () => { mode = 'lore'; render(); sfx('ui_page', 0.6); });
   st.notes.addEventListener('click', () => { mode = 'notes'; render(); sfx('ui_page', 0.6); });
@@ -244,16 +269,26 @@ function createJournal(parent, providers) {
     const wc = wildsCount();
     clear(st.wilds); tel('span', '', st.wilds, 'gameplay.wilds.page.tab'); el('span', 'n', st.wilds, wc.n + '/' + wc.of);
     st.quests.classList.toggle('on', mode === 'quests'); st.lore.classList.toggle('on', mode === 'lore'); st.notes.classList.toggle('on', mode === 'notes'); st.wilds.classList.toggle('on', mode === 'wilds');
-    // active first, main first
-    data = mode === 'quests' ? quests.slice().sort((a, b) => ((a.state === 'done') - (b.state === 'done')) || ((b.main ? 1 : 0) - (a.main ? 1 : 0))) : mode === 'notes' ? notesEntries() : mode === 'wilds' ? wildsEntries() : lore;
+    filt.style.display = mode === 'quests' ? '' : 'none';
+    const chapters = mode === 'quests' ? questChapters(quests) : null;
+    data = chapters ? chapters.flatMap((c) => c.list) : mode === 'notes' ? notesEntries() : mode === 'wilds' ? wildsEntries() : lore;
     clear(listEl); clear(D);
     if (!data.length) {
       nav = null;
-      if (mode === 'quests') emptyState(D, 'ui.journal.emptyQuests', 'ui.journal.emptyQuestsSub');
+      if (mode === 'quests' && quests.length) emptyState(D, 'ui.journal.emptyFilter');
+      else if (mode === 'quests') emptyState(D, 'ui.journal.emptyQuests', 'ui.journal.emptyQuestsSub');
       else emptyState(D, 'ui.journal.emptyLore', 'ui.journal.emptyLoreSub');
       return;
     }
+    // quests: a chapter line before each episode's first quest (outside the rows navList walks)
+    const heads = new Map();
+    if (chapters) for (const c of chapters) heads.set(c.list[0], c);
     const rows = data.map((q) => {
+      const ch = heads.get(q);
+      if (ch) {
+        const h = el('div', 'mn-ch' + (ch.done === ch.of ? ' done' : ''), listEl);
+        el('span', 'tt', h, ch.title); el('span', 'n', h, t('ui.journal.chapterCount', { n: ch.done, of: ch.of }));
+      }
       if (mode === 'notes') { const r = el('div', 'mn-row rx-note' + (q.known ? '' : ' unk'), listEl); noteRow(r, q); return r; }
       if (mode === 'wilds') { const r = el('div', 'mn-row', listEl); wildsRow(r, q); return r; }
       const r = el('div', 'mn-row' + (mode === 'quests' && q.state === 'done' ? ' done' : ''), listEl);
@@ -263,15 +298,41 @@ function createJournal(parent, providers) {
       if (mode === 'quests') tel('span', 'chip' + (q.state === 'done' ? '' : ' act'), r, q.state === 'done' ? 'ui.journal.done' : 'ui.journal.active');
       return r;
     });
-    nav = navList(rows, null, { onSel: detail }).bind();
+    // open on the first quest still under way (with many chapters it may sit far down the page)
+    const start = chapters ? Math.max(0, data.findIndex((q) => q.state !== 'done')) : 0;
+    nav = navList(rows, null, { onSel: detail, start }).bind();
   }
+  /** Quests (after the filter) grouped by episode in story order: [{ title, list, done, of }]; quests of no episode last. */
+  function questChapters(quests) {
+    const counts = { all: quests.length, active: 0, done: 0 };
+    for (const q of quests) counts[q.state === 'done' ? 'done' : 'active']++;
+    chips.forEach((c, i) => {
+      const k = FILTERS[i];
+      clear(c); tel('span', '', c, 'ui.journal.filter.' + k); el('span', 'n', c, String(counts[k]));
+      c.classList.toggle('on', k === filter);
+    });
+    const keep = (q) => filter === 'all' || (filter === 'done') === (q.state === 'done');
+    const order = (a, b) => ((a.state === 'done') - (b.state === 'done')) || ((b.main ? 1 : 0) - (a.main ? 1 : 0));   // active first, main first
+    const byEp = new Map();
+    for (const q of quests) { const e = q && episodeOfQuest(q.id); const k = e ? e.id : ''; if (!byEp.has(k)) byEp.set(k, []); byEp.get(k).push(q); }
+    const out = [];
+    const add = (title, all) => {
+      const list = all.filter(keep).sort(order);
+      if (list.length) out.push({ title, list, done: all.filter((q) => q.state === 'done').length, of: all.length });
+    };
+    for (const e of episodes()) if (byEp.has(e.id)) add(e.title ? t(e.title) : e.id, byEp.get(e.id));
+    if (byEp.has('')) add(t('ui.journal.looseChapter'), byEp.get(''));
+    return out;
+  }
+  function cycleFilter() { filter = FILTERS[(FILTERS.indexOf(filter) + 1) % FILTERS.length]; render(); sfx('ui_move', 0.5); }
   return {
     el: R, render, show: render,
     keys() {
       if (K.L || K.R) { const ms = ['quests', 'lore', 'notes', 'wilds']; mode = ms[(ms.indexOf(mode) + (K.L ? ms.length - 1 : 1)) % ms.length]; render(); sfx('ui_page', 0.6); return; }
+      if (mode === 'quests' && K.code('KeyF')) { cycleFilter(); return; }
       nav?.keys();
     },
-    hints: (h) => { hint(h, 'ui.menu.hintMove', { up: '↑', down: '↓' }); hint(h, 'ui.menu.hintSub', { key: '← →' }); },
+    hints: (h) => { hint(h, 'ui.menu.hintMove', { up: '↑', down: '↓' }); hint(h, 'ui.menu.hintSub', { key: '← →' }); hint(h, 'ui.journal.hintFilter', { key: 'F' }); },
   };
 }
 
@@ -367,11 +428,21 @@ function createSpells(parent, providers) {
   return {
     el: R, render, show: render,
     keys() {
-      const nEl = 8;
+      // two grids: the elements (EL_COLS a row) then the arts (ART_COLS a row, as many rows as there are arts)
+      const nEl = data.filter((s) => s.kind === 'el').length, n = cells.length;
+      const elLast = Math.floor((nEl - 1) / EL_COLS) * EL_COLS;   // first cell of the elements' last row
       if (K.L) setSel(sel - 1);
       if (K.R) setSel(sel + 1);
-      if (K.U && sel >= 4) setSel(sel >= nEl ? 4 + Math.min(3, Math.floor((sel - nEl) * 4 / 7)) : sel - 4);
-      if (K.D && sel < nEl) setSel(sel < 4 ? sel + 4 : Math.min(cells.length - 1, nEl + Math.round((sel - 4) * 7 / 4)));
+      if (K.U) {
+        if (sel >= nEl + ART_COLS) setSel(sel - ART_COLS);
+        else if (sel >= nEl) setSel(Math.min(nEl - 1, elLast + Math.floor(((sel - nEl) * EL_COLS) / ART_COLS)));
+        else if (sel >= EL_COLS) setSel(sel - EL_COLS);
+      }
+      if (K.D) {
+        if (sel < nEl && sel + EL_COLS < nEl) setSel(sel + EL_COLS);
+        else if (sel < nEl) setSel(Math.min(n - 1, nEl + Math.round(((sel - elLast) * ART_COLS) / EL_COLS)));
+        else if (sel + ART_COLS < n) setSel(sel + ART_COLS);
+      }
     },
     hints: (h) => hint(h, 'ui.menu.hintMove', { up: '↑ ↓', down: '← →' }),
   };
@@ -379,6 +450,7 @@ function createSpells(parent, providers) {
 
 // ---- items -----------------------------------------------------------------------------------------------
 const KNOWN_ITEMS = ['stardust', 'dango', 'moontear'];
+const IT_COLS = 4;   // .it-grid columns; any number of items: rows grow and the list scrolls
 function createItems(parent, providers) {
   const R = el('div', 'mn-split', parent);
   const L = el('div', 'mn-list', R);
@@ -436,11 +508,12 @@ function createItems(parent, providers) {
     if (i !== sel && !quiet) sfx('ui_move', 0.45);
     sel = i;
     cells.forEach((c, j) => c.classList.toggle('sel', j === i));
+    if (!mouse) cells[i]?.scrollIntoView?.({ block: 'nearest' });   // a full bag scrolls (.mn-list .scroll)
     detail(i);
   }
   return {
     el: R, render, show: render,
-    keys() { if (K.L) setSel(sel - 1); if (K.R) setSel(sel + 1); if (K.U) setSel(sel - 4); if (K.D) setSel(sel + 4); if (K.confirm(false)) use(sel); },
+    keys() { if (K.L) setSel(sel - 1); if (K.R) setSel(sel + 1); if (K.U && sel >= IT_COLS) setSel(sel - IT_COLS); if (K.D && sel + IT_COLS < cells.length) setSel(sel + IT_COLS); if (K.confirm(false)) use(sel); },
     hints: (h) => hint(h, 'ui.menu.hintMove', { up: '↑ ↓', down: '← →' }),
   };
 }

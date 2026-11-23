@@ -257,3 +257,51 @@ ornaments (`.mv-banner .hd` and `.stamp` — the stamp holds the region's major 
 menu sheet's `.mv-night` class and `.dlg-box.narr`.
 No exported function or data shape changed; the only new save field is `stamps` (defaulted, old saves load unchanged).
 
+### Adding an episode
+The owner plans 12+ episodes, so every out-of-play surface reads one registry, `src/data/episodes.js`; adding an episode
+is data there, its words in the locale and its quest in `src/story/questdefs.js`. No UI file changes. (This replaces the
+fixed four-stop itinerary described under "Journal round": `STOPS` / `STOP_OF` and `world.itinerary` are no longer read.)
+
+**1. Registry entries** (shapes in the file's header; `n` sets story order, countries follow their episode's order):
+- episode `{ id: 'ep3', n: 3, title: <loc key>, quests: ['<quest id>', …], countries: ['<country id>', …] }`.
+- country `{ id, episode: 'ep3', name: <loc key>, sub: <loc key> | null, regions: ['<region id>', …], anchor: <id> | null,
+  stamp: { seed, ink?, shape?, motif? } }`.
+  - `regions`: every region id (`G.env.region`, `'region:enter'`) inside the country; a region belongs to one country.
+  - `anchor`: where the map flies when the stamp is clicked. Looked up in `JOURNEY_POI` (has `r`), then `G.world.POI`,
+    then `JOURNEY_ANCHORS` (no `r`: 90 m); `null` = not on the map yet (the stamp is then not clickable).
+  - `stamp`: `src/ui/stamps.js` draws the art from `seed` (8 shapes, 6 borders, 10 motifs, 4 layouts, 8 muted inks, a
+    tilt). Shape, motif and ink follow low-discrepancy sequences, so **give a journey's countries consecutive seeds** and no
+    neighbours share shape + motif (checked over 11 neighbours, 3000 seeds). `ink` (`#hex`), `shape` (circle oval octagon
+    scalloped shield rect hexagon notched) and `motif` (star crescent sun tower key leaf wave bell quill flower) override
+    the seed's pick. The art carries no text: the name is DOM text over it (`nameY` / `nameW` in the result).
+
+**2. Locale keys** (`src/locales/zh-CN/`): the episode `title` (today the quest title, `story.quests.<id>.title`, e.g.
+「第三话　…」); the country `name` / `sub` (`world.place.<id>` / `world.sub.<id>`); `world.place.<region>` (+ optional
+`world.sub.<region>`) for every region, which the place-name card shows on entry. Nothing in `ui.*` needs a new key.
+
+**3. Quest link**: list the episode's quest ids in `quests`. The journal groups quests by `episodeOfQuest(id)`; a quest no
+episode lists (errand-like side quests) goes to the last chapter, `ui.journal.looseChapter`.
+
+**What shows up where**
+| surface | reads | behaviour |
+| --- | --- | --- |
+| journal 托付 (`menu.js createJournal`) | `providers.journal()` + `episodeOfQuest` | one chapter line per episode in story order (`.mn-ch`: title, 已了 n/m; not a `.mn-row`, so `navList` and the acceptance hooks skip it), active-first inside; chips 全部 / 进行中 / 已了 (`.mn-filt .fc`, key F); opens on the first quest still under way; the list scrolls |
+| map 旅路 (`map.js`) | `episodes()`, `countries()`, `G.state.stamps` | stamps grouped under each episode's title; inked, tilted and multiplied once visited, a dashed outline before; an episode appears once it is under way (a stamp of it, or one of its quests in the journal), the ones after collapse into one line (`ui.map.roadAhead`), so no country is named early; click / tap a stamp with an anchor → the map glides there (anchor circle ≈ 40 % of the view) and rings it; scrolls on its own on a desktop, with the side panel on a phone |
+| stamps (`map.js stampVisit`) | `countryOfRegion` | every `'region:enter'` stamps that country and every earlier one in registry order; save `G.state.stamps[countryId] = 1` (unchanged shape, old saves load as before) |
+| country title card (`stage.js` banner via `ui.js`) | `countryOfRegion`, `episodeById`, `stampArt` | the episode over the name, the country's stamp beside it |
+| run time | `G.ui.episodes = { list, countries, countryOfRegion, episodeOfQuest, register, stampArt }` | `register({ episodes, countries })` adds or replaces entries (data packs, probes); `registryVersion()` bumps on each call |
+
+**Pages that grow without an episode**: the bag (`.it-grid`, 4 a row) and the spell lists (elements 4 a row, arts 7 a row,
+more arts wrap) scroll inside `.mn-list .scroll`, keys scroll the selection into view; the wardrobe keeps four tall cards
+across the page for up to four outfits and turns into one sideways-scrolling row of fixed-width cards (`.wd-wrap.many`;
+wheel, ← →, a finger) past four.
+
+**Probe**: `node tools/play.mjs --name ep12-desk --script tools/journey/episodes-probe.js` (and `--mobile --dpr 3 --size
+844x390`) registers 12 made-up episodes (a `probe` locale namespace, 1–2 countries each, fake region ids, some anchors
+reused or null, consecutive seeds), enters a region of episode 6 (stamps 10 countries), adds fake quests through
+`providers.journal` and 22 things through `providers.items`, and saves `journal-top`, `journal-scrolled`, `journal-active`,
+`map-stamps`, `map-stamps-end`, `map-fly`, `stamp-sheet` (every registered stamp), `items-many` and `wardrobe-many` (the four
+cards cloned to seven) in `.tmp/play/<name>/`. Its result lists checks (chapter lines are not rows, the active filter shows
+only active quests, the map flew to 魔法使之国, the bag and the wardrobe row scroll, every stamp distinct) and `T.errors()`.
+Run it after any change to the registry, the journal, the map page or the stamp art.
+

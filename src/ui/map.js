@@ -2,9 +2,12 @@
 // for place names, lanterns, quest markers and the player arrow. The base image is painted progressively (a few ms per frame).
 import { BELL, BELL_WALL } from '../data/bellcrown.js';
 import { WORLD } from '../data/world.js';
+import { JOURNEY_POI, JOURNEY_ANCHORS } from '../data/journey-map.js';
+import { episodes, countries, countryOfRegion } from '../data/episodes.js';   // the episode / country registry
+import { stampArt } from './stamps.js';
 import { G } from '../core/game.js';
 import { t, has } from '../core/i18n.js';
-import { UI, K, el, tel, clear, setText, codeLabel, hintLine } from './dom.js';
+import { UI, K, el, tel, clear, setText, codeLabel, hintLine, sfx } from './dom.js';
 import { icon, setIcon } from './icons.js';
 import { addCss } from './style.js';
 
@@ -67,17 +70,37 @@ addCss(`
 .mp-side .lg .sw.q { border-radius: 50%; background: radial-gradient(circle at 36% 30%, #c86373, var(--wine) 55%, #5a1d29); color: #fff; font-size: 10u; }
 .mp-side .lg .sw.veil { border-radius: 50%; background: radial-gradient(circle, #121130 52%, #ffd27a 56%, #ffd27a 66%, transparent 70%); }
 .mp-side .ft { margin-top: auto; font: 400 12u/1.8 var(--fb); color: var(--ink3); letter-spacing: .04em; }
-/* travel stamps: inked ovals (double ring, a star, the stop's name) once she has been there, a faint dashed outline before */
-.mp-stamps { display: grid; grid-template-columns: 1fr 1fr; gap: 8u; margin: 6u 0 2u; }
-.mp-stamp { position: relative; height: 44u; display: flex; align-items: center; justify-content: center; gap: 4u; border-radius: 22u; color: var(--ink3); }
-.mp-stamp::before { content: ''; position: absolute; inset: 0; border-radius: inherit; border: 1u dashed rgba(148,113,47,.5); }
-.mp-stamp .nm { position: relative; font: 600 11.5u/1.15 var(--fd); letter-spacing: .04em; text-align: center; max-width: 80%; }
-.mp-stamp .st { position: relative; width: 9u; height: 9u; flex: none; background: currentColor; -webkit-mask: var(--mk-star) center / contain no-repeat; mask: var(--mk-star) center / contain no-repeat; }
-.mp-stamp:not(.on) .st { display: none; }
-.mp-stamp.on { color: var(--sk); opacity: .86; mix-blend-mode: multiply; transform: rotate(var(--tilt, 0deg)); box-shadow: inset 0 0 0 1.6u var(--sk); }
-.mp-stamp.on::before { inset: 3.5u; border: .8u solid var(--sk); }
-.mv-ui.compact .mp-stamps { gap: 6u; }
-.mv-ui.compact .mp-stamp { height: 38u; }
+/* travel stamps (src/data/episodes.js countries, art from stamps.js), grouped under a small chapter line per episode: inked,
+   tilted and multiplied into the page once she has been there, a faint dashed outline before; a stamp with a place on the
+   map flies the map there when clicked / tapped. The list scrolls (12+ episodes); on a phone the whole side panel does. */
+.mp-side .sh .n { font: 500 11u/1 var(--fd); color: var(--ink3); letter-spacing: .04em; order: 2; }
+.mp-stamps { flex: 1 1 0; min-height: 110u; margin: 2u -8u 4u 0; padding: 0 8u 4u 0; }
+.mp-ch { display: flex; align-items: center; gap: 6u; margin: 7u 0 3u; font: 600 11u/1.35 var(--fd); color: var(--ink2); letter-spacing: .08em; white-space: nowrap; }
+.mp-ch::before { content: ''; width: 7u; height: 7u; flex: none; background: var(--brass3); -webkit-mask: var(--mk-star) center / contain no-repeat; mask: var(--mk-star) center / contain no-repeat; }
+.mp-ch span { overflow: hidden; text-overflow: ellipsis; }
+.mp-sg { display: grid; grid-template-columns: 1fr 1fr; gap: 4u 8u; }
+.mp-stamp { position: relative; aspect-ratio: 1.4; color: var(--ink3); transition: transform .2s var(--ease); }
+.mp-stamp::before { content: ''; position: absolute; inset: 7% 5%; border-radius: 10u; border: 1u dashed rgba(148,113,47,.5); }
+.mp-stamp.rd::before { inset: 5% 18%; border-radius: 50%; }
+.mp-stamp.ov::before { border-radius: 50%; }
+.mp-stamp .art { position: absolute; inset: 0; background: var(--art) center / contain no-repeat; display: none; }
+.mp-stamp .nm { position: absolute; left: 50%; top: var(--ny, 50%); width: var(--nw, 60%); transform: translate(-50%, -50%); text-align: center;
+  font: 600 11u/1.15 var(--fd); letter-spacing: .02em; text-wrap: balance; word-break: break-all; }
+.mp-stamp.on { color: var(--sk); transform: rotate(var(--tilt, 0deg)); }
+.mp-stamp.on::before { display: none; }
+.mp-stamp.on .art { display: block; opacity: .9; mix-blend-mode: multiply; }
+.mp-stamp.on .nm { opacity: .92; mix-blend-mode: multiply; }
+.mp-stamp.go { cursor: pointer; pointer-events: auto; }
+.mp-stamp.go:hover { transform: rotate(var(--tilt, 0deg)) scale(1.05); }
+.mp-ahead { margin: 8u 0 2u; font: 400 12u/1.5 var(--fb); color: var(--ink3); letter-spacing: .06em; text-align: center; }
+/* where a clicked stamp sends the map: a brass ring that swells once and fades */
+.mp-focus { position: absolute; border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; z-index: 1;
+  box-shadow: 0 0 0 2u rgba(201,164,94,.95), 0 0 14u 4u rgba(236,217,164,.55), inset 0 0 14u rgba(236,217,164,.45); animation: mp-focus 1.9s ease-out forwards; }
+@keyframes mp-focus { 0% { opacity: 0; scale: .6; } 20% { opacity: 1; scale: 1; } 70% { opacity: .8; } 100% { opacity: 0; scale: 1.08; } }
+.mv-ui.compact .mp-stamps { flex: none; min-height: 0; overflow: visible; margin-right: 0; padding-right: 0; }
+.mv-ui.compact .mp-sg { gap: 2u 6u; }
+.mv-ui.compact .mp-stamp .nm { font-size: 10.5u; }
+.mv-ui.touch .mp-stamp { min-height: 44px; }
 `);
 
 // ---- base painting (shared, progressive) ------------------------------------------------------------------
@@ -181,21 +204,23 @@ function paintRows(budgetMs) {
 export function idlePaint(ms) { try { paintRows(ms); } catch (e) { base.done = true; G.reportError('ui:map', e); } }
 export const mapReady = () => {syncMapLake();return base.done;};
 
-// ---- travel stamps: the itinerary (world.itinerary, four stops west from home) as passport stamps on the map page ------
-// Every region belongs to one stop; entering it stamps that stop and the ones before it (the road west is one road, so an
-// old save that is already in the city gets its earlier stamps the first time a region is entered).
-const STOPS = ['hometown', 'forest', 'wilds', 'bellcrown'];
-const STOP_OF = { hometown: 0, farewell: 0, forest: 1, trial: 1, trialLake: 1, eastmoor: 2, wilds: 2, highpass: 2,
-  bellcrown: 3, gate: 3, lookout: 3, roof: 3, inn: 3, bellkeep: 3, practice: 3 };
-const STAMP_INK = ['#8b3343', '#2f5a4a', '#7a5a24', '#34467a'];
-const STAMP_TILT = [-7, 5, -3, 8];
+// ---- travel stamps: one per country of the episode registry (src/data/episodes.js) ------------------------------------
+// Every region id belongs to one country (countryOfRegion); entering it stamps that country and every country before it in
+// journey order (the road is one road, so an old save that is already far along gets its earlier stamps the first time a
+// region is entered). Save: G.state.stamps[countryId] = 1.
 /** Record a visit (called on every 'region:enter'); writes G.state.stamps. */
 export function stampVisit(id) {
-  const k = STOP_OF[id];
+  const c = id ? countryOfRegion(id) : null;
   const st = G.state;
-  if (k === undefined || !st) return;
+  if (!c || !st) return;
   if (!st.stamps || typeof st.stamps !== 'object') st.stamps = {};
-  for (let i = 0; i <= k; i++) st.stamps[STOPS[i]] = 1;
+  for (const x of countries()) { st.stamps[x.id] = 1; if (x === c) break; }
+}
+/** World position (+ radius) a country's map anchor names: journey places first, then the world's, then story anchors. */
+function anchorAt(id) {
+  if (!id) return null;
+  const p = JOURNEY_POI[id] || G.world?.POI?.[id] || JOURNEY_ANCHORS[id];
+  return p && Number.isFinite(p.x) && Number.isFinite(p.z) ? { x: p.x, z: p.z, r: Number.isFinite(p.r) && p.r > 0 ? p.r : 90 } : null;
 }
 
 // ---- the tab -----------------------------------------------------------------------------------------------
@@ -220,19 +245,43 @@ export function createMapTab(parent, providers) {
   const here = el('div', 'here', side);
   const hereK = tel('div', 'k', here, 'ui.map.here'); void hereK;
   const hereV = el('div', 'v', here), hereS = el('div', 's', here);
-  tel('div','sh',side,'world.atlas');
-  const stampsEl = el('div', 'mp-stamps', side);
+  const atlasH = tel('div', 'sh', side, 'world.atlas');
+  const atlasN = el('span', 'n', atlasH);
+  const stampsEl = el('div', 'mp-stamps scroll', side);
+  // An episode shows once it is under way (a stamp from it, or one of its quests in the journal); the ones after it stay
+  // a single line, so the panel grows with the journey and names no country before its time.
   function paintStamps() {
     clear(stampsEl);
-    const names = t('world.itinerary').split(/\s*·\s*/).map((x) => x.replace(/^[\s\u3000]+|[\s\u3000]+$/g, '')).filter(Boolean);
-    if (names.length !== STOPS.length) { el('div', 'lg', stampsEl, t('world.itinerary')); return; }
     const got = (G.state && G.state.stamps) || {};
-    names.forEach((nm, i) => {
-      const on = !!got[STOPS[i]];
-      const sp = el('div', 'mp-stamp' + (on ? ' on' : ''), stampsEl);
-      sp.style.setProperty('--sk', STAMP_INK[i]); sp.style.setProperty('--tilt', (on ? STAMP_TILT[i] : 0) + 'deg');
-      el('i', 'st', sp); el('span', 'nm', sp, nm);
-    });
+    let qs = [];
+    try { qs = (providers.journal && providers.journal()) || []; } catch (e) { G.reportError('ui:journal', e); }
+    const started = new Set((Array.isArray(qs) ? qs : []).map((q) => q && q.id));
+    const cs = countries();
+    let n = 0, ahead = false;
+    const group = (label, list) => {
+      if (label) { const h = el('div', 'mp-ch', stampsEl); el('span', '', h, label); }
+      const g = el('div', 'mp-sg', stampsEl);
+      for (const c of list) {
+        const on = !!got[c.id], a = stampArt(c), at = anchorAt(c.anchor);
+        if (on) n++;
+        const sp = el('div', 'mp-stamp' + (on ? ' on' : '') + (at ? ' go' : '') + (a.shape === 'circle' || a.shape === 'scalloped' ? ' rd' : a.shape === 'oval' ? ' ov' : ''), g);
+        sp.style.setProperty('--sk', a.ink); sp.style.setProperty('--tilt', a.tilt + 'deg'); sp.style.setProperty('--art', a.url);
+        sp.style.setProperty('--ny', a.nameY + '%'); sp.style.setProperty('--nw', a.nameW + '%');
+        el('i', 'art', sp); el('span', 'nm', sp, c.name ? t(c.name) : c.id);
+        if (at) sp.addEventListener('click', () => { flyTo(at); sfx('ui_move', 0.5); });
+      }
+    };
+    for (const ep of episodes()) {
+      const list = cs.filter((c) => c.episode === ep.id);
+      if (!list.length) continue;
+      const open = list.some((c) => got[c.id]) || (ep.quests || []).some((q) => started.has(q));
+      if (!open) { ahead = true; continue; }
+      group(ep.title ? t(ep.title) : '', list);
+    }
+    const loose = cs.filter((c) => !episodes().some((e) => e.id === c.episode));   // countries of no listed episode: last, unlabelled
+    if (loose.length) group('', loose);
+    if (ahead) tel('div', 'mp-ahead', stampsEl, 'ui.map.roadAhead');
+    atlasN.textContent = t('ui.map.stampCount', { n });
   }
   tel('div','sh',side,'ui.map.legend');
   const leg=(cls,key,ic)=>{const r=el('div','lg',side),sw=el('span','sw '+cls,r);if(ic)icon(ic,'',sw);tel('span','',r,key);};
@@ -246,6 +295,7 @@ export function createMapTab(parent, providers) {
 
   function build() {
     clear(ov); labels.length = lanterns.length = greats.length = marks.length = 0;
+    if (focus) ov.appendChild(focus);
     const Wd = G.world;
     if (!Wd) return;
     const st = G.state || {};
@@ -352,6 +402,7 @@ export function createMapTab(parent, providers) {
     // overlays
     const place = (n) => { const [x, y] = toScreen(n._x, n._z); n.style.transform = ''; n.style.left = x.toFixed(1) + 'px'; n.style.top = y.toFixed(1) + 'px'; };
     labels.forEach(place); lanterns.forEach(place); greats.forEach(place); marks.forEach(place);
+    if (focus) { place(focus); const d = (Math.max(14, 2 * focus._r * scale)).toFixed(1) + 'px'; focus.style.width = focus.style.height = d; }
     declutter();
     if (me) {
       const p = G.player?.pos || G.env?.focus || G.camera.position;
@@ -375,6 +426,7 @@ export function createMapTab(parent, providers) {
     return { d: Math.max(8, Math.hypot(a.x - b.x, a.y - b.y)), mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2 };
   };
   vw.addEventListener('pointerdown', (e) => {
+    fly = null;
     ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
     vw.setPointerCapture?.(e.pointerId); vw.classList.add('drag');
     if (ptrs.size === 1) startDrag();
@@ -408,8 +460,29 @@ export function createMapTab(parent, providers) {
   vw.addEventListener('wheel', (e) => { e.preventDefault(); zoomBy(e.deltaY < 0 ? 1.2 : 1 / 1.2); }, { passive: false });
   zIn.addEventListener('pointerdown', (e) => { e.stopPropagation(); zoomBy(1.3); });
   zOut.addEventListener('pointerdown', (e) => { e.stopPropagation(); zoomBy(1 / 1.3); });
-  function zoomBy(f) { view.zoom = Math.min(12, Math.max(0.8, view.zoom * f)); clampView(); }
+  function zoomBy(f) { fly = null; view.zoom = Math.min(12, Math.max(0.8, view.zoom * f)); clampView(); }
   function clampView() { view.cx = Math.max(-EXT, Math.min(EXT, view.cx)); view.cz = Math.max(-EXT, Math.min(EXT, view.cz)); }
+
+  // a travel stamp clicked: glide (pan + zoom) so the country's anchor circle fills about 40 % of the view, ring it once
+  let fly = null, focus = null;
+  function flyTo(at) {
+    const r = vw.getBoundingClientRect(), w = r.width || W || 1, h = r.height || H || 1;
+    const base = Math.min(w / (2 * EXT + 200), h / 2450);
+    const k1 = Math.min(12, Math.max(0.8, (Math.min(w, h) * 0.4) / (Math.max(8, at.r) * base)));
+    fly = { t0: performance.now(), x0: view.cx, z0: view.cz, k0: view.zoom, x1: at.x, z1: at.z, k1 };
+    focus?.remove();
+    focus = el('div', 'mp-focus', ov);
+    focus._x = at.x; focus._z = at.z; focus._r = at.r;
+    setTimeout(() => { if (focus && focus._x === at.x && focus._z === at.z) { focus.remove(); focus = null; } }, 2000);
+  }
+  function stepFly() {
+    if (!fly) return;
+    const k = Math.min(1, (performance.now() - fly.t0) / 560), e = 1 - Math.pow(1 - k, 3);
+    view.cx = fly.x0 + (fly.x1 - fly.x0) * e; view.cz = fly.z0 + (fly.z1 - fly.z0) * e;
+    view.zoom = Math.exp(Math.log(fly.k0) + (Math.log(fly.k1) - Math.log(fly.k0)) * e);
+    clampView();
+    if (k >= 1) fly = null;
+  }
 
   return {
     el: R,
@@ -422,9 +495,11 @@ export function createMapTab(parent, providers) {
     render() { build(); },
     update() {
       if (!mapReady()) { idlePaint(9); if (base.done) build(); }
+      stepFly();
       draw();
     },
     keys() {
+      if (fly && (G.input.codeHeld('ArrowLeft') || G.input.codeHeld('ArrowRight') || G.input.codeHeld('ArrowUp') || G.input.codeHeld('ArrowDown'))) fly = null;
       const sp = 260 / (view.zoom * 6);
       if (G.input.codeHeld('ArrowLeft') || G.input.codeHeld('KeyA')) view.cx -= sp;
       if (G.input.codeHeld('ArrowRight') || G.input.codeHeld('KeyD')) view.cx += sp;
@@ -432,7 +507,7 @@ export function createMapTab(parent, providers) {
       if (G.input.codeHeld('ArrowDown') || G.input.codeHeld('KeyS')) view.cz += sp;
       if (K.code('Equal') || K.code('NumpadAdd')) zoomBy(1.3);
       if (K.code('Minus') || K.code('NumpadSubtract')) zoomBy(1 / 1.3);
-      if (K.confirm(false)) { focusPlayer(); view.zoom = Math.max(view.zoom, 1.6); }
+      if (K.confirm(false)) { fly = null; focusPlayer(); view.zoom = Math.max(view.zoom, 1.6); }
       clampView();
     },
     view,

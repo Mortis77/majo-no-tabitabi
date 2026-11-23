@@ -60,6 +60,15 @@ addCss(`
 .wd-card.worn .wd-go { opacity: 0; }
 .wd-card.busy .wd-go { opacity: 1; color: var(--wine); }
 .wd-note { position: absolute; left: 0; right: 0; bottom: 4u; text-align: center; font: 400 13u/1.4 var(--fb); color: var(--ink3); letter-spacing: .08em; }
+/* more than four outfits: the same tall cards at a fixed width in one row that scrolls sideways (wheel, keys, a finger);
+   the fifth card peeks in at the edge so the row reads as one that goes on */
+.wd-wrap.many .wd-grid { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: calc((100% - 20u - 54u) / 4.35); overflow-x: auto; overflow-y: hidden;
+  padding-bottom: 10u; pointer-events: auto; touch-action: pan-x; overscroll-behavior: contain; scroll-snap-type: x proximity; scroll-padding: 0 10u;
+  scrollbar-width: thin; scrollbar-color: rgba(122,92,46,.4) transparent; }
+.wd-wrap.many .wd-grid::-webkit-scrollbar { height: 5u; }
+.wd-wrap.many .wd-grid::-webkit-scrollbar-thumb { background: rgba(122,92,46,.38); border-radius: 3u; }
+.wd-wrap.many .wd-card { scroll-snap-align: start; }
+.mv-ui.compact .wd-wrap.many .wd-grid { grid-auto-columns: calc((100% - 8u - 30u) / 3.4); }
 .mv-ui.compact .wd-grid { gap: 10u; padding: 2u 4u 0; }
 .mv-ui.compact .wd-pic { min-height: 80u; }
 .mv-ui.compact .wd-nm { font-size: 18u; margin-top: 8u; }
@@ -79,6 +88,11 @@ export function createWardrobe(parent) {
   const grid = el('div', 'wd-grid', R);
   const note = el('div', 'wd-note', R);
   let cards = [], sel = 0;
+  // a long row (.many): the mouse wheel scrolls it sideways
+  grid.addEventListener('wheel', (e) => {
+    if (!R.classList.contains('many') || Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+    e.preventDefault(); grid.scrollLeft += e.deltaY;
+  }, { passive: false });
 
   const worn = () => G.player?.outfit || OUTFITS[0].id;
   const pending = () => G.player?._S?.wardrobe?.pending || null;
@@ -126,12 +140,13 @@ export function createWardrobe(parent) {
       c.addEventListener('click', () => { setSel(i, true); wear(i); });
       return c;
     });
+    R.classList.toggle('many', cards.length > 4);   // up to four: four tall cards across the page, as always
     // episode two: she may change, but the story dresses her for its own scenes
     const story = storyOutfit(G.state), free = OUTFITS.some((o) => open(o));
     note.textContent = story && free ? t('ui.wardrobe.storyNote') : '';
     R.classList.toggle('note', !!note.textContent);
     const at = OUTFITS.findIndex((o) => o.id === w);
-    setSel(at >= 0 ? at : 0, true, true);
+    setSel(at >= 0 ? at : 0, false, true);
   }
 
   function setSel(i, mouse, quiet) {
@@ -139,6 +154,7 @@ export function createWardrobe(parent) {
     if (i !== sel && !quiet) sfx('ui_move', 0.45);
     sel = i;
     paint();
+    if (!mouse && R.classList.contains('many')) cards[i]?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
   }
 
   function refuse(c) {
