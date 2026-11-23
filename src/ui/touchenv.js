@@ -10,13 +10,13 @@ import { addCss } from './style.js';
 addCss(`
 .mv-turn { position: fixed; inset: 0; z-index: 3000; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
   padding: 32px; text-align: center; pointer-events: auto; touch-action: none; color: var(--paper);
-  background: radial-gradient(ellipse at 50% 40%, #1d2440 0%, #0b0c18 70%); }
+  background: radial-gradient(ellipse at 50% 40%, #1c2744 0%, #0a0f1e 70%); }
 .mv-turn.on { display: flex; }
-.mv-turn .ph { position: relative; width: 58px; height: 96px; border-radius: 10px; box-shadow: inset 0 0 0 3px var(--gold2), 0 0 24px rgba(255,214,140,.25);
+.mv-turn .ph { position: relative; width: 58px; height: 96px; border-radius: 10px; box-shadow: inset 0 0 0 2px var(--brass2), 0 0 24px rgba(236,217,164,.25);
   animation: mv-turn 2.6s cubic-bezier(.5,0,.3,1) infinite; }
 .mv-turn .ph::after { content: ''; position: absolute; left: 50%; bottom: 7px; width: 14px; height: 3px; margin-left: -7px; border-radius: 2px; background: var(--gold2); opacity: .7; }
 @keyframes mv-turn { 0%, 25% { transform: rotate(0); } 60%, 100% { transform: rotate(-90deg); } }
-.mv-turn .tt { font: 400 26px/1.3 var(--ft); letter-spacing: .16em; color: #fff6e2; }
+.mv-turn .tt { font: 600 24px/1.3 var(--fd); letter-spacing: .12em; color: #fff7e8; }
 .mv-turn .tx { max-width: 300px; font: 400 15px/1.8 var(--fb); letter-spacing: .05em; color: var(--paper2); }
 `);
 

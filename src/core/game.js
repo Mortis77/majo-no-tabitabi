@@ -5,7 +5,8 @@ import { createEvents } from './events.js';
 
 export const G = {
   THREE,
-  version: '1.0.0',
+  /** The game's version: package.json "version", put in by build.mjs (shown on the title screen). */
+  version: typeof __MV_VERSION__ !== 'undefined' ? __MV_VERSION__ : '0.0.0',
   /** URL parameters (?autostart=1&pos=-540,58 …) as strings. */
   params: {},
   canvas: null,

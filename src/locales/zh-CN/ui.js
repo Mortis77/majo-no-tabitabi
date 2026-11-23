@@ -117,6 +117,8 @@ export default {
     legendQuest: '托付',
     legendYou: '你在这里',
     painting: '墨迹未干……',
+    stampCount: '{n} 枚',
+    roadAhead: '前方的路，还没有写进手记。',
   },
   journal: {
     quests: '托付',
@@ -131,6 +133,11 @@ export default {
     emptyLoreSub: '路边挂着的小木牌，写着这片土地的旧事。',
     objectives: '要做的事',
     count: '{n} 件',
+    filter: { all: '全部', active: '进行中', done: '已了' },
+    chapterCount: '已了 {n}/{of}',
+    looseChapter: '旅途中的其他托付',
+    emptyFilter: '这一栏里还没有托付。',
+    hintFilter: '{key} 筛选',
   },
   spells: {
     elements: '元素魔法',

@@ -8,64 +8,88 @@ import { addCss } from './style.js';
 addCss(`
 .mv-dlg { opacity: 0; visibility: hidden; transition: opacity .2s, visibility 0s .2s; }
 .mv-dlg.on { opacity: 1; visibility: visible; transition: opacity .2s; }
-.dlg-box { position: absolute !important; left: 50%; bottom: 38u; width: 800u; margin-left: -400u; min-height: 138u; padding: 30u 44u 26u 44u; pointer-events: auto; cursor: pointer;
-  transform: translateY(14u); transition: transform .28s cubic-bezier(.2,.8,.2,1); }
+/* a parchment card with the filigree frame (from .mv-paper), a night name plate, an arched cameo for the portrait */
+.dlg-box { position: absolute !important; left: 50%; bottom: 38u; width: 820u; margin-left: -410u; min-height: 142u; padding: 34u 52u 28u 52u; pointer-events: auto; cursor: pointer;
+  transform: translateY(14u); transition: transform .28s var(--ease); }
 .mv-dlg.on .dlg-box { transform: none; }
-.dlg-box::after { content: ''; position: absolute; left: 14u; right: 14u; top: 9u; bottom: 9u; border: 1u solid var(--gold); opacity: .55; pointer-events: none; }
-.dlg-box.has-port { padding-left: 176u; }
-.dlg-box.has-port.right { padding-left: 44u; padding-right: 176u; }
-.dlg-name { position: absolute !important; left: 38u; top: -17u; height: 34u; padding: 0 20u; background: var(--red); color: #fff6e6; font: 700 18u/34u var(--ft); letter-spacing: .24em; text-indent: .24em;
-  box-shadow: inset 0 0 0 1.5u rgba(255,240,215,.6), inset 0 0 0 3.5u var(--red), 0 3u 8u rgba(0,0,0,.35); white-space: nowrap; z-index: 2; }
-.dlg-name::before { content: ''; position: absolute; left: -5u; top: 50%; width: 9u; height: 9u; margin-top: -4.5u; background: var(--gold); transform: rotate(45deg); box-shadow: 0 0 0 1.5u var(--ink); }
-.dlg-box.right .dlg-name { left: auto; right: 38u; }
-.dlg-box.has-port .dlg-name { left: 164u; }
-.dlg-box.has-port.right .dlg-name { left: auto; right: 164u; }
-.dlg-port { position: absolute !important; left: 30u; bottom: 20u; width: 128u; height: 148u; display: none; align-items: center; justify-content: center; overflow: hidden;
-  background: linear-gradient(180deg, var(--indigo2), var(--indigo)); box-shadow: 0 0 0 1.5u var(--gold), 0 0 0 5u var(--ink), 0 6u 14u rgba(0,0,0,.45); color: var(--gold2); z-index: 1; }
-.dlg-box.right .dlg-port { left: auto; right: 30u; }
+.dlg-box.has-port { padding-left: 180u; }
+.dlg-box.has-port.right { padding-left: 52u; padding-right: 180u; }
+.dlg-name { position: absolute !important; left: 44u; top: -16u; height: 32u; padding: 0 22u 0 26u; border-radius: 3u; color: var(--star); white-space: nowrap; z-index: 2;
+  background: linear-gradient(180deg, #26355e, #121a31); font: 600 16.5u/32u var(--fd); letter-spacing: .16em;
+  box-shadow: inset 0 0 0 1u var(--hair2), inset 0 1u 0 rgba(255,255,255,.1), 0 4u 10u rgba(0,0,0,.3); }
+.dlg-name::before { content: ''; position: absolute; left: 8u; top: 50%; width: 10u; height: 10u; margin-top: -5u; background: var(--brass2);
+  -webkit-mask: var(--mk-star) center / contain no-repeat; mask: var(--mk-star) center / contain no-repeat; }
+.dlg-name:empty { display: none; }
+.dlg-box.right .dlg-name { left: auto; right: 44u; }
+.dlg-box.has-port .dlg-name { left: 168u; }
+.dlg-box.has-port.right .dlg-name { left: auto; right: 168u; }
+.dlg-port { position: absolute !important; left: 32u; bottom: 22u; width: 122u; height: 148u; display: none; align-items: center; justify-content: center; overflow: hidden;
+  border-radius: 61u 61u 6u 6u; color: var(--brass2); z-index: 1;
+  background: radial-gradient(ellipse 80% 70% at 50% 34%, #3a4f88, #141c37 72%, #0c1224);
+  box-shadow: 0 0 0 1.5u var(--brass), 0 0 0 5u #f7f0e2, 0 0 0 6u rgba(122,92,46,.45), 0 6u 14u rgba(0,0,0,.35); }
+.dlg-box.right .dlg-port { left: auto; right: 32u; }
 .dlg-box.has-port .dlg-port { display: flex; }
-.dlg-port::before { content: ''; position: absolute; inset: 0; background-image: var(--tex-wave); opacity: .9; }
-.dlg-port img, .dlg-port canvas { position: relative; width: 100%; height: 100%; object-fit: cover; display: block; }
-.dlg-port .ic { position: relative; font-size: 74u; }
-.dlg-port .ic.glyph { font-size: 78u; line-height: 1; }
-.dlg-text { font: 500 19u/1.8 var(--fb); letter-spacing: .05em; color: var(--ink); white-space: pre-wrap; min-height: 68u; }
+.dlg-port::before { content: ''; position: absolute; inset: 0; background-image: var(--tex-stars); background-size: 256u 256u; opacity: .9; }
+.dlg-port img, .dlg-port canvas { position: relative; width: 100%; height: 100%; object-fit: cover; object-position: 50% 0; display: block; }
+.dlg-port:has(img)::after { content: ''; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+  background: radial-gradient(ellipse 90% 60% at 50% 115%, rgba(10,15,32,.55), rgba(10,15,32,0) 70%); box-shadow: inset 0 0 18u rgba(6,10,24,.45); }
+.dlg-port .ic { position: relative; font-size: 70u; filter: drop-shadow(0 0 10u rgba(236,217,164,.35)); }
+.dlg-port .ic.glyph { font-size: 66u; font-weight: 600; line-height: 1; }
+.dlg-text { font: 400 20u/1.75 var(--fb); letter-spacing: .04em; color: var(--ink); white-space: pre-wrap; min-height: 70u; }
 .dlg-text .rest { opacity: 0; }
-.dlg-next { position: absolute !important; right: 32u; bottom: 18u; width: 0; height: 0; border: 7u solid transparent; border-bottom: 0; border-top: 10u solid var(--red); opacity: 0; }
-.dlg-box.has-port.right .dlg-next { right: 172u; }
+/* narration (no speaker, no portrait): a quiet diary line, centred on faint ruled lines under a small flourish */
+.dlg-box.narr { padding: 38u 76u 30u; }
+.dlg-box.narr::before { content: ''; position: absolute; left: 50%; top: 16u; width: 132u; height: 12u; margin-left: -66u; background: var(--brass3); opacity: .55;
+  -webkit-mask: var(--mk-flourish) center / 100% 100% no-repeat; mask: var(--mk-flourish) center / 100% 100% no-repeat; }
+.dlg-box.narr .dlg-text { text-align: center; color: var(--ink2); font-size: 19u; line-height: 1.9; letter-spacing: .06em;
+  background: repeating-linear-gradient(180deg, transparent 0, transparent calc(1.9em - 1u), rgba(148,113,47,.2) calc(1.9em - 1u), rgba(148,113,47,.2) 1.9em); }
+.mv-ui.compact .dlg-box.narr { padding: 32u 48u 22u; }
+.dlg-next { position: absolute !important; right: 34u; bottom: 20u; width: 14u; height: 14u; background: var(--brass3); opacity: 0;
+  -webkit-mask: var(--mk-star) center / contain no-repeat; mask: var(--mk-star) center / contain no-repeat; }
+.dlg-box.has-port.right .dlg-next { right: 174u; }
 .dlg-box.done .dlg-next { opacity: 1; animation: mv-bob .9s ease-in-out infinite; }
 .dlg-box.choosing .dlg-next { opacity: 0; animation: none; }
 
-.dlg-choices { position: absolute; right: calc(50% - 400u); bottom: 196u; display: flex; flex-direction: column; align-items: flex-end; gap: 9u; }
-.dlg-choices.left { right: auto; left: calc(50% - 400u); align-items: flex-start; }
-.dlg-ch { position: relative; display: flex; align-items: center; gap: 12u; min-width: 280u; max-width: 520u; padding: 9u 26u 9u 14u; color: var(--ink); font: 600 17u/1.5 var(--fb); letter-spacing: .06em;
-  pointer-events: auto; cursor: pointer; filter: drop-shadow(0 4u 9u rgba(0,0,0,.45)); transition: transform .16s cubic-bezier(.2,.8,.2,1); animation: dlg-ch-in .3s cubic-bezier(.2,.8,.2,1) both; }
-.dlg-ch::before { content: ''; position: absolute; inset: 0; background-color: var(--paper); background-image: var(--tex-paper); background-size: 256u 256u; background-blend-mode: multiply;
-  -webkit-mask: var(--mk-deckle) center / 100% 100% no-repeat; mask: var(--mk-deckle) center / 100% 100% no-repeat; transition: background-color .16s; }
+/* choices: night-glass pills with numbered coins; the chosen one lights its brass rim */
+.dlg-choices { position: absolute; right: calc(50% - 410u); bottom: 200u; display: flex; flex-direction: column; align-items: flex-end; gap: 9u; }
+.dlg-choices.left { right: auto; left: calc(50% - 410u); align-items: flex-start; }
+.dlg-ch { position: relative; display: flex; align-items: center; gap: 12u; min-width: 300u; max-width: 540u; padding: 8u 26u 8u 9u; color: var(--star); font: 400 17u/1.5 var(--fb); letter-spacing: .04em;
+  pointer-events: auto; cursor: pointer; border-radius: 22u 6u 6u 22u; background: linear-gradient(90deg, rgba(30,40,74,.95), rgba(14,20,38,.9));
+  box-shadow: inset 0 0 0 1u var(--hair), 0 6u 16u rgba(0,0,0,.35); transition: transform .16s var(--ease), box-shadow .16s, background .16s; animation: dlg-ch-in .3s var(--ease) both; }
 .dlg-ch > * { position: relative; }
-.dlg-ch .n { width: 24u; height: 24u; border-radius: 50%; box-shadow: inset 0 0 0 1.2u var(--ink2); font: 700 13u/24u var(--fb); text-align: center; color: var(--ink2); flex: none; transition: all .16s; }
-.dlg-ch.sel { transform: translateX(-12u); }
-.dlg-choices.left .dlg-ch.sel { transform: translateX(12u); }
-.dlg-ch.sel::before { background-color: #fff8e8; }
-.dlg-ch.sel .n { background: var(--red); color: #fff6e6; box-shadow: none; }
-.dlg-ch.sel::after { content: ''; position: absolute; left: 6u; right: 6u; bottom: 3u; height: 2u; background: var(--red); opacity: .85; }
+.dlg-ch .n { width: 26u; height: 26u; border-radius: 50%; box-shadow: inset 0 0 0 1u var(--hair2); font: 600 12.5u/26u var(--fd); text-align: center; color: var(--brass2); flex: none; transition: all .16s; }
+.dlg-ch.sel { transform: translateX(-10u); background: linear-gradient(90deg, rgba(52,68,114,.97), rgba(22,30,56,.92));
+  box-shadow: inset 0 0 0 1.2u var(--brass2), 0 0 18u -4u rgba(236,217,164,.55), 0 6u 16u rgba(0,0,0,.35); }
+.dlg-choices.left .dlg-ch.sel { transform: translateX(10u); }
+.dlg-ch.sel .n { background: linear-gradient(180deg, #fff2cc, var(--brass)); color: var(--ink); box-shadow: none; }
 @keyframes dlg-ch-in { from { opacity: 0; transform: translateX(26u); } }
 /* clear of the home bar; on small screens the box fits the width and sits lower, choices are fingertip-sized */
 .mv-ui .dlg-box { bottom: calc(38u + env(safe-area-inset-bottom, 0px)); }
-.mv-ui.compact .dlg-box { --dw: min(800u, calc(100vw - 28px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)));
-  width: var(--dw); margin-left: calc(var(--dw) / -2); bottom: calc(12u + env(safe-area-inset-bottom, 0px)); min-height: 112u; padding: 24u 34u 18u; }
-.mv-ui.compact .dlg-box.has-port { padding-left: 132u; }
-.mv-ui.compact .dlg-box.has-port.right { padding-left: 34u; padding-right: 132u; }
-.mv-ui.compact .dlg-port { left: 22u; bottom: 16u; width: 96u; height: 112u; }
-.mv-ui.compact .dlg-box.right .dlg-port { left: auto; right: 22u; }
-.mv-ui.compact .dlg-box.has-port .dlg-name { left: 120u; }
-.mv-ui.compact .dlg-box.has-port.right .dlg-name { left: auto; right: 120u; }
+.mv-ui.compact .dlg-box { --dw: min(820u, calc(100vw - 28px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)));
+  width: var(--dw); margin-left: calc(var(--dw) / -2); bottom: calc(12u + env(safe-area-inset-bottom, 0px)); min-height: 114u; padding: 28u 40u 20u; }
+.mv-ui.compact .dlg-box.has-port { padding-left: 138u; }
+.mv-ui.compact .dlg-box.has-port.right { padding-left: 40u; padding-right: 138u; }
+.mv-ui.compact .dlg-port { left: 24u; bottom: 16u; width: 94u; height: 112u; border-radius: 47u 47u 5u 5u; }
+.mv-ui.compact .dlg-port .ic.glyph { font-size: 52u; }
+.mv-ui.compact .dlg-box.right .dlg-port { left: auto; right: 24u; }
+.mv-ui.compact .dlg-box.has-port .dlg-name { left: 126u; }
+.mv-ui.compact .dlg-box.has-port.right .dlg-name { left: auto; right: 126u; }
 .mv-ui.compact .dlg-text { min-height: 56u; }
-.mv-ui.compact .dlg-choices { right: calc(50% - var(--dw2, 400u)); bottom: calc(146u + env(safe-area-inset-bottom, 0px));
-  --dw2: min(400u, calc(50vw - 14px - env(safe-area-inset-right, 0px))); }
-.mv-ui.compact .dlg-choices.left { right: auto; left: calc(50% - var(--dw2, 400u)); }
-.mv-ui.touch .dlg-ch { min-height: 44px; padding: 10u 26u 10u 14u; }
-.mv-ui.touch .dlg-ch .n { width: 26u; height: 26u; line-height: 26u; }
+.mv-ui.compact .dlg-choices { right: calc(50% - var(--dw2, 410u)); bottom: calc(150u + env(safe-area-inset-bottom, 0px));
+  --dw2: min(410u, calc(50vw - 14px - env(safe-area-inset-right, 0px))); }
+.mv-ui.compact .dlg-choices.left { right: auto; left: calc(50% - var(--dw2, 410u)); }
+.mv-ui.touch .dlg-ch { min-height: 44px; padding: 10u 26u 10u 10u; }
+.mv-ui.touch .dlg-ch .n { width: 28u; height: 28u; line-height: 28u; }
 `);
+
+/** The in-game portrait of a story speaker (tools/costume/portraits.mjs: manifest ui_portrait_<id>), or null.
+ *  Elaina's follows the outfit she wears (the witch's robe when there is no picture for it). */
+export function portraitOf(who) {
+  if (!who || typeof who !== 'string') return null;
+  const ids = who === 'elaina' ? ['elaina_' + (G.player?.outfit || ''), 'elaina_elaina'] : [who];
+  for (const id of ids) { const f = G.assets?.info?.('ui_portrait_' + id)?.file; if (f) return 'assets/' + f; }
+  return null;
+}
 
 export function createDialogue(root) {
   const R = el('div', 'layer mv-dlg', root);
@@ -157,6 +181,7 @@ export function createDialogue(root) {
       choicesEl.classList.toggle('left', right);
       box.classList.remove('done', 'choosing');
       plate.style.display = o.name ? '' : 'none';
+      box.classList.toggle('narr', !o.name && !o.portrait);
       setText(plate, o.name ? String(o.name) : '');
       setPortrait(o.portrait, o.name);
       setText(shown, ''); setText(rest, str);

@@ -1,4 +1,4 @@
-// 元素交织 on screen: a callout where two elements meet (name in the brush face on a two-colour stroke, ×multiplier),
+// 元素交织 on screen: a callout where two elements meet (name in the serif on a two-colour glass pill, ×multiplier),
 // status marks over foes (wet / burning / frozen / shocked / muddy / chilled, each with a draining ring), a toast on
 // every first discovery, the announcement of newly granted magic, and the 元素笔记 page of the journal (menu.js calls
 // notesEntries / noteRow / noteDetail).
@@ -16,18 +16,17 @@ addCss(`
 .rx-layer { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .rx-call { position: absolute; left: 0; top: 0; will-change: transform; display: none; }
 .rx-call.on { display: block; }
-.rx-call .in { position: absolute; left: 0; top: 0; display: flex; align-items: center; gap: 6u; white-space: nowrap; padding: 4u 16u 5u 10u;
-  font: 400 23u/1.1 var(--ft); letter-spacing: .12em; color: #fff9ec; transform: translate(-50%, -100%);
-  text-shadow: 0 0 1u rgba(8,6,14,.95), 0 1u 3u rgba(8,6,14,.9), 0 0 10u rgba(8,6,14,.55); }
-.rx-call .in::before { content: ''; position: absolute; inset: -3u -14u -2u -12u; z-index: -1; opacity: .62;
-  background: linear-gradient(90deg, var(--a), var(--b));
-  -webkit-mask: var(--mk-brush1) center / 100% 100% no-repeat; mask: var(--mk-brush1) center / 100% 100% no-repeat; }
+.rx-call .in { position: absolute; left: 0; top: 0; display: flex; align-items: center; gap: 6u; white-space: nowrap; padding: 5u 16u 6u 10u;
+  font: 600 21u/1.1 var(--fd); letter-spacing: .1em; color: #fffaf0; transform: translate(-50%, -100%); text-shadow: var(--halo); }
+.rx-call .in::before { content: ''; position: absolute; inset: 0 -4u; z-index: -1; border-radius: 18u; opacity: .92;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--a) 46%, rgba(14,20,40,.9)), color-mix(in srgb, var(--b) 46%, rgba(14,20,40,.9)));
+  box-shadow: inset 0 0 0 1u rgba(255,247,232,.4), 0 4u 12u rgba(0,0,0,.3); }
 .rx-call .els { display: flex; gap: 1u; }
 .rx-call .els .ic { font-size: 17u; filter: drop-shadow(0 0 3u rgba(8,6,14,.9)); }
 .rx-call .els .ic:nth-child(1) { color: var(--a); } .rx-call .els .ic:nth-child(2) { color: var(--b); } .rx-call .els .ic:nth-child(3) { color: var(--c); }
-.rx-call .mu { font: 700 17u/1 var(--fb); letter-spacing: .02em; color: #ffe08a; margin-left: 2u; }
-.rx-call .kk { position: absolute; left: 50%; top: -15u; transform: translateX(-50%); font: 600 11u/1 var(--fb); letter-spacing: .4em; color: #fff3d0; opacity: .9; }
-.rx-call.big .in { font-size: 34u; padding: 6u 24u 7u 14u; letter-spacing: .2em; }
+.rx-call .mu { font: 700 16u/1 var(--fd); letter-spacing: .02em; color: var(--brass2); margin-left: 2u; }
+.rx-call .kk { position: absolute; left: 50%; top: -15u; transform: translateX(-50%); font: 600 11u/1 var(--fd); letter-spacing: .32em; color: var(--brass2); opacity: .95; }
+.rx-call.big .in { font-size: 30u; padding: 7u 24u 8u 14u; letter-spacing: .16em; }
 .rx-call.big .els .ic { font-size: 22u; }
 .rx-call.big .mu { font-size: 20u; }
 .rx-call.pop .in { animation: rx-pop 1.6s cubic-bezier(.2,.8,.2,1) both; }
@@ -42,7 +41,7 @@ addCss(`
 .rx-pips { position: absolute; left: 0; top: 0; display: none; gap: 3u; transform-origin: 50% 0; will-change: transform; }
 .rx-pips.on { display: flex; }
 .rx-pip { position: relative; width: 22u; height: 22u; border-radius: 50%; display: none; align-items: center; justify-content: center;
-  background: radial-gradient(circle, rgba(16,14,28,.86) 0 58%, transparent 60%); color: var(--sc); font-size: 13u; }
+  background: radial-gradient(circle, rgba(14,20,40,.88) 0 58%, transparent 60%); color: var(--sc); font-size: 13u; }
 .rx-pip.on { display: flex; }
 .rx-pip::before { content: ''; position: absolute; inset: 0; border-radius: 50%;
   background: conic-gradient(var(--sc) calc(var(--k, 1) * 360deg), rgba(255,255,255,.14) 0);
@@ -54,17 +53,17 @@ addCss(`
 /* the element notes page (journal) */
 .rx-note .els { display: flex; gap: 2u; flex: none; }
 .rx-note .els .ic { font-size: 15u; }
-.rx-note.unk .tt { color: var(--ink3); letter-spacing: .3em; }
+.rx-note.unk .tt { color: var(--ink3); letter-spacing: .24em; }
 .rx-note.unk .els .ic { opacity: .55; }
 .rx-note .chip.kind { min-width: 34u; text-align: right; }
-.rx-det .rcp { display: flex; align-items: center; gap: 8u; margin-top: 10u; font: 700 16u/1.4 var(--ft); color: var(--ink); letter-spacing: .12em; }
+.rx-det .rcp { display: flex; align-items: center; gap: 8u; margin-top: 10u; font: 600 16u/1.4 var(--fd); color: var(--ink); letter-spacing: .06em; }
 .rx-det .rcp .ic { font-size: 22u; }
-.rx-det .rcp .lb { font: 600 12u/1 var(--fb); color: var(--ink3); letter-spacing: .3em; margin-right: 4u; }
-.rx-det .mul { margin-top: 10u; font: 700 14u/1.4 var(--fb); color: var(--red); letter-spacing: .1em; }
-.rx-det .cnt { margin-top: 6u; font-size: 12u; color: var(--ink3); letter-spacing: .14em; }
-.rx-det .hint { margin-top: 14u; padding: 10u 14u; max-width: 560u; background: rgba(35,31,29,.05); border-left: 3u solid var(--gold); font: 500 15u/1.8 var(--fb); color: var(--ink2); }
-.rx-det .hint b { display: block; font: 700 12u/1.6 var(--ft); color: var(--ink3); letter-spacing: .3em; }
-.rx-det .prog { margin-top: 18u; font-size: 12u; color: var(--ink3); letter-spacing: .2em; }
+.rx-det .rcp .lb { font: 600 11.5u/1 var(--fd); color: var(--brass3); letter-spacing: .24em; margin-right: 4u; }
+.rx-det .mul { margin-top: 10u; font: 600 14u/1.4 var(--fd); color: var(--wine); letter-spacing: .06em; }
+.rx-det .cnt { margin-top: 6u; font: 400 12.5u/1.5 var(--fb); color: var(--ink3); letter-spacing: .08em; }
+.rx-det .hint { margin-top: 14u; padding: 11u 16u; max-width: 560u; border-radius: 0 6u 6u 0; background: rgba(148,113,47,.08); box-shadow: inset 2u 0 0 var(--brass); font: 400 15u/1.8 var(--fb); color: var(--ink2); }
+.rx-det .hint b { display: block; font: 600 11.5u/1.6 var(--fd); color: var(--brass3); letter-spacing: .24em; }
+.rx-det .prog { margin-top: 18u; font: 600 12u/1.5 var(--fd); color: var(--ink3); letter-spacing: .16em; }
 `);
 
 const STATUS_COLOR = { burning: '#ff7b47', wet: '#5cb9ff', frozen: '#b9eeff', shocked: '#cba6ff', muddy: '#c08a54', chilled: '#dff6ff' };

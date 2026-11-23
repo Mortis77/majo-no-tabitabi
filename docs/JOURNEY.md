@@ -15,6 +15,10 @@ This is the game's **main document**. Working rules for AI agents are in [AGENTS
 
 - Coordinates: X and Z each span ±2450 m, +X is east, −Z is north, sea level is y=0. The route runs east to west: hometown (2220,50) → Fran's forest and the forest trial ground (2055..2100) → Starscar Lake (1725,−48) → east grassland (1340,−110) → western wilds (180,−208) → high pass (−1235,−286) → City of Magic (−2160,−520). The main road `ROAD_ACROSS` and the story anchors `JOURNEY_ANCHORS` are both in `src/data/journey-map.js`.
 - Quests: `src/story/questdefs.js` (episode 1 `apprentice`, episode 2 `mages`); dialogue is in `src/locales/zh-CN/story*.js`. After the farewell at the city gate, episode 2 plays the epilogue and the end credits (`G.ui.showEnding`; credits content in `ui.credits`). Their 「制作」 (Production) section lists Director: Shoal_Rat, github.com/shoal-rat, and Claude Opus 5.5, Claude Fable 5.2, ChatGPT 5.2 Astra; do not delete or alter it.
+- Episodes and countries: `src/data/episodes.js` is the one registry every out-of-play UI surface reads (journal chapters, the
+  map page's travel stamps, country title cards, procedural stamp art in `src/ui/stamps.js`). The plan is 12+ episodes: a new
+  one is data there + its locale text + its quest, never UI code. Steps, fields and the 12-episode probe
+  (`tools/journey/episodes-probe.js`): `docs/api/ui.md` "Adding an episode".
 - Elements unlock with the story, small forms only: wind after reading the book; water, fire and ice after Fran's confession; thunder and earth at the naming (`invest`). Fran never teaches the charged (tier-2) forms: each one is won at its page trial in the open country (§5, 「残页试炼」). Saves never lose a level; old saves that already hold charged forms keep them.
 - Landmarks: `src/data/landmarks.js` lists the map's 47 original landmarks (id, type, scale large/medium/small, coordinates, `affords` ways to interact). Placement follows the triangle rule and "gravity": targets of different sizes pull the player from different directions, so on the broom something new comes into view every 4–5 seconds; `node tools/journey/poi-coverage.mjs` produces a coverage heat map.
 

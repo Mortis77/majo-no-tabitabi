@@ -8,39 +8,46 @@ import { navList, openSheet, confirmBox } from './panels.js';
 import { isIOS, standalone } from './touchenv.js';
 
 addCss(`
-.mv-title {pointer-events:auto;opacity:0;transition:opacity .55s;color:#fff7e6;background:#4d6271 url("assets/textures/journey/magic-country-title.webp") center 45% / cover no-repeat;}
+.mv-title {pointer-events:auto;opacity:0;transition:opacity .55s;color:var(--star);background:#4d6271 url("assets/textures/journey/magic-country-title.webp") center 45% / cover no-repeat;}
 .mv-title.on {opacity:1;}
 .mv-title.out {opacity:0;pointer-events:none;}
-.tt-wash {position:absolute;inset:0;background:linear-gradient(90deg,rgba(19,30,41,.80),rgba(24,37,44,.56) 30%,transparent 65%),linear-gradient(0deg,rgba(18,26,36,.7),transparent 32%);}
+.tt-wash {position:absolute;inset:0;background:radial-gradient(ellipse 46% 56% at 20% 50%,rgba(8,12,28,.42),rgba(8,12,28,0) 72%),linear-gradient(90deg,rgba(10,16,32,.72),rgba(14,22,40,.42) 32%,rgba(14,22,40,0) 62%),linear-gradient(0deg,rgba(8,12,26,.7),rgba(8,12,26,0) 34%);}
 .tt-name,.tt-menu,.tt-load {position:absolute;left:7.4%;}
-.tt-name {bottom:48%;padding-bottom:30u;}
-.tt-name .nm {font:600 93u/1.12 var(--ft);letter-spacing:.09em;text-shadow:0 3u 16u #17212f80;}
-.tt-name .tag {margin-top:18u;display:flex;align-items:center;gap:14u;font:500 18u/1.3 var(--ft);letter-spacing:.14em;color:#f6e7c9;}
-.tt-name .tag::before {content:'';width:44u;height:1u;background:#dbc68e;}
-.tt-menu {top:52%;width:300u;}
-.tt-menu .btn {width:100%;box-sizing:border-box;min-height:46u;display:flex;align-items:center;gap:14u;border:0;border-left:2u solid transparent;border-radius:0;background:transparent;color:#fff8e9;font:500 22u/1.2 var(--ft);text-align:left;padding:8u 18u;cursor:pointer;}
-.tt-menu .btn .ic {font-size:16u;color:#dac8a4;}
-.tt-menu .btn:hover,.tt-menu .btn.sel {color:#fff9eb;border-left-color:#eedbab;background:linear-gradient(90deg,rgba(230,221,191,.23),transparent);}
-.tt-menu .info {font:13u/1.4 var(--fb);color:#efdfc3;margin:2u 0 8u 50u;}
-.tt-load {bottom:7.8%;width:240u;font:13u/1.6 var(--fb);}
-.tt-load .lb {height:2u;background:#fff4;}
-.tt-load i {display:block;height:2u;background:#ead6a7;transition:width .25s;}
+.tt-name {bottom:49%;padding-bottom:26u;}
+.tt-name .nm {font:700 92u/1.12 var(--fd);letter-spacing:.1em;color:transparent;-webkit-background-clip:text;background-clip:text;
+  background-image:linear-gradient(100deg,rgba(255,255,255,0) 42%,rgba(255,255,255,.65) 50%,rgba(255,255,255,0) 58%),linear-gradient(180deg,#fffbf2 28%,#f2dfac 74%,#cfa961);
+  background-size:260% 100%,100% 100%;background-repeat:no-repeat;animation:mv-sheen 9s ease-in-out 1.2s infinite;filter:drop-shadow(0 3u 10u rgba(8,12,28,.6)) drop-shadow(0 1u 1u rgba(8,12,28,.5));}
+.tt-name .orn {width:430u;height:22u;margin:8u 0 0 -4u;background:linear-gradient(90deg,var(--brass2),#fff3d0 50%,var(--brass2));filter:drop-shadow(0 1u 2u rgba(0,0,0,.5));}
+.tt-name .tag {margin-top:12u;display:flex;align-items:center;gap:14u;font:400 19u/1.4 var(--fb);letter-spacing:.16em;color:#f6e9cc;text-shadow:var(--halo);}
+.tt-name .tag::before {content:'';width:44u;height:1u;background:linear-gradient(90deg,rgba(236,217,164,0),var(--brass2));}
+.tt-menu {top:53%;width:330u;}
+.tt-menu .btn {width:100%;box-sizing:border-box;min-height:48u;display:flex;align-items:center;gap:14u;border-radius:4u;background:transparent;color:rgba(255,247,232,.86);font:600 21u/1.2 var(--fd);letter-spacing:.14em;text-align:left;padding:9u 18u 9u 36u;cursor:pointer;text-shadow:var(--halo);}
+.tt-menu .btn::after {left:12u;width:12u;height:12u;margin-top:-6u;background:var(--brass2);}
+.tt-menu .btn::before {left:34u;right:30%;bottom:4u;background:linear-gradient(90deg,var(--brass2),rgba(236,217,164,0));transform-origin:0 50%;}
+.tt-menu .btn .ic {font-size:15u;color:var(--brass2);opacity:.9;}
+.tt-menu .btn:hover,.tt-menu .btn.sel {color:#fffaf0;background:linear-gradient(90deg,rgba(236,217,164,.2),rgba(236,217,164,0) 82%);}
+.tt-menu .info {font:400 13.5u/1.4 var(--fb);color:rgba(246,233,204,.82);margin:0 0 8u 66u;text-shadow:var(--halo);}
+.tt-load {bottom:7.8%;width:260u;font:400 13u/1.6 var(--fb);color:rgba(255,247,232,.8);text-shadow:var(--halo);}
+.tt-load .lb {height:2u;margin-top:4u;border-radius:1u;background:rgba(255,247,232,.18);}
+.tt-load i {display:block;height:2u;border-radius:1u;background:linear-gradient(90deg,var(--brass),var(--brass2));box-shadow:0 0 6u rgba(236,217,164,.6);transition:width .25s;}
 .mv-title.ready .tt-load {display:none;}
 .mv-title .btn.wait {opacity:.6;}
-.tt-foot,.tt-ver {position:absolute;bottom:3.8%;font:13u/1.4 var(--fb);color:#eadfcb;}
-.tt-foot {left:7.4%;}
-.tt-ver {right:4%;}
-.tt-ios {display:none;position:absolute;left:7.4%;bottom:calc(3.8% + 22u);max-width:520u;font:13u/1.5 var(--fb);color:#f6e7c9;opacity:.85;}
+.tt-foot,.tt-ver {position:absolute;bottom:3.8%;font:400 13u/1.4 var(--fb);color:rgba(246,236,214,.85);text-shadow:var(--halo);}
+.tt-foot {left:7.4%;display:flex;align-items:center;gap:4u;}
+.tt-foot .keycap {margin:0 2u;}
+.tt-ver {right:4%;font-family:var(--fd);letter-spacing:.08em;}
+.tt-ios {display:none;position:absolute;left:7.4%;bottom:calc(3.8% + 22u);max-width:520u;font:400 13u/1.5 var(--fb);color:#f6e7c9;opacity:.85;text-shadow:var(--halo);}
 .mv-ui.touch .mv-title.ready .tt-ios.on {display:block;}
 /* phones and tablets: a smaller name higher up, the menu under it, notches kept clear */
 .mv-ui.compact .tt-name,.mv-ui.compact .tt-menu,.mv-ui.compact .tt-load,.mv-ui.compact .tt-foot,.mv-ui.compact .tt-ios {left:calc(6% + env(safe-area-inset-left,0px));}
 .mv-ui.compact .tt-ver {right:calc(4% + env(safe-area-inset-right,0px));}
-.mv-ui.compact .tt-name {bottom:57%;padding-bottom:18u;}
-.mv-ui.compact .tt-name .nm {font-size:64u;}
-.mv-ui.compact .tt-name .tag {margin-top:10u;font-size:16u;}
+.mv-ui.compact .tt-name {bottom:56%;padding-bottom:14u;}
+.mv-ui.compact .tt-name .nm {font-size:66u;}
+.mv-ui.compact .tt-name .orn {width:320u;height:18u;margin-top:4u;}
+.mv-ui.compact .tt-name .tag {margin-top:8u;font-size:16u;}
 .mv-ui.compact .tt-menu {top:46%;}
-.mv-ui.compact .tt-menu .btn {min-height:40u;font-size:20u;padding:6u 18u;}
-.mv-ui.compact .tt-menu .info {margin:0 0 4u 50u;}
+.mv-ui.compact .tt-menu .btn {min-height:44px;font-size:20u;padding:6u 18u 6u 36u;}
+.mv-ui.compact .tt-menu .info {margin:0 0 4u 66u;}
 .mv-ui.compact .tt-load {bottom:calc(9% + env(safe-area-inset-bottom,0px));}
 .mv-ui.compact .tt-foot,.mv-ui.compact .tt-ver {bottom:calc(3% + env(safe-area-inset-bottom,0px));}
 .mv-ui.compact .tt-ios {bottom:calc(3% + 20u + env(safe-area-inset-bottom,0px));}
@@ -68,6 +75,7 @@ export function createTitle(root, stage) {
     const nm = el('div', 'nm', nameBox);
     const paintName = () => { nm.textContent = t('core.title'); };
     paintName();
+    el('div', 'orn', nameBox);
     tel('div', 'tag', nameBox, 'ui.title.tagline');
     const menu = el('div', 'tt-menu', R);
     const items = [];

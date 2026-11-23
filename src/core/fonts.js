@@ -1,6 +1,6 @@
 // Font loading. Each locale declares its own faces in core.meta.fonts ([{ family, file, weight? }], file relative to
-// assets/) and the stacks that use them in core.meta.fontTitle / fontBody / fontSign. The faces are loaded once through
-// FontFace under those family names, so the DOM (CSS var(--ft) / var(--fb)) and every canvas can use them.
+// assets/) and the stacks that use them in core.meta.fontTitle / fontBody / fontSign / fontDisplay. The faces are loaded once through
+// FontFace under those family names, so the DOM (CSS var(--fd) / var(--fb) / var(--ft)) and every canvas can use them.
 //
 // A canvas that draws text before its face is ready silently falls back to print type. Rule for every system that
 // bakes lettering into a canvas: draw after whenFontsReady(), or register a redraw with whenFontsReady(fn) - the
@@ -41,7 +41,7 @@ export function loadFonts() {
     } catch (e) { console.warn('[fonts] could not load', f.family, e && e.message); }
   })]).then(async () => {
     // make sure the stacks resolve (and the canvas sees the faces) before anyone bakes
-    try { await Promise.all(['fontTitle', 'fontBody', 'fontSign'].map((k) => document.fonts.load(`32px ${t('core.meta.' + k)}`, t('core.title')))); } catch (e) { /* fallbacks */ }
+    try { await Promise.all(['fontTitle', 'fontBody', 'fontSign', 'fontDisplay'].map((k) => document.fonts.load(`32px ${t('core.meta.' + k)}`, t('core.title')))); } catch (e) { /* fallbacks */ }
     readyFor = loc;
     const fns = waiters.splice(0);
     for (const fn of fns) { try { fn(); } catch (e) { console.warn('[fonts] redraw failed', e); } }
@@ -61,9 +61,10 @@ export function fontsReady() { return readyFor === getLocale(); }
 /** Run fn now if the faces are ready, else once they are (fn should redraw a canvas and flag its texture). */
 export function whenFontsReady(fn) { if (fontsReady()) fn(); else { waiters.push(fn); loadFonts(); } }
 
-/** CSS font stack of a role: 'title' (brush: titles, place names, banners), 'body' (interface, dialogue), 'sign' (signboards). */
+/** CSS font stack of a role: 'title' (brush: world titles, banners), 'body' (interface, dialogue), 'sign' (signboards),
+ *  'display' (the interface's serif headings and numerals). */
 export function fontStack(role = 'body') {
-  const k = role === 'title' ? 'fontTitle' : role === 'sign' ? 'fontSign' : 'fontBody';
+  const k = role === 'title' ? 'fontTitle' : role === 'sign' ? 'fontSign' : role === 'display' ? 'fontDisplay' : 'fontBody';
   return t('core.meta.' + k);
 }
 

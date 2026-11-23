@@ -2,70 +2,105 @@
 // for place names, lanterns, quest markers and the player arrow. The base image is painted progressively (a few ms per frame).
 import { BELL, BELL_WALL } from '../data/bellcrown.js';
 import { WORLD } from '../data/world.js';
+import { JOURNEY_POI, JOURNEY_ANCHORS } from '../data/journey-map.js';
+import { episodes, countries, countryOfRegion } from '../data/episodes.js';   // the episode / country registry
+import { stampArt } from './stamps.js';
 import { G } from '../core/game.js';
 import { t, has } from '../core/i18n.js';
-import { UI, K, el, tel, clear, setText, codeLabel, hintLine } from './dom.js';
+import { UI, K, el, tel, clear, setText, codeLabel, hintLine, sfx } from './dom.js';
 import { icon, setIcon } from './icons.js';
 import { addCss } from './style.js';
 
 addCss(`
 .mp { position: absolute; inset: 0; display: flex; gap: 22u; }
-.mp-view { position: relative; flex: 1; overflow: hidden; background: #1c2333; cursor: grab; pointer-events: auto; touch-action: none;
-  box-shadow: 0 0 0 1u var(--gold), 0 0 0 5u var(--paper), 0 0 0 6u rgba(35,31,29,.4), inset 0 0 40u rgba(0,0,0,.35); }
+.mp-view { position: relative; flex: 1; overflow: hidden; background: #1c2333; cursor: grab; pointer-events: auto; touch-action: none; border-radius: 3u;
+  box-shadow: 0 0 0 1u var(--brass3), 0 0 0 4u #f7f0e2, 0 0 0 5u rgba(122,92,46,.45), inset 0 0 40u rgba(0,0,0,.3), 0 4u 14u rgba(60,40,20,.22); }
 .mp-view.drag { cursor: grabbing; }
 .mp-view canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .mp-ov { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
-.mp-lbl { position: absolute; transform: translate(-50%, -50%); white-space: nowrap; font: 700 13u/1.2 var(--ft); color: var(--ink); letter-spacing: .14em;
-  text-shadow: 0 0 3u rgba(243,233,212,.95), 0 0 6u rgba(243,233,212,.8); }
-.mp-lbl.big { font-size: 19u; letter-spacing: .5em; color: rgba(35,31,29,.55); text-shadow: 0 0 4u rgba(243,233,212,.6); font-weight: 600; }
+.mp-lbl { position: absolute; transform: translate(-50%, -50%); white-space: nowrap; font: 600 13u/1.2 var(--fd); color: var(--ink); letter-spacing: .08em;
+  text-shadow: 0 0 3u rgba(246,239,224,.95), 0 0 6u rgba(246,239,224,.8); }
+.mp-lbl.big { font-size: 19u; letter-spacing: .42em; color: rgba(42,36,30,.5); text-shadow: 0 0 4u rgba(246,239,224,.6); font-weight: 600; }
 .mp-lbl.n { color: #f1e6ff; text-shadow: 0 0 3u rgba(10,10,30,.95), 0 0 8u rgba(10,10,30,.8); }
 .mp-lbl.big.n { color: rgba(220,215,255,.5); text-shadow: none; }
-.mp-lbl.poi::after { content: ''; position: absolute; left: 50%; bottom: -12u; width: 7u; height: 7u; margin-left: -3.5u; background: var(--red); transform: rotate(45deg); box-shadow: 0 0 0 1.5u rgba(243,233,212,.85); }
+.mp-lbl.poi::after { content: ''; position: absolute; left: 50%; bottom: -12u; width: 8u; height: 8u; margin-left: -4u; border-radius: 50%; background: var(--wine); box-shadow: 0 0 0 1.5u rgba(246,239,224,.9), 0 1u 3u rgba(0,0,0,.35); }
 .mp-lbl.poi { transform: translate(-50%, calc(-100% - 9u)); z-index: 2; }
 .mp-lbl.big { z-index: 0; }
-.mp-ln { position: absolute; width: 9u; height: 9u; margin: -4.5u; border-radius: 50%; background: #3a3530; box-shadow: 0 0 0 1.5u rgba(243,233,212,.5); opacity: .7; }
-.mp-ln.lit { background: var(--gold2); box-shadow: 0 0 0 1.5u #7a4e1a, 0 0 10u 3u rgba(255,200,100,.75); opacity: 1; }
+.mp-ln { position: absolute; width: 9u; height: 9u; margin: -4.5u; border-radius: 50%; background: #3a3530; box-shadow: 0 0 0 1.5u rgba(246,239,224,.5); opacity: .7; }
+.mp-ln.lit { background: var(--brass2); box-shadow: 0 0 0 1.5u #7a5a24, 0 0 10u 3u rgba(255,206,120,.7); opacity: 1; }
 .mp-gl { position: absolute; width: 26u; height: 26u; margin: -13u; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15u;
-  background: #262033; color: #8d86a6; box-shadow: 0 0 0 1.5u #8d86a6; }
-.mp-gl.lit { background: radial-gradient(circle, #fff2c8, #ffbf55 70%); color: #6a3a10; box-shadow: 0 0 0 1.5u #7a4e1a, 0 0 18u 6u rgba(255,190,90,.7); }
-.mp-mk { z-index: 1; position: absolute; width: 26u; height: 26u; margin: -13u; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15u; color: #fff;
-  background: var(--mc, var(--red)); box-shadow: 0 0 0 1.5u var(--paper), 0 2u 6u rgba(0,0,0,.5); animation: mv-bob 2.2s ease-in-out infinite; }
-.mp-mk .tx { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 4u; white-space: nowrap; font: 700 12u/1.2 var(--fb); color: var(--paper); letter-spacing: .06em;
-  background: rgba(28,24,22,.82); padding: 2u 7u; border-radius: 2u; }
+  background: #1f2640; color: #8d93b6; box-shadow: 0 0 0 1.5u #8d93b6; }
+.mp-gl.lit { background: radial-gradient(circle, #fff2c8, #ffc561 70%); color: #6a4410; box-shadow: 0 0 0 1.5u #7a5a24, 0 0 18u 6u rgba(255,196,96,.65); }
+.mp-mk { z-index: 1; position: absolute; width: 26u; height: 26u; margin: -13u; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14u; color: #fff8ee;
+  background: radial-gradient(circle at 36% 30%, color-mix(in srgb, var(--mc, #8b3343) 62%, #fff), var(--mc, #8b3343) 52%, color-mix(in srgb, var(--mc, #8b3343) 62%, #000));
+  box-shadow: 0 0 0 1.5u #f7f0e2, 0 0 0 2.5u rgba(122,92,46,.4), 0 2u 6u rgba(0,0,0,.45); animation: mv-bob 2.2s ease-in-out infinite; }
+.mp-mk .tx { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 6u; white-space: nowrap; font: 600 12u/1.2 var(--fd); color: var(--star); letter-spacing: .04em;
+  background: rgba(18,26,47,.9); padding: 3u 9u; border-radius: 10u; box-shadow: inset 0 0 0 1u var(--hair); }
 .mp-me { position: absolute; width: 34u; height: 34u; margin: -17u; z-index: 3; }
-.mp-me::before { content: ''; position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle, rgba(255,90,60,.45), rgba(255,90,60,0) 70%); animation: mv-pulse 1.6s ease-in-out infinite; }
-.mp-me i { position: absolute; left: 50%; top: 50%; width: 0; height: 0; border-left: 8u solid transparent; border-right: 8u solid transparent; border-bottom: 22u solid var(--red2);
-  transform: translate(-50%, -62%); filter: drop-shadow(0 0 1.5u #fff) drop-shadow(0 2u 3u rgba(0,0,0,.6)); }
-.mp-me .nm { position: absolute; left: 50%; top: 100%; transform: translateX(-50%); margin-top: 2u; font: 700 12u/1 var(--ft); color: var(--paper); letter-spacing: .2em; white-space: nowrap; text-shadow: 0 1u 3u #000, 0 0 6u #000; }
-.mp-wait { position: absolute; left: 50%; bottom: 18u; transform: translateX(-50%); font: 600 14u/1 var(--ft); color: var(--paper); letter-spacing: .3em; text-shadow: 0 1u 3u #000; animation: mv-pulse 1.4s infinite; }
+.mp-me::before { content: ''; position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle, rgba(236,217,164,.55), rgba(236,217,164,0) 70%); animation: mv-pulse 1.6s ease-in-out infinite; }
+.mp-me i { position: absolute; left: 50%; top: 50%; width: 0; height: 0; border-left: 8u solid transparent; border-right: 8u solid transparent; border-bottom: 22u solid var(--wine2);
+  transform: translate(-50%, -62%); filter: drop-shadow(0 0 1.5u #fff8ec) drop-shadow(0 2u 3u rgba(0,0,0,.6)); }
+.mp-me .nm { position: absolute; left: 50%; top: 100%; transform: translateX(-50%); margin-top: 2u; font: 600 12u/1 var(--fd); color: var(--star); letter-spacing: .14em; white-space: nowrap; text-shadow: var(--halo); }
+.mp-wait { position: absolute; left: 50%; bottom: 18u; transform: translateX(-50%); font: 600 14u/1 var(--fd); color: var(--star); letter-spacing: .24em; text-shadow: var(--halo); animation: mv-pulse 1.4s infinite; }
 .mp-zoom { position: absolute; right: 12u; bottom: 12u; display: flex; flex-direction: column; gap: 6u; pointer-events: auto; }
-.mp-zoom div { width: 28u; height: 28u; border-radius: 50%; background: rgba(243,233,212,.92); color: var(--ink); font: 700 18u/28u var(--fb); text-align: center; cursor: pointer; box-shadow: 0 2u 5u rgba(0,0,0,.4); }
-.mp-zoom div:hover { background: var(--red); color: var(--paper); }
+.mp-zoom div { width: 28u; height: 28u; border-radius: 50%; color: var(--ink); font: 600 17u/28u var(--fd); text-align: center; cursor: pointer;
+  background: radial-gradient(circle at 50% 35%, #fffaf0, #eadcbe); box-shadow: 0 0 0 1u var(--brass3), 0 2u 5u rgba(0,0,0,.35); transition: background .15s, color .15s; }
+.mp-zoom div:hover { background: radial-gradient(circle at 50% 35%, #33467a, #121a33); color: var(--brass2); }
 .mv-ui.touch .mp-zoom { gap: 10px; right: 10px; bottom: 10px; }
-.mv-ui.touch .mp-zoom div { width: 40px; height: 40px; font-size: 22px; line-height: 40px; }
+.mv-ui.touch .mp-zoom div { width: 44px; height: 44px; font-size: 22px; line-height: 44px; }
 .mv-ui.compact .mp { gap: 14u; }
 .mv-ui.compact .mp-side { width: 190u; overflow-y: auto; touch-action: pan-y; }
 .mp-side { width: 232u; flex: none; display: flex; flex-direction: column; gap: 5u; color: var(--ink); }
-.mp-side .here { padding: 8u 14u; margin-bottom: 4u; background: rgba(35,31,29,.06); border-left: 3u solid var(--red); }
-.mp-side .here .k { font-size: 12u; color: var(--ink3); letter-spacing: .3em; }
-.mp-side .here .v { font: 700 21u/1.3 var(--ft); letter-spacing: .2em; }
-.mp-side .here .s { font-size: 12u; color: var(--ink2); letter-spacing: .06em; }
-.mp-side .sh { font: 700 13u/1 var(--ft); letter-spacing: .3em; color: var(--red); margin-top: 6u; display: flex; align-items: center; gap: 8u; }
-.mp-side .sh::after { content: ''; flex: 1; height: 1u; background: linear-gradient(90deg, rgba(194,59,42,.45), transparent); }
-.mp-side .gl { display: flex; align-items: center; gap: 8u; font-size: 13u; min-height: 21u; }
+.mp-side .here { padding: 10u 14u; margin-bottom: 6u; border-radius: 6u; background: rgba(148,113,47,.08); box-shadow: inset 0 0 0 1u rgba(148,113,47,.3); }
+.mp-side .here .k { font: 600 11.5u/1.5 var(--fd); color: var(--brass3); letter-spacing: .24em; }
+.mp-side .here .v { font: 700 21u/1.3 var(--fd); letter-spacing: .08em; }
+.mp-side .here .s { font: 400 12.5u/1.5 var(--fb); color: var(--ink2); letter-spacing: .04em; }
+.mp-side .sh { font: 600 12.5u/1 var(--fd); letter-spacing: .24em; color: var(--brass3); margin-top: 8u; display: flex; align-items: center; gap: 8u; }
+.mp-side .sh::after { content: ''; flex: 1; height: 1u; background: linear-gradient(90deg, rgba(148,113,47,.5), transparent); }
+.mp-side .gl { display: flex; align-items: center; gap: 8u; font: 400 13u/1.5 var(--fb); min-height: 21u; }
 .mp-side .gl .d { width: 12u; height: 12u; border-radius: 50%; background: #3a3540; box-shadow: 0 0 0 1u #8d86a6; flex: none; }
-.mp-side .gl.lit .d { background: radial-gradient(circle, #fff2c8, #ffbf55 70%); box-shadow: 0 0 0 1u #7a4e1a, 0 0 6u 1u rgba(255,190,90,.7); }
-.mp-side .gl .st { margin-left: auto; font-size: 12u; color: var(--ink3); }
-.mp-side .gl.lit .st { color: #9a5a12; font-weight: 700; }
-.mp-side .lg { display: flex; align-items: center; gap: 8u; font-size: 13u; color: var(--ink2); min-height: 20u; }
+.mp-side .gl.lit .d { background: radial-gradient(circle, #fff2c8, #ffc561 70%); box-shadow: 0 0 0 1u #7a5a24, 0 0 6u 1u rgba(255,196,96,.7); }
+.mp-side .gl .st { margin-left: auto; font: 600 12u/1 var(--fd); color: var(--ink3); }
+.mp-side .gl.lit .st { color: var(--brass3); }
+.mp-side .lg { display: flex; align-items: center; gap: 8u; font: 400 13u/1.5 var(--fb); color: var(--ink2); min-height: 20u; }
 .mp-side .lg .sw { width: 16u; height: 16u; flex: none; display: flex; align-items: center; justify-content: center; }
-.mp-side .lg .sw.me { width: 0; height: 0; border-left: 6u solid transparent; border-right: 6u solid transparent; border-bottom: 15u solid var(--red2); margin: 0 2u; }
-.mp-side .lg .sw.place::before { content: ''; width: 7u; height: 7u; background: var(--red); transform: rotate(45deg); }
-.mp-side .lg .sw.lan::before { content: ''; width: 9u; height: 9u; border-radius: 50%; background: var(--gold2); box-shadow: 0 0 0 1.5u #7a4e1a, 0 0 6u 2u rgba(255,200,100,.7); }
-.mp-side .lg .sw.q { border-radius: 50%; background: var(--red); color: #fff; font-size: 11u; }
+.mp-side .lg .sw.me { width: 0; height: 0; border-left: 6u solid transparent; border-right: 6u solid transparent; border-bottom: 15u solid var(--wine2); margin: 0 2u; }
+.mp-side .lg .sw.place::before { content: ''; width: 8u; height: 8u; border-radius: 50%; background: var(--wine); }
+.mp-side .lg .sw.lan::before { content: ''; width: 9u; height: 9u; border-radius: 50%; background: var(--brass2); box-shadow: 0 0 0 1.5u #7a5a24, 0 0 6u 2u rgba(255,206,120,.7); }
+.mp-side .lg .sw.q { border-radius: 50%; background: radial-gradient(circle at 36% 30%, #c86373, var(--wine) 55%, #5a1d29); color: #fff; font-size: 10u; }
 .mp-side .lg .sw.veil { border-radius: 50%; background: radial-gradient(circle, #121130 52%, #ffd27a 56%, #ffd27a 66%, transparent 70%); }
-.mp-side .ft { margin-top: auto; font-size: 12u; color: var(--ink3); letter-spacing: .06em; line-height: 1.8; }
-.mp-side .ft .keycap { margin: 0 3u; }
+.mp-side .ft { margin-top: auto; font: 400 12u/1.8 var(--fb); color: var(--ink3); letter-spacing: .04em; }
+/* travel stamps (src/data/episodes.js countries, art from stamps.js), grouped under a small chapter line per episode: inked,
+   tilted and multiplied into the page once she has been there, a faint dashed outline before; a stamp with a place on the
+   map flies the map there when clicked / tapped. The list scrolls (12+ episodes); on a phone the whole side panel does. */
+.mp-side .sh .n { font: 500 11u/1 var(--fd); color: var(--ink3); letter-spacing: .04em; order: 2; }
+.mp-stamps { flex: 1 1 0; min-height: 110u; margin: 2u -8u 4u 0; padding: 0 8u 4u 0; }
+.mp-ch { display: flex; align-items: center; gap: 6u; margin: 7u 0 3u; font: 600 11u/1.35 var(--fd); color: var(--ink2); letter-spacing: .08em; white-space: nowrap; }
+.mp-ch::before { content: ''; width: 7u; height: 7u; flex: none; background: var(--brass3); -webkit-mask: var(--mk-star) center / contain no-repeat; mask: var(--mk-star) center / contain no-repeat; }
+.mp-ch span { overflow: hidden; text-overflow: ellipsis; }
+.mp-sg { display: grid; grid-template-columns: 1fr 1fr; gap: 4u 8u; }
+.mp-stamp { position: relative; aspect-ratio: 1.4; color: var(--ink3); transition: transform .2s var(--ease); }
+.mp-stamp::before { content: ''; position: absolute; inset: 7% 5%; border-radius: 10u; border: 1u dashed rgba(148,113,47,.5); }
+.mp-stamp.rd::before { inset: 5% 18%; border-radius: 50%; }
+.mp-stamp.ov::before { border-radius: 50%; }
+.mp-stamp .art { position: absolute; inset: 0; background: var(--art) center / contain no-repeat; display: none; }
+.mp-stamp .nm { position: absolute; left: 50%; top: var(--ny, 50%); width: var(--nw, 60%); transform: translate(-50%, -50%); text-align: center;
+  font: 600 11u/1.15 var(--fd); letter-spacing: .02em; text-wrap: balance; word-break: break-all; }
+.mp-stamp.on { color: var(--sk); transform: rotate(var(--tilt, 0deg)); }
+.mp-stamp.on::before { display: none; }
+.mp-stamp.on .art { display: block; opacity: .9; mix-blend-mode: multiply; }
+.mp-stamp.on .nm { opacity: .92; mix-blend-mode: multiply; }
+.mp-stamp.go { cursor: pointer; pointer-events: auto; }
+.mp-stamp.go:hover { transform: rotate(var(--tilt, 0deg)) scale(1.05); }
+.mp-ahead { margin: 8u 0 2u; font: 400 12u/1.5 var(--fb); color: var(--ink3); letter-spacing: .06em; text-align: center; }
+/* where a clicked stamp sends the map: a brass ring that swells once and fades */
+.mp-focus { position: absolute; border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; z-index: 1;
+  box-shadow: 0 0 0 2u rgba(201,164,94,.95), 0 0 14u 4u rgba(236,217,164,.55), inset 0 0 14u rgba(236,217,164,.45); animation: mp-focus 1.9s ease-out forwards; }
+@keyframes mp-focus { 0% { opacity: 0; scale: .6; } 20% { opacity: 1; scale: 1; } 70% { opacity: .8; } 100% { opacity: 0; scale: 1.08; } }
+.mv-ui.compact .mp-stamps { flex: none; min-height: 0; overflow: visible; margin-right: 0; padding-right: 0; }
+.mv-ui.compact .mp-sg { gap: 2u 6u; }
+.mv-ui.compact .mp-stamp .nm { font-size: 10.5u; }
+.mv-ui.touch .mp-stamp { min-height: 44px; }
 `);
 
 // ---- base painting (shared, progressive) ------------------------------------------------------------------
@@ -169,6 +204,25 @@ function paintRows(budgetMs) {
 export function idlePaint(ms) { try { paintRows(ms); } catch (e) { base.done = true; G.reportError('ui:map', e); } }
 export const mapReady = () => {syncMapLake();return base.done;};
 
+// ---- travel stamps: one per country of the episode registry (src/data/episodes.js) ------------------------------------
+// Every region id belongs to one country (countryOfRegion); entering it stamps that country and every country before it in
+// journey order (the road is one road, so an old save that is already far along gets its earlier stamps the first time a
+// region is entered). Save: G.state.stamps[countryId] = 1.
+/** Record a visit (called on every 'region:enter'); writes G.state.stamps. */
+export function stampVisit(id) {
+  const c = id ? countryOfRegion(id) : null;
+  const st = G.state;
+  if (!c || !st) return;
+  if (!st.stamps || typeof st.stamps !== 'object') st.stamps = {};
+  for (const x of countries()) { st.stamps[x.id] = 1; if (x === c) break; }
+}
+/** World position (+ radius) a country's map anchor names: journey places first, then the world's, then story anchors. */
+function anchorAt(id) {
+  if (!id) return null;
+  const p = JOURNEY_POI[id] || G.world?.POI?.[id] || JOURNEY_ANCHORS[id];
+  return p && Number.isFinite(p.x) && Number.isFinite(p.z) ? { x: p.x, z: p.z, r: Number.isFinite(p.r) && p.r > 0 ? p.r : 90 } : null;
+}
+
 // ---- the tab -----------------------------------------------------------------------------------------------
 const BIG = new Set(['wilds']);
 // broad regions are rings or wide fields: their centroid is a poor place for a name, so they get a hand-picked spot
@@ -191,9 +245,44 @@ export function createMapTab(parent, providers) {
   const here = el('div', 'here', side);
   const hereK = tel('div', 'k', here, 'ui.map.here'); void hereK;
   const hereV = el('div', 'v', here), hereS = el('div', 's', here);
-  tel('div','sh',side,'world.atlas');
-  const itinerary=el('div','lg',side);
-  itinerary.textContent=t('world.itinerary');
+  const atlasH = tel('div', 'sh', side, 'world.atlas');
+  const atlasN = el('span', 'n', atlasH);
+  const stampsEl = el('div', 'mp-stamps scroll', side);
+  // An episode shows once it is under way (a stamp from it, or one of its quests in the journal); the ones after it stay
+  // a single line, so the panel grows with the journey and names no country before its time.
+  function paintStamps() {
+    clear(stampsEl);
+    const got = (G.state && G.state.stamps) || {};
+    let qs = [];
+    try { qs = (providers.journal && providers.journal()) || []; } catch (e) { G.reportError('ui:journal', e); }
+    const started = new Set((Array.isArray(qs) ? qs : []).map((q) => q && q.id));
+    const cs = countries();
+    let n = 0, ahead = false;
+    const group = (label, list) => {
+      if (label) { const h = el('div', 'mp-ch', stampsEl); el('span', '', h, label); }
+      const g = el('div', 'mp-sg', stampsEl);
+      for (const c of list) {
+        const on = !!got[c.id], a = stampArt(c), at = anchorAt(c.anchor);
+        if (on) n++;
+        const sp = el('div', 'mp-stamp' + (on ? ' on' : '') + (at ? ' go' : '') + (a.shape === 'circle' || a.shape === 'scalloped' ? ' rd' : a.shape === 'oval' ? ' ov' : ''), g);
+        sp.style.setProperty('--sk', a.ink); sp.style.setProperty('--tilt', a.tilt + 'deg'); sp.style.setProperty('--art', a.url);
+        sp.style.setProperty('--ny', a.nameY + '%'); sp.style.setProperty('--nw', a.nameW + '%');
+        el('i', 'art', sp); el('span', 'nm', sp, c.name ? t(c.name) : c.id);
+        if (at) sp.addEventListener('click', () => { flyTo(at); sfx('ui_move', 0.5); });
+      }
+    };
+    for (const ep of episodes()) {
+      const list = cs.filter((c) => c.episode === ep.id);
+      if (!list.length) continue;
+      const open = list.some((c) => got[c.id]) || (ep.quests || []).some((q) => started.has(q));
+      if (!open) { ahead = true; continue; }
+      group(ep.title ? t(ep.title) : '', list);
+    }
+    const loose = cs.filter((c) => !episodes().some((e) => e.id === c.episode));   // countries of no listed episode: last, unlabelled
+    if (loose.length) group('', loose);
+    if (ahead) tel('div', 'mp-ahead', stampsEl, 'ui.map.roadAhead');
+    atlasN.textContent = t('ui.map.stampCount', { n });
+  }
   tel('div','sh',side,'ui.map.legend');
   const leg=(cls,key,ic)=>{const r=el('div','lg',side),sw=el('span','sw '+cls,r);if(ic)icon(ic,'',sw);tel('span','',r,key);};
   leg('me','ui.map.legendYou');leg('place','ui.map.legendPlace');leg('q','ui.map.legendQuest','quest');
@@ -206,6 +295,7 @@ export function createMapTab(parent, providers) {
 
   function build() {
     clear(ov); labels.length = lanterns.length = greats.length = marks.length = 0;
+    if (focus) ov.appendChild(focus);
     const Wd = G.world;
     if (!Wd) return;
     const st = G.state || {};
@@ -246,6 +336,7 @@ export function createMapTab(parent, providers) {
     const env = G.env || {};
     setText(hereV, env.region && has('world.place.' + env.region) ? t('world.place.' + env.region) : t('world.name'));
     setText(hereS, env.region && has('world.sub.' + env.region) ? t('world.sub.' + env.region) : '');
+    paintStamps();
     if (G.input?.touch) foot.textContent = t('ui.touch.mapHint'); else hintLine(foot, 'ui.menu.hintMap', { ok: codeLabel('Enter') });
   }
 
@@ -311,6 +402,7 @@ export function createMapTab(parent, providers) {
     // overlays
     const place = (n) => { const [x, y] = toScreen(n._x, n._z); n.style.transform = ''; n.style.left = x.toFixed(1) + 'px'; n.style.top = y.toFixed(1) + 'px'; };
     labels.forEach(place); lanterns.forEach(place); greats.forEach(place); marks.forEach(place);
+    if (focus) { place(focus); const d = (Math.max(14, 2 * focus._r * scale)).toFixed(1) + 'px'; focus.style.width = focus.style.height = d; }
     declutter();
     if (me) {
       const p = G.player?.pos || G.env?.focus || G.camera.position;
@@ -334,6 +426,7 @@ export function createMapTab(parent, providers) {
     return { d: Math.max(8, Math.hypot(a.x - b.x, a.y - b.y)), mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2 };
   };
   vw.addEventListener('pointerdown', (e) => {
+    fly = null;
     ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
     vw.setPointerCapture?.(e.pointerId); vw.classList.add('drag');
     if (ptrs.size === 1) startDrag();
@@ -367,8 +460,29 @@ export function createMapTab(parent, providers) {
   vw.addEventListener('wheel', (e) => { e.preventDefault(); zoomBy(e.deltaY < 0 ? 1.2 : 1 / 1.2); }, { passive: false });
   zIn.addEventListener('pointerdown', (e) => { e.stopPropagation(); zoomBy(1.3); });
   zOut.addEventListener('pointerdown', (e) => { e.stopPropagation(); zoomBy(1 / 1.3); });
-  function zoomBy(f) { view.zoom = Math.min(12, Math.max(0.8, view.zoom * f)); clampView(); }
+  function zoomBy(f) { fly = null; view.zoom = Math.min(12, Math.max(0.8, view.zoom * f)); clampView(); }
   function clampView() { view.cx = Math.max(-EXT, Math.min(EXT, view.cx)); view.cz = Math.max(-EXT, Math.min(EXT, view.cz)); }
+
+  // a travel stamp clicked: glide (pan + zoom) so the country's anchor circle fills about 40 % of the view, ring it once
+  let fly = null, focus = null;
+  function flyTo(at) {
+    const r = vw.getBoundingClientRect(), w = r.width || W || 1, h = r.height || H || 1;
+    const base = Math.min(w / (2 * EXT + 200), h / 2450);
+    const k1 = Math.min(12, Math.max(0.8, (Math.min(w, h) * 0.4) / (Math.max(8, at.r) * base)));
+    fly = { t0: performance.now(), x0: view.cx, z0: view.cz, k0: view.zoom, x1: at.x, z1: at.z, k1 };
+    focus?.remove();
+    focus = el('div', 'mp-focus', ov);
+    focus._x = at.x; focus._z = at.z; focus._r = at.r;
+    setTimeout(() => { if (focus && focus._x === at.x && focus._z === at.z) { focus.remove(); focus = null; } }, 2000);
+  }
+  function stepFly() {
+    if (!fly) return;
+    const k = Math.min(1, (performance.now() - fly.t0) / 560), e = 1 - Math.pow(1 - k, 3);
+    view.cx = fly.x0 + (fly.x1 - fly.x0) * e; view.cz = fly.z0 + (fly.z1 - fly.z0) * e;
+    view.zoom = Math.exp(Math.log(fly.k0) + (Math.log(fly.k1) - Math.log(fly.k0)) * e);
+    clampView();
+    if (k >= 1) fly = null;
+  }
 
   return {
     el: R,
@@ -381,9 +495,11 @@ export function createMapTab(parent, providers) {
     render() { build(); },
     update() {
       if (!mapReady()) { idlePaint(9); if (base.done) build(); }
+      stepFly();
       draw();
     },
     keys() {
+      if (fly && (G.input.codeHeld('ArrowLeft') || G.input.codeHeld('ArrowRight') || G.input.codeHeld('ArrowUp') || G.input.codeHeld('ArrowDown'))) fly = null;
       const sp = 260 / (view.zoom * 6);
       if (G.input.codeHeld('ArrowLeft') || G.input.codeHeld('KeyA')) view.cx -= sp;
       if (G.input.codeHeld('ArrowRight') || G.input.codeHeld('KeyD')) view.cx += sp;
@@ -391,7 +507,7 @@ export function createMapTab(parent, providers) {
       if (G.input.codeHeld('ArrowDown') || G.input.codeHeld('KeyS')) view.cz += sp;
       if (K.code('Equal') || K.code('NumpadAdd')) zoomBy(1.3);
       if (K.code('Minus') || K.code('NumpadSubtract')) zoomBy(1 / 1.3);
-      if (K.confirm(false)) { focusPlayer(); view.zoom = Math.max(view.zoom, 1.6); }
+      if (K.confirm(false)) { fly = null; focusPlayer(); view.zoom = Math.max(view.zoom, 1.6); }
       clampView();
     },
     view,

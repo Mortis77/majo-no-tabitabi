@@ -15,6 +15,8 @@ import { fileURLToPath } from 'node:url';
 export const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const SRC = path.join(ROOT, 'src');
 export const ASSETS = path.join(ROOT, 'assets');
+// the version the title screen shows (G.version): package.json is its only home
+const VERSION = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')).version;
 
 export function loadManifest() {
   return JSON.parse(fs.readFileSync(path.join(ROOT, 'systems.manifest.json'), 'utf8'));
@@ -89,7 +91,7 @@ export async function build({ systems = null, minify = false } = {}) {
   try {
     field = (!systems || systems.includes('terrain')) ? await bakeJourneyField(ROOT) : null;
     result = await esbuild.build({
-      define: { __JOURNEY_FIELD__: JSON.stringify(field) },
+      define: { __JOURNEY_FIELD__: JSON.stringify(field), __MV_VERSION__: JSON.stringify(VERSION) },
       ...COMMON,
       stdin: { contents: makeEntry(systems), resolveDir: SRC, sourcefile: 'entry.js', loader: 'js' },
       plugins: [localesPlugin(systems)],

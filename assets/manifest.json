@@ -22242,5 +22242,119 @@
   "author": "rendered for this project from the game itself (tools/costume/wardrobe-pics.mjs)",
   "source": "tools/costume/wardrobe-pics.mjs: Elaina in the \"elaina\" outfit (src/data/outfits.js), front three-quarter, cut out by difference matting",
   "notes": "picture on the 衣装 page of the pause scroll (src/ui/wardrobe.js); transparent around her, no text; the page draws the frame. Re-make after a wardrobe rebuild."
+ },
+ "font_zh_notoserif_ui": {
+  "file": "fonts/zh-CN/NotoSerifSC-UI.woff2",
+  "type": "font",
+  "preload": false,
+  "locale": "zh-CN",
+  "family": "MV Serif",
+  "license": "OFL-1.1",
+  "author": "Google (Noto Serif SC; based on Source Han Serif by Adobe)",
+  "source": "Noto Serif SC https://github.com/google/fonts/tree/main/ofl/notoserifsc — subset to the locale characters with tools/font-subset.mjs (variable weight axis kept, WOFF2); licence text fonts/zh-CN/OFL-NotoSerifSC-UI.txt; loaded by src/core/fonts.js (interface headings, names, numerals)"
+ },
+ "ui_portrait_elaina_apprentice": {
+  "file": "textures/ui/ui_portrait_elaina_apprentice.webp",
+  "type": "texture",
+  "preload": false,
+  "license": "In-game render of a project character; see the matching character asset for visual reference and credits.",
+  "size_px": [
+   320,
+   400
+  ],
+  "author": "rendered for this project from the game itself (tools/costume/portraits.mjs)",
+  "source": "tools/costume/portraits.mjs: \"elaina_apprentice\" head and shoulders, three-quarter, lens 28 deg, cut out by difference matting",
+  "notes": "dialogue portrait (src/ui/dialogue.js, the arched cameo); transparent around the figure, no text; the page draws the frame. Re-make after the character changes."
+ },
+ "ui_portrait_elaina_elaina": {
+  "file": "textures/ui/ui_portrait_elaina_elaina.webp",
+  "type": "texture",
+  "preload": false,
+  "license": "In-game render of a project character; see the matching character asset for visual reference and credits.",
+  "size_px": [
+   320,
+   400
+  ],
+  "author": "rendered for this project from the game itself (tools/costume/portraits.mjs)",
+  "source": "tools/costume/portraits.mjs: \"elaina_elaina\" head and shoulders, three-quarter, lens 28 deg, cut out by difference matting",
+  "notes": "dialogue portrait (src/ui/dialogue.js, the arched cameo); transparent around the figure, no text; the page draws the frame. Re-make after the character changes."
+ },
+ "ui_portrait_fran": {
+  "file": "textures/ui/ui_portrait_fran.webp",
+  "type": "texture",
+  "preload": false,
+  "license": "In-game render of a project character; see the matching character asset for visual reference and credits.",
+  "size_px": [
+   320,
+   400
+  ],
+  "author": "rendered for this project from the game itself (tools/costume/portraits.mjs)",
+  "source": "tools/costume/portraits.mjs: \"fran\" head and shoulders, three-quarter, lens 28 deg, cut out by difference matting",
+  "notes": "dialogue portrait (src/ui/dialogue.js, the arched cameo); transparent around the figure, no text; the page draws the frame. Re-make after the character changes."
+ },
+ "ui_portrait_saya": {
+  "file": "textures/ui/ui_portrait_saya.webp",
+  "type": "texture",
+  "preload": false,
+  "license": "In-game render of a project character; see the matching character asset for visual reference and credits.",
+  "size_px": [
+   320,
+   400
+  ],
+  "author": "rendered for this project from the game itself (tools/costume/portraits.mjs)",
+  "source": "tools/costume/portraits.mjs: \"saya\" head and shoulders, three-quarter, lens 28 deg, cut out by difference matting",
+  "notes": "dialogue portrait (src/ui/dialogue.js, the arched cameo); transparent around the figure, no text; the page draws the frame. Re-make after the character changes."
+ },
+ "ui_portrait_mother": {
+  "file": "textures/ui/ui_portrait_mother.webp",
+  "type": "texture",
+  "preload": false,
+  "license": "In-game render of a project character; see the matching character asset for visual reference and credits.",
+  "size_px": [
+   320,
+   400
+  ],
+  "author": "rendered for this project from the game itself (tools/costume/portraits.mjs)",
+  "source": "tools/costume/portraits.mjs: \"mother\" head and shoulders, three-quarter, lens 28 deg, cut out by difference matting",
+  "notes": "dialogue portrait (src/ui/dialogue.js, the arched cameo); transparent around the figure, no text; the page draws the frame. Re-make after the character changes."
+ },
+ "ui_portrait_father": {
+  "file": "textures/ui/ui_portrait_father.webp",
+  "type": "texture",
+  "preload": false,
+  "license": "In-game render of a project character; see the matching character asset for visual reference and credits.",
+  "size_px": [
+   320,
+   400
+  ],
+  "author": "rendered for this project from the game itself (tools/costume/portraits.mjs)",
+  "source": "tools/costume/portraits.mjs: \"father\" head and shoulders, three-quarter, lens 28 deg, cut out by difference matting",
+  "notes": "dialogue portrait (src/ui/dialogue.js, the arched cameo); transparent around the figure, no text; the page draws the frame. Re-make after the character changes."
+ },
+ "ui_portrait_exam": {
+  "file": "textures/ui/ui_portrait_exam.webp",
+  "type": "texture",
+  "preload": false,
+  "license": "In-game render of a project character; see the matching character asset for visual reference and credits.",
+  "size_px": [
+   320,
+   400
+  ],
+  "author": "rendered for this project from the game itself (tools/costume/portraits.mjs)",
+  "source": "tools/costume/portraits.mjs: \"exam\" head and shoulders, three-quarter, lens 28 deg, cut out by difference matting",
+  "notes": "dialogue portrait (src/ui/dialogue.js, the arched cameo); transparent around the figure, no text; the page draws the frame. Re-make after the character changes."
+ },
+ "ui_portrait_innkeeper": {
+  "file": "textures/ui/ui_portrait_innkeeper.webp",
+  "type": "texture",
+  "preload": false,
+  "license": "In-game render of a project character; see the matching character asset for visual reference and credits.",
+  "size_px": [
+   320,
+   400
+  ],
+  "author": "rendered for this project from the game itself (tools/costume/portraits.mjs)",
+  "source": "tools/costume/portraits.mjs: \"innkeeper\" head and shoulders, three-quarter, lens 28 deg, cut out by difference matting",
+  "notes": "dialogue portrait (src/ui/dialogue.js, the arched cameo); transparent around the figure, no text; the page draws the frame. Re-make after the character changes."
  }
 }

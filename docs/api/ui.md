@@ -142,3 +142,191 @@ while any modal is open. Never read `Mouse0` / key codes for something a player 
 
 **Testing.** `.tmp/agents/mobile/run.mjs` (CDP: `Emulation.setDeviceMetricsOverride` mobile + `setTouchEmulationEnabled`,
 real `Input.dispatchTouchEvent`), scenarios `sc-*.mjs` there.
+
+## Grimoire round: the interface redesign (2026-11, as built)
+**Why.** The inherited look was a Japanese shrine scroll (washi with deckle edges, vermilion seals, brush script, a
+noren curtain over the shop). This game is a travelling witch's journey through a sunlit European storybook land, so
+the interface became her *traveller's grimoire*: night-blue glass and leather with thin brass filigree, ivory
+parchment pages, ink, and a little starlight. Everything stays readable over a bright meadow sky; nothing glares.
+
+### Palette (CSS custom properties on `.mv-ui`, `style.js` BASE)
+| token | value | use |
+| --- | --- | --- |
+| `--night0` / `--night` / `--night2` / `--night3` | `#0a0f1e` / `#121a2f` / `#1c2744` / `#2c3a5e` | glass panels, covers, discs, hover |
+| `--glass` / `--glass2` | `rgba(15,21,40,.62)` / `rgba(20,28,52,.8)` | HUD plates, chips, toasts |
+| `--parch` / `--parch2` / `--parch3` | `#f6efe0` / `#ebdfc6` / `#d8c6a1` | parchment pages, cards |
+| `--ink` / `--ink2` / `--ink3` | `#2a241e` / `#5d5144` / `#8e806f` | text on parchment |
+| `--brass` / `--brass2` / `--brass3` | `#c9a45e` / `#ecd9a4` / `#94712f` | frames, rules, selection; `2` on night, `3` on parchment |
+| `--star` / `--moon` | `#fff7e8` / `#cfdcff` | light text on night, starlight accents |
+| `--wine` / `--wine2` | `#8b3343` / `#b6495b` | wax seals, "main" marks, destructive buttons |
+| `--life` / `--mana` | `#e8685c` / `#78b2ff` | the two vitals (gradients use `--life2` `#b23a39`, `--mana2` `#4f74d8`) |
+
+The inherited names stay as aliases so older rules and other systems keep working: `--paper`=`--parch`,
+`--red`=`--wine`, `--red2`=`--wine2`, `--gold`=`--brass`, `--gold2`=`--brass2`, `--indigo`=`--night`.
+Element colours are unchanged (`icons.js EL_COLOR`).
+
+### Type
+Three roles, all from the locale (`core.meta`), never hard-coded:
+- `--fd` display: **MV Serif** (Noto Serif SC, variable 200–900, a 0.5 MB subset of the locale characters, see
+  `tools/font-subset.mjs`) — headings, tabs, names, place names, labels, buttons, every numeral (`tabular-nums`).
+- `--fb` body: MV WenKai (hand-written kai) — dialogue, descriptions, objectives, hints: the diary voice.
+- `--ft` brush and `--fs` running script stay for the world's signs and canvas lettering only; the interface no longer
+  uses them.
+
+Scale in design units (`u`, px at 1280×720): title 92 · card 54 · page title 28 · section/name plate 19–21 · label 15 ·
+small label 13 · kicker 12 (letter-spacing .24em, brass) · body 15 (line-height 1.85) · dialogue 20 (1.75) · hint 13.
+Weights: display 600–700, labels 600, kickers 600, body 400. CJK headings are tracked .06–.16em (the old .3–.5em read
+as gaps, not elegance).
+
+### Surfaces, frames and ornaments
+- **Night glass** (`.mv-night`, HUD plates): `--night`/`--glass` gradient, 1u brass hairline at ~35 % alpha, a faint top
+  highlight, soft drop shadow. HUD plates never use `backdrop-filter` (it would re-blur the 3D picture every frame on a
+  phone).
+- **Parchment** (`.mv-paper`, unchanged hook): ivory gradient lighter at the centre, a faint fibre texture
+  (`paperTexture`), a soft inner edge, and a framed border drawn by `.bg::after` with `border-image` from a generated
+  SVG (`icons.js filigree()`: hairline double rule, a curl-and-diamond flourish in each corner). Two colourways:
+  `--fr-paper` (dark brass on parchment) and `--fr-night` (light brass on night).
+- **Rules** (`.rule`): a hairline fading at both ends with a four-point star in the middle (`--mk-star`).
+- **Wax seal** (`.seal`): round, wine, embossed rim; replaces the vermilion square seal everywhere (journal marks,
+  shop stamp, confirm slip, the 「终」 of the ending).
+- **Key caps** (`.keycap`): small night-glass keys with a brass hairline; on parchment (`.mv-paper`, the menu page
+  `.mn-body`) they turn ivory with an ink rim.
+- **Buttons** (`.btn`): serif label, a brass underline that grows from the centre and a star marker on hover/selection;
+  `.btn.red` turns wine.
+- **Medallions**: spells, wheel slots and touch buttons are night discs with a thin brass ring and the element's glow.
+- The washi deckle, brush-stroke masks, ensō rings and the wave pattern are gone from the interface (the generators
+  that only they used were removed after `tools/dead-code.mjs` reported them).
+
+### Motion
+`--ease: cubic-bezier(.2,.8,.2,1)`. Hover 120–160 ms; panels fade + rise 8u + scale .985→1 in 240 ms; the place-name
+card keeps its 4.4 s arc with an ornament that draws out from the centre; selection underlines grow from the centre;
+gauge-ready and the selected wheel slot get a slow brass sheen. `prefers-reduced-motion: reduce` stops sheens, bobs
+and spins.
+
+### Screens
+- HUD: brass astrolabe emblem (sun/moon disc) beside capsule vitals; compass as a fading night ribbon with serif
+  cardinals; serif tracker with a star bullet; glass counter, prompt and key hints; the spell medallion with a brass
+  gauge ring; thin ivory crosshair; rose lock-on brackets; boss/duel bar with filigree end caps.
+- Place-name card: hairline with a star, serif title, kai subtitle, the major name as an ink entry stamp (Journal round).
+- Toasts: night-glass slips with a brass edge and a coin icon.
+- Dialogue: parchment card with the filigree frame, a night name plate with a brass rim, an arched cameo holding the
+  speaker's portrait (below), a brass star "next" mark; choices are glass pills with numbered coins.
+- Pause menu: a night-blue leather cover (frame `--fr-night`) holding the tab bar and footer, with the page itself
+  in parchment (`.mn-body`); lists, details, spells, items, wardrobe, settings and the map are ink on parchment.
+- Shop: the curtain became a hanging sign (night plaque with brass frame); stamp = wax seal.
+- Title: serif name with a brass sheen and an ornament, a star-marked menu; sheets and confirm slips in parchment.
+- Spell wheel: a night-glass ring with brass hairlines and medallion slots; ceremony and ending in starlight and brass.
+- Phones: everything above, plus the existing touch rules — targets ≥ 44 px, `env(safe-area-inset-*)`, nothing
+  over the stick (left-lower quarter) or the button cluster (lower right).
+
+### Journal round (the owner's note: the mood of 魔女之旅 / 奇诺之旅)
+The owner pointed the look at the two shows' traveller's-journal feel: a diary, a title card for each new country,
+quiet narration, the countries visited kept as stamps, a storybook tone a little wistful. Taken as mood only; every
+piece is drawn in code here and none reproduces either show's cards, logos or lettering.
+- **Country title card** (`stage.js` banner): a hairline with a star draws out from the centre, the serif name settles
+  in, the kai line follows, and the region's major name (`opts.seal`) is pressed beside the name as a round ink entry
+  stamp (double ring, a star, a short thump at ~25 % of the 4.6 s arc).
+- **Narration** (`dialogue.js`, a `say()` with no name and no portrait → `.dlg-box.narr`): centred, a touch lighter,
+  on faint ruled lines under a small flourish, like a line written in the travel diary.
+- **Travel stamps** (`map.js`, the map page's 旅路): the itinerary's four stops (`world.itinerary`) are passport
+  stamps — inked, tilted and multiplied into the parchment once she has been there, a faint dashed outline before.
+  `stampVisit(id)` runs on every `region:enter` (`ui.js`) and writes the new save field `G.state.stamps`
+  (`{ hometown|forest|wilds|bellcrown: 1 }`, default `{}` in `defaultState()`); each region id belongs to one stop
+  (`STOP_OF`), and a stop also stamps the ones before it (the road west is one road), so an old save already in the
+  city gets all its earlier stamps on the first region it enters.
+- **Ribbon bookmark**: a wine ribbon hangs over the grimoire page's top edge (`.mn-body::after`).
+
+### Dialogue portraits
+The cameo shows a head-and-shoulders picture of the speaker, rendered by the game itself from the character's own 3D
+model — never official art. `tools/costume/portraits.mjs` (+ `portraits.shot.js`) uses the wardrobe pictures' method:
+the figure and the lights on a layer of their own, the world hidden, drawn over a dark and a light flat ground, cut out by
+difference matting. Every speaker gets the same lens (28°), distance (2.6 m) and framing round the head bone, so all
+share one scale; Elaina looks to the right of her picture (she speaks from the left of the box), the others to the left.
+Out: `assets/textures/ui/ui_portrait_<id>.webp` (320×400, 9–21 KB, manifest `ui_portrait_<id>`, licence "In-game
+render"): `elaina_apprentice`, `elaina_elaina`, `fran`, `saya`, `mother`, `father`, `exam`, `innkeeper`.
+- `G.ui.portraitOf(who) -> url | null` (`dialogue.js portraitOf`): the manifest picture for a story speaker id; Elaina's
+  follows `G.player.outfit` (the witch's robe when that outfit has none). `story/dialogue.js` passes it as
+  `say({ portrait })`; speakers without a picture (roadside travellers, the narrator has no cameo) keep the glyph.
+- Re-run `node tools/costume/portraits.mjs [--only id,…]` after a character's look changes; `--no-shoot` re-cuts the
+  last shots (to change the crop: `ABOVE` / `BELOW` in the tool).
+
+### Hooks kept
+Class names the acceptance scripts and other systems read are unchanged (`.mn-subtabs .st`, `.mn-list .scroll .mn-row`,
+`.mv-ui`, `.mv-paper`, `.modal`, every `hud-*` / `dlg-*` / `tc-*` / `wh-*` / `foe-*` hook); the only DOM additions are
+ornaments (`.mv-banner .hd` and `.stamp` — the stamp holds the region's major name — `.tt-name .orn`, `.mp-stamps`), the
+menu sheet's `.mv-night` class and `.dlg-box.narr`.
+No exported function or data shape changed; the only new save field is `stamps` (defaulted, old saves load unchanged).
+
+### Adding an episode
+The owner plans 12+ episodes, so every out-of-play surface reads one registry, `src/data/episodes.js`; adding an episode
+is data there, its words in the locale and its quest in `src/story/questdefs.js`. No UI file changes. (This replaces the
+fixed four-stop itinerary described under "Journal round": `STOPS` / `STOP_OF` and `world.itinerary` are no longer read.)
+
+**1. Registry entries** (shapes in the file's header; `n` sets story order, countries follow their episode's order):
+- episode `{ id: 'ep3', n: 3, title: <loc key>, quests: ['<quest id>', …], countries: ['<country id>', …] }`.
+- country `{ id, episode: 'ep3', name: <loc key>, sub: <loc key> | null, regions: ['<region id>', …], anchor: <id> | null,
+  stamp: { seed, ink?, shape?, motif? } }`.
+  - `regions`: every region id (`G.env.region`, `'region:enter'`) inside the country; a region belongs to one country.
+  - `anchor`: where the map flies when the stamp is clicked. Looked up in `JOURNEY_POI` (has `r`), then `G.world.POI`,
+    then `JOURNEY_ANCHORS` (no `r`: 90 m); `null` = not on the map yet (the stamp is then not clickable).
+  - `stamp`: `src/ui/stamps.js` draws the art from `seed` (8 shapes, 6 borders, 10 motifs, 4 layouts, 8 muted inks, a
+    tilt). Shape, motif and ink follow low-discrepancy sequences, so **give a journey's countries consecutive seeds** and no
+    neighbours share shape + motif (checked over 11 neighbours, 3000 seeds). `ink` (`#hex`), `shape` (circle oval octagon
+    scalloped shield rect hexagon notched) and `motif` (star crescent sun tower key leaf wave bell quill flower) override
+    the seed's pick. The art carries no text: the name is DOM text over it (`nameY` / `nameW` in the result).
+
+**2. Locale keys** (`src/locales/zh-CN/`): the episode `title` (today the quest title, `story.quests.<id>.title`, e.g.
+「第三话　…」); the country `name` / `sub` (`world.place.<id>` / `world.sub.<id>`); `world.place.<region>` (+ optional
+`world.sub.<region>`) for every region, which the place-name card shows on entry. Nothing in `ui.*` needs a new key.
+
+**3. Quest link**: list the episode's quest ids in `quests`. The journal groups quests by `episodeOfQuest(id)`; a quest no
+episode lists (errand-like side quests) goes to the last chapter, `ui.journal.looseChapter`.
+
+**What shows up where**
+| surface | reads | behaviour |
+| --- | --- | --- |
+| journal 托付 (`menu.js createJournal`) | `providers.journal()` + `episodeOfQuest` | one chapter line per episode in story order (`.mn-ch`: title, 已了 n/m; not a `.mn-row`, so `navList` and the acceptance hooks skip it), active-first inside; chips 全部 / 进行中 / 已了 (`.mn-filt .fc`, key F); opens on the first quest still under way; the list scrolls |
+| map 旅路 (`map.js`) | `episodes()`, `countries()`, `G.state.stamps` | stamps grouped under each episode's title; inked, tilted and multiplied once visited, a dashed outline before; an episode appears once it is under way (a stamp of it, or one of its quests in the journal), the ones after collapse into one line (`ui.map.roadAhead`), so no country is named early; click / tap a stamp with an anchor → the map glides there (anchor circle ≈ 40 % of the view) and rings it; scrolls on its own on a desktop, with the side panel on a phone |
+| stamps (`map.js stampVisit`) | `countryOfRegion` | every `'region:enter'` stamps that country and every earlier one in registry order; save `G.state.stamps[countryId] = 1` (unchanged shape, old saves load as before) |
+| country title card (`stage.js` banner via `ui.js`) | `countryOfRegion`, `episodeById`, `stampArt` | the episode over the name, the country's stamp beside it |
+| run time | `G.ui.episodes = { list, countries, countryOfRegion, episodeOfQuest, register, stampArt }` | `register({ episodes, countries })` adds or replaces entries (data packs, probes); `registryVersion()` bumps on each call |
+
+**Pages that grow without an episode**: the bag (`.it-grid`, 4 a row) and the spell lists (elements 4 a row, arts 7 a row,
+more arts wrap) scroll inside `.mn-list .scroll`, keys scroll the selection into view; the wardrobe keeps four tall cards
+across the page for up to four outfits and turns into one sideways-scrolling row of fixed-width cards (`.wd-wrap.many`;
+wheel, ← →, a finger) past four.
+
+**Probe**: `node tools/play.mjs --name ep12-desk --script tools/journey/episodes-probe.js` (and `--mobile --dpr 3 --size
+844x390`) registers 12 made-up episodes (a `probe` locale namespace, 1–2 countries each, fake region ids, some anchors
+reused or null, consecutive seeds), enters a region of episode 6 (stamps 10 countries), adds fake quests through
+`providers.journal` and 22 things through `providers.items`, and saves `journal-top`, `journal-scrolled`, `journal-active`,
+`map-stamps`, `map-stamps-end`, `map-fly`, `stamp-sheet` (every registered stamp), `items-many` and `wardrobe-many` (the four
+cards cloned to seven) in `.tmp/play/<name>/`. Its result lists checks (chapter lines are not rows, the active filter shows
+only active quests, the map flew to 魔法使之国, the bag and the wardrobe row scroll, every stamp distinct) and `T.errors()`.
+Run it after any change to the registry, the journal, the map page or the stamp art.
+
+
+### Bold round: the in-play HUD (owner: 「再大胆一轮」)
+The always-on screens got their own identity in the journal language, and the play view keeps quiet when nothing is
+happening.
+- **Crest** (`hud.js` vitals): the little sky (sun / moon) in a brass-rimmed medallion with the astrolabe ring; life and
+  mana are two 270° arcs round it (SVG paths with `pathLength=100`, fill + trailing ghost as the bars had), a star in the
+  gap at the bottom; the numbers beside it (`62 / 100`, mana under it). Low life pulses the life arc.
+- **Compass ribbon**: a banner with swallowtail ends (`icons.js ribbon()` as `border-image`, `--fr-ribbon`); the bearing
+  strip slides behind a window (`.win` > `.ctr`, a 400u frame centred so the bearing maths keeps its units on any width).
+- **Objective card**: the tracker is an inked parchment card with a wine edge and a ribbon bookmark.
+- **Spell dial**: the selected magic as a medallion with the brass gauge ring and the astrolabe round it; every magic is
+  a glyph pip on an arc above-left (unknown: a faint dot; the selected pip glows in its element colour); 「蓄能」 moved to
+  the top-right of the medallion.
+- **Prompt**: a parchment pill with the key in a night medallion. **Toasts**: parchment slips; the icon is an ink stamp
+  pressed onto the slip as it arrives (`opts.color` tints the stamp ink, mixed toward ink so it reads on parchment).
+- **Foe plates**: names on small night ribbons with swallowtail ends; elites get a brass star crest and a bronze ribbon;
+  the bar has a brass hairline. The boss / duel name sits on the compass ribbon.
+- **Touch**: every button is a brooch medallion (brass rim, inner hairline, the astrolabe tick ring); 44 px floors and
+  safe areas as before.
+- **Country title card**: from the registry (below): the episode's title as a kicker over the hairline, the country
+  name, the kai line, and the country's own procedural passport stamp printed on a parchment ticket at its own tilt
+  (`stamps.js stampArt`). Regions outside the registry fall back to the plain ring with `opts.seal`.
+- **Quiet when idle** (`hud.js update`, `restT`): the crest rests (dims, numbers fade) while she is whole and out of a
+  fight for 4 s; key hints rest after 12 s on the same set; the objective card folds to its title after 14 s without a
+  change; the dial dims after 9 s without a swap, a cast charge or a fight. Any change brings each back at once.

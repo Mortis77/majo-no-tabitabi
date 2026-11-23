@@ -14,25 +14,25 @@ const te = (k, p) => t('gameplay.errands.' + k, p);
 addCss(`
 /* four journal sub-tabs: on touch (wider tabs) let the fourth wrap rather than run off the list */
 .mv-ui.touch .mn-subtabs { flex-wrap: wrap; row-gap: 4u; }
-.wd-row .ic { font-size: 15u; color: #b9c8ff; flex: none; }
-.wd-row.reg .ic { color: #c8a878; }
-.wd-row.rc .ic { color: #ffd27a; }
-.wd-det .stat { display: flex; flex-wrap: wrap; gap: 6u 14u; margin-top: 10u; font: 700 15u/1.4 var(--ft); color: var(--ink); letter-spacing: .1em; }
+.wd-row .ic { font-size: 15u; color: #6f86c8; flex: none; }
+.wd-row.reg .ic { color: #a8844e; }
+.wd-row.rc .ic { color: #c8952e; }
+.wd-det .stat { display: flex; flex-wrap: wrap; gap: 6u 14u; margin-top: 10u; font: 600 15u/1.4 var(--fd); color: var(--ink); letter-spacing: .06em; }
 .wd-det .stat span { white-space: nowrap; }
-.wd-det .line { margin-top: 8u; font: 400 15u/1.7 var(--ft); color: var(--ink); letter-spacing: .06em; }
+.wd-det .line { margin-top: 8u; font: 400 15u/1.75 var(--fb); color: var(--ink); letter-spacing: .04em; }
 .wd-det .line.dim { color: var(--ink3); }
-.wd-det .places { display: flex; flex-wrap: wrap; gap: 4u 10u; margin-top: 8u; }
-.wd-det .places span { font: 400 14u/1.6 var(--ft); color: var(--ink); }
-.wd-det .places span.large { font-weight: 700; }
+.wd-det .places { display: flex; flex-wrap: wrap; gap: 4u 12u; margin-top: 8u; }
+.wd-det .places span { font: 400 14u/1.6 var(--fb); color: var(--ink); }
+.wd-det .places span.large { font: 600 14u/1.6 var(--fd); }
 .wd-det .rc { margin-top: 12u; }
-.wd-det .rc .nm { font: 700 16u/1.4 var(--ft); color: var(--ink); letter-spacing: .12em; }
+.wd-det .rc .nm { font: 600 16u/1.4 var(--fd); color: var(--ink); letter-spacing: .06em; }
 .wd-det .rc .sm { font: 400 13u/1.5 var(--fb); color: var(--ink3); }
-.wd-row.er .ic { color: #e8c890; }
+.wd-row.er .ic { color: #b8904a; }
 .wd-det .er { margin-top: 12u; }
-.wd-det .er .nm { font: 700 16u/1.4 var(--ft); color: var(--ink); letter-spacing: .12em; }
+.wd-det .er .nm { font: 600 16u/1.4 var(--fd); color: var(--ink); letter-spacing: .06em; }
 .wd-det .er .nm.dim { color: var(--ink3); }
 .wd-det .er .sm { font: 400 13u/1.6 var(--fb); color: var(--ink3); }
-.wd-det .er .ob { font: 400 14u/1.6 var(--ft); color: var(--ink); }
+.wd-det .er .ob { font: 400 14u/1.6 var(--fb); color: var(--ink); }
 `);
 
 function data() { try { return G.wilds?.journal?.() || null; } catch (e) { G.reportError('ui:wilds', e); return null; } }

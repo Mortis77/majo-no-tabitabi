@@ -1,4 +1,4 @@
-// openShop(): a little stall under a noren curtain. List + detail, the purse, buying with a vermilion stamp.
+// openShop(): a parchment counter under a hanging sign. List + detail, the purse, buying with a wax-seal stamp.
 import { G } from '../core/game.js';
 import { t } from '../core/i18n.js';
 import { K, el, tel, clear, hintLine, pushModal, popModal, enterMenuMode, leaveMenuMode, sfx, replay, codeLabel } from './dom.js';
@@ -7,44 +7,55 @@ import { addCss } from './style.js';
 import { navList } from './panels.js';
 
 addCss(`
-.mv-shop > .mv-paper { width: 940u; height: 560u; padding: 0 40u 22u; display: flex; flex-direction: column; }
-.sh-noren { position: relative; margin: 0 -40u 18u; height: 86u; display: flex; align-items: center; justify-content: center; color: var(--paper);
-  background: var(--indigo2); background-image: var(--tex-wave), linear-gradient(180deg, #2b376e, #1b2350); box-shadow: 0 4u 10u rgba(0,0,0,.25); }
-.sh-noren::before, .sh-noren::after { content: ''; position: absolute; top: 26u; bottom: 0; width: 3u; background: rgba(243,233,212,.9); }
-.sh-noren::before { left: 22%; } .sh-noren::after { left: 78%; }
-.sh-noren .tt { font: 700 30u/1 var(--ft); letter-spacing: .5em; margin-right: -.5em; text-shadow: 0 2u 4u rgba(0,0,0,.5); }
-.sh-noren .seal { position: absolute; right: 30u; top: 26u; }
+/* a parchment counter under a hanging sign (night plaque, brass frame, two chains) */
+.mv-shop > .mv-paper { width: 940u; height: 570u; padding: 0 46u 24u; display: flex; flex-direction: column; }
+.sh-noren { position: relative; align-self: center; margin: -24u 0 18u; height: 56u; min-width: 340u; padding: 0 54u; display: flex; align-items: center; justify-content: center; color: var(--star);
+  border-radius: 6u; background: radial-gradient(ellipse 80% 80% at 50% 0%, rgba(92,116,190,.38), rgba(92,116,190,0) 70%), var(--tex-stars), linear-gradient(180deg, #26355e, #10172c);
+  background-size: 100% 100%, 256u 256u, 100% 100%;
+  box-shadow: inset 0 0 0 1u var(--hair2), inset 0 0 0 4u #131b33, inset 0 0 0 5u rgba(236,217,164,.32), 0 8u 18u rgba(0,0,0,.35); }
+.sh-noren::before, .sh-noren::after { content: ''; position: absolute; top: -18u; width: 1.5u; height: 18u; background: linear-gradient(180deg, rgba(236,217,164,0), var(--brass2)); }
+.sh-noren::before { left: 22%; } .sh-noren::after { right: 22%; }
+.sh-noren .tt { position: relative; display: flex; align-items: center; gap: 14u; font: 600 24u/1 var(--fd); letter-spacing: .3em; margin-right: -.3em; text-shadow: 0 2u 4u rgba(0,0,0,.5); }
+.sh-noren .tt::before, .sh-noren .tt::after { content: ''; width: 10u; height: 10u; background: var(--brass2); -webkit-mask: var(--mk-star) center / contain no-repeat; mask: var(--mk-star) center / contain no-repeat; }
+.sh-noren .tt::after { margin-left: -.3em; }
+.sh-noren .seal { position: absolute; right: -14u; top: 10u; }
 .sh-body { flex: 1; min-height: 0; display: flex; gap: 28u; }
 .sh-list { width: 430u; flex: none; }
-.sh-row { position: relative; display: flex; align-items: center; gap: 12u; padding: 10u 14u; cursor: pointer; pointer-events: auto; border-bottom: 1u dashed rgba(35,31,29,.15); }
-.sh-row.sel { background: linear-gradient(90deg, rgba(35,31,29,.1), rgba(35,31,29,.02)); }
-.sh-row.sel::before { content: ''; position: absolute; left: 0; top: 6u; bottom: 6u; width: 3u; background: var(--red); }
-.sh-row > .ic { font-size: 26u; color: var(--ink); }
-.sh-row .nm { flex: 1; font: 600 16u/1.3 var(--ft); color: var(--ink); letter-spacing: .08em; }
-.sh-row .own { font-size: 11u; color: var(--ink3); }
-.sh-pr { display: inline-flex; align-items: center; gap: 4u; font: 700 15u/1 var(--fb); color: var(--ink); font-variant-numeric: tabular-nums; }
-.sh-pr .ic { color: #b4862e; font-size: 15u; }
-.sh-row.poor .sh-pr { color: var(--red); }
+.sh-row { position: relative; display: flex; align-items: center; gap: 12u; padding: 10u 14u 10u 18u; cursor: pointer; pointer-events: auto; border-radius: 4u;
+  background: linear-gradient(90deg, rgba(148,113,47,.18), rgba(148,113,47,.18)) 14u 100% / calc(100% - 28u) 1u no-repeat; transition: background-color .15s; }
+.sh-row:hover { background-color: rgba(148,113,47,.06); }
+.sh-row.sel { background-color: rgba(148,113,47,.13); box-shadow: inset 0 0 0 1u rgba(148,113,47,.35); }
+.sh-row.sel::before { content: ''; position: absolute; left: 4u; top: 50%; width: 9u; height: 9u; margin-top: -4.5u; background: var(--brass3);
+  -webkit-mask: var(--mk-star) center / contain no-repeat; mask: var(--mk-star) center / contain no-repeat; }
+.sh-row > .ic { font-size: 24u; color: var(--ink); }
+.sh-row .nm { flex: 1; font: 600 15.5u/1.3 var(--fd); color: var(--ink); letter-spacing: .04em; }
+.sh-row .own { font: 400 12u/1 var(--fb); color: var(--ink3); }
+.sh-pr { display: inline-flex; align-items: center; gap: 4u; font: 600 15u/1 var(--fd); color: var(--ink); }
+.sh-pr .ic { color: var(--brass3); font-size: 14u; }
+.sh-row.poor .sh-pr { color: var(--wine); }
 .sh-row.out { opacity: .45; }
 .sh-row.out .sh-pr { text-decoration: line-through; }
-.sh-det { flex: 1; position: relative; border-left: 1u solid rgba(35,31,29,.14); padding: 6u 0 0 28u; display: flex; flex-direction: column; }
-.sh-det .ico { width: 92u; height: 92u; display: flex; align-items: center; justify-content: center; font-size: 56u; color: var(--ink); border-radius: 50%; background: rgba(35,31,29,.06); box-shadow: 0 0 0 1u var(--gold); }
-.sh-det .nm { font: 700 26u/1.3 var(--ft); color: var(--ink); letter-spacing: .14em; margin: 12u 0 2u; }
-.sh-det .own { font-size: 12u; color: var(--ink3); letter-spacing: .2em; }
-.sh-det .ds { margin-top: 10u; font: 500 15u/1.9 var(--fb); color: var(--ink2); letter-spacing: .04em; flex: 1; }
+.sh-det { flex: 1; position: relative; padding: 6u 0 0 30u; display: flex; flex-direction: column;
+  background: linear-gradient(180deg, transparent, rgba(148,113,47,.35) 12%, rgba(148,113,47,.35) 88%, transparent) left / 1u 100% no-repeat; }
+.sh-det .ico { width: 92u; height: 92u; display: flex; align-items: center; justify-content: center; font-size: 52u; color: var(--ink); border-radius: 50%;
+  background: radial-gradient(circle at 50% 38%, #fffaf0, #eadcbe); box-shadow: 0 0 0 1u var(--brass3), 0 0 0 5u rgba(246,239,224,.8), 0 0 0 6u rgba(148,113,47,.3), 0 4u 10u rgba(80,60,30,.15); }
+.sh-det .nm { font: 700 25u/1.3 var(--fd); color: var(--ink); letter-spacing: .06em; margin: 14u 0 2u; }
+.sh-det .own { font: 600 12u/1.5 var(--fd); color: var(--brass3); letter-spacing: .16em; }
+.sh-det .ds { margin-top: 10u; font: 400 15.5u/1.9 var(--fb); color: var(--ink2); letter-spacing: .03em; flex: 1; }
 .sh-det .act { display: flex; align-items: center; gap: 18u; }
 .sh-det .act .sh-pr { font-size: 20u; }
-.sh-det .act .sh-pr .ic { font-size: 20u; }
-.sh-det .stamp { position: absolute; right: 30u; top: 20u; width: 76u; height: 76u; font-size: 44u; opacity: 0; pointer-events: none; }
+.sh-det .act .sh-pr .ic { font-size: 18u; }
+.sh-det .stamp { position: absolute; right: 30u; top: 20u; width: 74u; height: 74u; font-size: 30u; opacity: 0; pointer-events: none; }
+.sh-det .stamp::before { inset: 6u; border-width: 1.5u; }
 .sh-det .stamp.go { animation: sh-stamp .9s cubic-bezier(.3,1.5,.5,1) forwards; }
 @keyframes sh-stamp { 0% { opacity: 0; transform: scale(2.2) rotate(-14deg); } 30% { opacity: 1; transform: scale(1) rotate(-8deg); } 75% { opacity: 1; } 100% { opacity: 0; transform: scale(1) rotate(-8deg); } }
-.sh-msg { min-height: 20u; font-size: 13u; color: var(--red); letter-spacing: .08em; margin-top: 8u; }
-.sh-foot { display: flex; align-items: center; gap: 16u; padding-top: 12u; margin-top: 10u; border-top: 1u solid rgba(35,31,29,.15); }
-.sh-purse { display: flex; align-items: center; gap: 10u; font-size: 12u; color: var(--ink3); letter-spacing: .2em; }
+.sh-msg { min-height: 20u; font: 400 13.5u/1.5 var(--fb); color: var(--wine); letter-spacing: .04em; margin-top: 8u; }
+.sh-foot { display: flex; align-items: center; gap: 16u; padding-top: 12u; margin-top: 10u; border-top: 1u solid rgba(148,113,47,.25); }
+.sh-purse { display: flex; align-items: center; gap: 10u; font: 600 12u/1 var(--fd); color: var(--brass3); letter-spacing: .16em; }
 .sh-purse .sh-pr { font-size: 20u; letter-spacing: 0; }
 .sh-purse.shake { animation: sh-shake .4s; }
 @keyframes sh-shake { 0%, 100% { transform: none; } 20% { transform: translateX(-6u); } 40% { transform: translateX(5u); } 60% { transform: translateX(-4u); } 80% { transform: translateX(2u); } }
-.sh-hint { flex: 1; text-align: right; font-size: 12u; color: var(--ink2); letter-spacing: .08em; }
+.sh-hint { flex: 1; text-align: right; font: 400 12.5u/1.5 var(--fb); color: var(--ink2); letter-spacing: .04em; }
 .sh-hint .keycap { margin: 0 3u; }
 `);
 
