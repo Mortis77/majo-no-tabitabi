@@ -19,33 +19,41 @@ addCss(`
 .mv-hud.wheel .hud-cross, .mv-hud.wheel .hud-pin, .mv-hud.wheel .hud-prompt { opacity: 0; }
 .mv-hud .tsh { text-shadow: var(--halo); }
 
-/* ---- vitals: the astrolabe (the little sky: the Moon slides over the Sun as the Veil deepens) and two capsule bars ---- */
-.hud-vit { position: absolute; left: 26u; top: 22u; display: flex; align-items: flex-start; gap: 12u; }
-.hud-orb { position: relative; width: 58u; height: 58u; flex: none; }
-.hud-orb::before { content: ''; position: absolute; inset: 6u; border-radius: 50%; background: radial-gradient(circle at 50% 34%, #2a3a64 0%, #141c36 62%, #0a0f20 100%);
-  box-shadow: inset 0 0 0 1u rgba(236,217,164,.4), 0 2u 8u rgba(0,0,0,.45); }
-.hud-orb::after { content: ''; position: absolute; inset: 0; background: var(--brass2); opacity: .92; filter: drop-shadow(0 1u 2u rgba(0,0,0,.75));
+/* ---- vitals: a crest — the little sky in a brass-rimmed medallion, life and mana as arcs round it (the Moon slides over
+   the Sun as the Veil deepens); the numbers beside it. It rests (dims, numbers fade) while she is whole and out of a fight ---- */
+.hud-vit { position: absolute; left: 22u; top: 16u; display: flex; align-items: center; gap: 8u; transition: opacity .6s; }
+.hud-vit.rest { opacity: .5; }
+.hud-vit.rest .bars { opacity: 0; transform: translateX(-6u); }
+.hud-crest { position: relative; width: 96u; height: 96u; flex: none; filter: drop-shadow(0 2u 6u rgba(0,0,0,.4)); }
+.hud-crest .arcs { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.hud-crest .arcs path { fill: none; stroke-linecap: round; }
+.hud-crest .arcs .trk { stroke: rgba(6,10,24,.62); stroke-dasharray: none; }
+.hud-crest .arcs .life.trk { stroke-width: 7.5; } .hud-crest .arcs .mana.trk { stroke-width: 4.6; }
+.hud-crest .arcs .ghost, .hud-crest .arcs .fill { stroke-dasharray: 100 200; stroke-dashoffset: 0; }
+.hud-crest .arcs .life.ghost { stroke: rgba(255,240,214,.72); stroke-width: 5; }
+.hud-crest .arcs .life.fill { stroke: var(--life); stroke-width: 5; filter: drop-shadow(0 0 2u rgba(232,104,92,.55)); }
+.hud-crest .arcs .mana.ghost { stroke: rgba(220,236,255,.55); stroke-width: 2.8; }
+.hud-crest .arcs .mana.fill { stroke: var(--mana); stroke-width: 2.8; filter: drop-shadow(0 0 2u rgba(120,178,255,.55)); }
+.hud-crest::before { content: ''; position: absolute; inset: 15u; border-radius: 50%; background: var(--brass2); opacity: .95;
   -webkit-mask: var(--mk-astro) center / contain no-repeat; mask: var(--mk-astro) center / contain no-repeat; }
-.hud-orb .in { position: absolute; inset: 9u; border-radius: 50%; overflow: hidden; }
+.hud-crest::after { content: ''; position: absolute; left: 50%; bottom: 1u; width: 15u; height: 15u; margin-left: -7.5u; background: var(--brass2);
+  -webkit-mask: var(--mk-star) center / contain no-repeat; mask: var(--mk-star) center / contain no-repeat; filter: drop-shadow(0 1u 2u rgba(0,0,0,.6)); }
+.hud-orb { position: absolute; inset: 21u; border-radius: 50%; background: radial-gradient(circle at 50% 32%, #304472 0%, #151d38 60%, #0a0f20 100%);
+  box-shadow: inset 0 0 0 1u rgba(236,217,164,.55), inset 0 0 10u rgba(0,0,0,.5); }
+.hud-orb .in { position: absolute; inset: 6u; border-radius: 50%; overflow: hidden; }
 .hud-orb .sun { position: absolute; left: 50%; top: 50%; width: 20u; height: 20u; margin: -10u; border-radius: 50%;
   background: radial-gradient(circle, #fffbea 0%, #ffe39a 55%, #ffbf62 100%); box-shadow: 0 0 8u 3u rgba(255,206,120,.7), 0 0 18u 7u rgba(255,180,90,.25); }
 .hud-orb .moon { position: absolute; left: 50%; top: 50%; width: 21u; height: 21u; margin: -10.5u; border-radius: 50%; background: #0b1024;
   box-shadow: inset -2u -2u 5u rgba(140,160,240,.42); will-change: transform; }
-.hud-vit .bars { padding-top: 9u; }
-.hud-vit .row { display: flex; align-items: center; gap: 9u; height: 16u; }
-.hud-vit .row.mana { height: 13u; margin-top: 2u; }
-.hud-bar { position: relative; height: 11u; border-radius: 6u; overflow: hidden;
-  background: linear-gradient(180deg, rgba(6,10,24,.8), rgba(22,30,56,.72)); box-shadow: inset 0 0 0 1u rgba(236,217,164,.34), 0 1u 4u rgba(0,0,0,.35); }
-.hud-bar i { position: absolute; inset: 2u; border-radius: 4u; transform-origin: 0 50%; will-change: transform; }
-.hud-bar .ghost { background: rgba(255,240,214,.72); }
-.hud-vit .life .fill { background: linear-gradient(180deg, #ffb7a6 0%, var(--life) 42%, var(--life2) 100%); box-shadow: inset 0 1u 0 rgba(255,255,255,.35); }
-.hud-vit .mana .hud-bar { height: 8u; }
-.hud-vit .mana .hud-bar i { inset: 1.5u; border-radius: 3u; }
-.hud-vit .mana .fill { background: linear-gradient(180deg, #d6eaff 0%, var(--mana) 45%, var(--mana2) 100%); box-shadow: inset 0 1u 0 rgba(255,255,255,.35); }
-.hud-vit .mana .ghost { background: rgba(220,236,255,.5); }
-.hud-vit .num { font: 600 11.5u/1 var(--fd); letter-spacing: .02em; color: var(--star); opacity: .92; min-width: 26u; }
-.hud-vit.low .life .fill { animation: mv-pulse .7s infinite; }
-.hud-vit .status { display: flex; gap: 6u; margin-top: 7u; height: 21u; }
+.hud-vit .bars { display: flex; flex-direction: column; gap: 2u; transition: opacity .6s, transform .6s; }
+.hud-vit .row { display: flex; align-items: baseline; gap: 5u; }
+.hud-vit .life .num { font: 700 22u/1 var(--fd); color: #fff4ef; letter-spacing: .01em; }
+.hud-vit .life .of { font: 600 11.5u/1 var(--fd); color: rgba(255,247,232,.7); }
+.hud-vit .mana .num { font: 600 13u/1 var(--fd); color: #cfe3ff; }
+.hud-vit .mana::before { content: ''; width: 7u; height: 7u; margin-right: 2u; align-self: center; background: var(--mana); -webkit-mask: var(--mk-star) center / contain no-repeat; mask: var(--mk-star) center / contain no-repeat; }
+.hud-vit.low .arcs .life.fill { animation: mv-pulse .7s infinite; }
+.hud-vit.low .life .num { color: #ffb0a6; }
+.hud-vit .status { display: flex; gap: 6u; margin-top: 5u; min-height: 21u; }
 .hud-vit .st { display: none; align-items: center; gap: 4u; height: 21u; padding: 0 9u 0 6u; border-radius: 11u; background: var(--glass2);
   box-shadow: inset 0 0 0 1u currentColor; font: 600 11.5u/21u var(--fd); letter-spacing: .08em; animation: hud-st-in .25s cubic-bezier(.2,.8,.2,1.4); }
 .hud-vit .st.on { display: inline-flex; }
@@ -53,20 +61,22 @@ addCss(`
 .hud-vit .st span { color: var(--star); }
 @keyframes hud-st-in { from { transform: scale(.5); opacity: 0; } }
 
-/* ---- compass: a night ribbon fading at both ends, brass hairlines, serif cardinals ---- */
-.hud-compass { position: absolute; left: 50%; top: 16u; width: 420u; height: 40u; margin-left: -210u; overflow: hidden;
-  -webkit-mask: linear-gradient(90deg, transparent, #000 16%, #000 84%, transparent); mask: linear-gradient(90deg, transparent, #000 16%, #000 84%, transparent); }
-.hud-compass::before { content: ''; position: absolute; left: 0; right: 0; top: 3u; height: 26u; background: linear-gradient(180deg, rgba(12,18,38,.5), rgba(12,18,38,.24));
-  box-shadow: inset 0 1u 0 rgba(236,217,164,.22), inset 0 -1u 0 rgba(236,217,164,.62); }
+/* ---- compass: a ribbon banner with swallowtail ends (border-image), the bearing strip sliding behind a 400u window ---- */
+.hud-compass { position: absolute; left: 50%; top: 12u; width: 476u; height: 40u; margin-left: -238u;
+  border: solid transparent; border-width: 12u 46u; border-image: var(--fr-ribbon) 12 46 fill / 12u 46u stretch; filter: drop-shadow(0 2u 5u rgba(0,0,0,.35)); }
+.hud-compass .win { position: absolute; left: -8u; right: -8u; top: -12u; bottom: -12u; overflow: hidden;
+  -webkit-mask: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); mask: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); }
+.hud-compass .ctr { position: absolute; left: 50%; top: 0; bottom: 0; width: 400u; margin-left: -200u; }
 .hud-compass .strip { position: absolute; left: 0; top: 0; height: 100%; will-change: transform; }
-.hud-compass .tk { position: absolute; top: 20u; width: 1u; height: 6u; margin-left: -.5u; background: rgba(255,247,232,.55); }
-.hud-compass .tk.m { top: 13u; width: 7u; height: 7u; margin-left: -3.5u; background: var(--brass2);
+.hud-compass .tk { position: absolute; top: 24u; width: 1u; height: 5u; margin-left: -.5u; background: rgba(255,247,232,.55); }
+.hud-compass .tk.m { top: 15u; width: 8u; height: 8u; margin-left: -4u; background: var(--brass2);
   -webkit-mask: var(--mk-star) center / contain no-repeat; mask: var(--mk-star) center / contain no-repeat; }
-.hud-compass .card { position: absolute; top: 3u; width: 26u; margin-left: -13u; text-align: center; font: 600 15u/26u var(--fd); color: var(--star); text-shadow: var(--halo); }
+.hud-compass .card { position: absolute; top: 7u; width: 26u; margin-left: -13u; text-align: center; font: 700 15.5u/26u var(--fd); color: var(--star); text-shadow: var(--halo); }
 .hud-compass .card.n { color: #ffa597; }
-.hud-compass .needle { position: absolute; left: 50%; top: 25u; width: 11u; height: 11u; margin-left: -5.5u; background: var(--brass2); filter: drop-shadow(0 1u 1u rgba(0,0,0,.7));
+.hud-compass .needle { position: absolute; left: 50%; top: -20u; width: 12u; height: 12u; margin-left: -6u; background: var(--brass2); filter: drop-shadow(0 1u 1u rgba(0,0,0,.7));
   -webkit-mask: var(--mk-star) center / contain no-repeat; mask: var(--mk-star) center / contain no-repeat; }
-.hud-compass .mk { position: absolute; left: 0; top: 5u; width: 20u; height: 20u; margin-left: -10u; border-radius: 50%; background: radial-gradient(circle at 50% 35%, #26355c, #0d1328 75%);
+.hud-compass .needle::after { content: ''; position: absolute; left: 50%; top: 40u; margin-left: -4u; border: 4u solid transparent; border-top: 0; border-bottom: 6u solid var(--brass2); }
+.hud-compass .mk { position: absolute; left: 0; top: 8u; width: 20u; height: 20u; margin-left: -10u; border-radius: 50%; background: radial-gradient(circle at 50% 35%, #26355c, #0d1328 75%);
   display: none; align-items: center; justify-content: center; font-size: 11.5u; box-shadow: 0 0 0 1.2u currentColor, 0 1u 3u rgba(0,0,0,.5); will-change: transform; }
 .hud-compass .mk.on { display: flex; }
 .hud-compass .mk.edge { opacity: .5; }
@@ -74,7 +84,8 @@ addCss(`
 /* ---- boss / duel: serif name, a capsule bar between two stars ---- */
 .hud-boss { position: absolute; left: 50%; top: 62u; width: 500u; margin-left: -250u; text-align: center; opacity: 0; transform: translateY(-8u); transition: opacity .4s, transform .4s; }
 .hud-boss.on { opacity: 1; transform: none; }
-.hud-boss .nm { font: 600 22u/1.3 var(--fd); letter-spacing: .2em; margin-right: -.2em; color: var(--star); }
+.hud-boss .nm { display: inline-block; min-width: 220u; padding: 0 8u; font: 700 20u/1.3 var(--fd); letter-spacing: .2em; color: var(--star);
+  border: solid transparent; border-width: 12u 46u; border-image: var(--fr-ribbon) 12 46 fill / 12u 46u stretch; margin: -8u 0 -4u; }
 .hud-boss .sub { font: 600 11.5u/1.5 var(--fd); letter-spacing: .3em; margin-right: -.3em; color: var(--brass2); opacity: .92; }
 .hud-boss .wrap { position: relative; margin-top: 6u; padding: 0 24u; }
 .hud-boss .wrap::before, .hud-boss .wrap::after { content: ''; position: absolute; top: 50%; width: 14u; height: 14u; margin-top: -7u; background: var(--brass2);
@@ -85,29 +96,33 @@ addCss(`
 .hud-boss.duel .fill { background: linear-gradient(180deg, #fff2cc, var(--bc, #d8a646) 55%, #8c6a22); }
 .hud-boss.shade .fill { background: linear-gradient(180deg, #ddc8ff, #8a5fd8 50%, #4b2c93); }
 
-/* ---- top right: counters + tracker ---- */
-.hud-tr { position: absolute; right: 26u; top: 22u; display: flex; flex-direction: column; align-items: flex-end; }
-.hud-count { display: flex; align-items: center; gap: 6u; height: 28u; padding: 0 13u 0 9u; border-radius: 14u; color: var(--star);
-  background: linear-gradient(180deg, rgba(28,38,68,.8), rgba(12,18,36,.74)); box-shadow: inset 0 0 0 1u var(--hair), 0 2u 6u rgba(0,0,0,.3);
-  font: 600 14u/28u var(--fd); letter-spacing: .02em; text-shadow: none; }
-.hud-count .ic { font-size: 15u; color: var(--brass2); }
+/* ---- top right: the purse coin, then the objective as an inked card (it folds to its title when nothing changes) ---- */
+.hud-tr { position: absolute; right: 22u; top: 18u; display: flex; flex-direction: column; align-items: flex-end; }
+.hud-count { display: flex; align-items: center; gap: 6u; height: 28u; padding: 0 13u 0 5u; border-radius: 14u; color: var(--star);
+  background: linear-gradient(180deg, rgba(28,38,68,.84), rgba(12,18,36,.78)); box-shadow: inset 0 0 0 1u var(--hair), 0 2u 6u rgba(0,0,0,.3);
+  font: 700 14.5u/28u var(--fd); letter-spacing: .02em; text-shadow: none; }
+.hud-count .ic { width: 20u; height: 20u; padding: 3u; font-size: 14u; border-radius: 50%; color: #2a1f12; background: radial-gradient(circle at 40% 34%, #fff3cf, var(--brass) 70%); }
 .hud-count.bump { animation: hud-bump .35s; }
 @keyframes hud-bump { 30% { transform: scale(1.16); } }
-.hud-tracker { position: relative; margin-top: 14u; width: 280u; padding: 2u 18u 6u 0; text-align: right; opacity: 0; transform: translateX(12u); transition: opacity .4s, transform .4s; }
+.hud-tracker { position: relative; margin-top: 12u; width: 290u; padding: 11u 16u 11u 18u; text-align: left; color: var(--ink); border-radius: 4u 10u 10u 4u;
+  background: linear-gradient(180deg, rgba(250,245,233,.94), rgba(236,224,198,.92)); box-shadow: inset 0 0 0 1u rgba(122,92,46,.45), inset 3u 0 0 var(--wine), 0 6u 16u rgba(4,6,16,.35);
+  opacity: 0; transform: translateX(12u); transition: opacity .4s, transform .4s; text-shadow: none; }
 .hud-tracker.on { opacity: 1; transform: none; }
 .mv-hud .hud-tracker.lb { opacity: 0; }
-.hud-tracker::after { content: ''; position: absolute; right: 0; top: 12u; bottom: 4u; width: 1u; background: linear-gradient(180deg, var(--brass2), rgba(236,217,164,0)); }
-.hud-tracker::before { content: ''; position: absolute; right: -5.5u; top: 0; width: 12u; height: 12u; background: var(--brass2); filter: drop-shadow(0 1u 2u rgba(0,0,0,.7));
-  -webkit-mask: var(--mk-star) center / contain no-repeat; mask: var(--mk-star) center / contain no-repeat; }
-.hud-tracker .tt { font: 600 17u/1.35 var(--fd); letter-spacing: .06em; color: var(--star); }
-.hud-tracker .ob { margin-top: 3u; font: 400 15u/1.5 var(--fb); letter-spacing: .04em; color: #fff3df; }
-.hud-tracker .pg { margin-top: 3u; font: 600 13u/1.3 var(--fd); color: var(--brass2); letter-spacing: .06em; }
-.hud-tracker .pb { position: relative; display: none; margin: 6u 0 0 auto; width: 150u; height: 4u; background: rgba(6,10,24,.6); border-radius: 2u; overflow: hidden;
-  box-shadow: inset 0 0 0 1u rgba(236,217,164,.25); }
+.hud-tracker::before { content: ''; position: absolute; right: 12u; top: -7u; width: 14u; height: 26u; background: linear-gradient(90deg, #6a2231, var(--wine2) 48%, #74283a);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%); }
+.hud-tracker::after { content: ''; position: absolute; inset: 4u; border: 1u solid rgba(148,113,47,.28); border-radius: 2u 7u 7u 2u; pointer-events: none; }
+.hud-tracker .tt { padding-right: 18u; font: 700 15.5u/1.35 var(--fd); letter-spacing: .04em; color: var(--ink); }
+.hud-tracker .ob, .hud-tracker .pg, .hud-tracker .pb { transition: opacity .5s, max-height .5s, margin .5s; max-height: 80u; }
+.hud-tracker .ob { margin-top: 4u; font: 400 15u/1.5 var(--fb); letter-spacing: .03em; color: var(--ink2); }
+.hud-tracker .pg { margin-top: 3u; font: 700 12.5u/1.3 var(--fd); color: var(--brass3); letter-spacing: .04em; }
+.hud-tracker .pb { position: relative; display: none; margin: 7u 0 0; width: 100%; height: 4u; background: rgba(42,36,30,.12); border-radius: 2u; overflow: hidden; }
 .hud-tracker .pb.on { display: block; }
-.hud-tracker .pb i { position: absolute; inset: 0; background: linear-gradient(90deg, var(--brass), var(--brass2)); transform-origin: 100% 50%; }
-.hud-tracker.flash .ob { animation: hud-flash 1s; }
-@keyframes hud-flash { 0% { color: var(--brass2); transform: translateX(-6u); } }
+.hud-tracker .pb i { position: absolute; inset: 0; background: linear-gradient(90deg, var(--brass3), var(--brass)); transform-origin: 0 50%; }
+.hud-tracker.rest { opacity: .82; }
+.hud-tracker.rest .ob, .hud-tracker.rest .pg, .hud-tracker.rest .pb { max-height: 0; opacity: 0; margin-top: 0; overflow: hidden; }
+.hud-tracker.flash { animation: hud-flash 1s; }
+@keyframes hud-flash { 0% { box-shadow: inset 0 0 0 1u rgba(122,92,46,.45), inset 3u 0 0 var(--wine), 0 0 0 3u rgba(236,217,164,.8), 0 6u 16u rgba(4,6,16,.35); } }
 
 /* ---- crosshair ---- */
 .hud-cross { position: absolute; left: 50%; top: 50%; width: 0; height: 0; color: var(--star); }
@@ -171,53 +186,66 @@ addCss(`
 .hud-struggle .hint .keycap { animation: hud-mash .18s infinite alternate; }
 @keyframes hud-mash { to { transform: translateY(2u) scale(.94); } }
 
-/* ---- interact prompt: a glass pill ---- */
-.hud-prompt { position: absolute; left: 50%; bottom: 152u; transform: translate(-50%, 8u); display: flex; align-items: center; gap: 10u; padding: 6u 20u 6u 8u; opacity: 0;
-  transition: opacity .18s, transform .18s; white-space: nowrap; border-radius: 20u;
-  background: linear-gradient(180deg, rgba(28,38,68,.84), rgba(12,18,36,.8)); box-shadow: inset 0 0 0 1u var(--hair), 0 4u 14u rgba(0,0,0,.35); }
+/* ---- interact prompt: a parchment pill with the key in a night medallion ---- */
+.hud-prompt { position: absolute; left: 50%; bottom: 150u; transform: translate(-50%, 8u); display: flex; align-items: center; gap: 10u; padding: 5u 22u 5u 5u; opacity: 0;
+  transition: opacity .18s, transform .18s; white-space: nowrap; border-radius: 22u; color: var(--ink);
+  background: linear-gradient(180deg, rgba(250,245,233,.96), rgba(236,224,198,.94)); box-shadow: inset 0 0 0 1u rgba(122,92,46,.5), inset 0 0 0 4u rgba(250,245,233,.6), inset 0 0 0 5u rgba(148,113,47,.22), 0 6u 16u rgba(4,6,16,.35); }
 .hud-prompt.on { opacity: 1; transform: translate(-50%, 0); }
-.hud-prompt .tx { font: 600 15u/1.4 var(--fd); letter-spacing: .08em; color: var(--star); }
+.hud-prompt .keycap { min-width: 32u; height: 32u; border-radius: 16u; font-size: 13u; line-height: 32u; color: var(--brass2);
+  background: radial-gradient(circle at 50% 34%, #34477c, #121a33 75%); box-shadow: 0 0 0 1.2u var(--brass), 0 2u 4u rgba(0,0,0,.3); }
+.hud-prompt .tx { font: 700 15.5u/1.4 var(--fd); letter-spacing: .06em; color: var(--ink); }
 
-/* ---- key hints ---- */
-.hud-hints { position: absolute; left: 26u; bottom: 22u; display: flex; flex-direction: column; gap: 6u; }
+/* ---- key hints (they rest after a while on the same set) ---- */
+.hud-hints { position: absolute; left: 22u; bottom: 22u; display: flex; flex-direction: column; gap: 6u; transition: opacity .8s; }
+.hud-hints.rest { opacity: .28; }
 .hud-hints .h { display: flex; align-items: center; gap: 9u; font: 400 13.5u/22u var(--fb); letter-spacing: .06em; color: var(--star); }
 .hud-hints .ride { display: none; align-items: center; gap: 7u; margin-bottom: 4u; height: 26u; padding: 0 12u 0 9u; border-radius: 13u; align-self: flex-start;
-  background: linear-gradient(180deg, rgba(28,38,68,.8), rgba(12,18,36,.74)); box-shadow: inset 0 0 0 1u var(--hair2); font: 600 12.5u/26u var(--fd); letter-spacing: .14em; color: var(--brass2); }
+  background: linear-gradient(180deg, rgba(28,38,68,.84), rgba(12,18,36,.78)); box-shadow: inset 0 0 0 1u var(--hair2); font: 600 12.5u/26u var(--fd); letter-spacing: .14em; color: var(--brass2); }
 .hud-hints .ride.on { display: inline-flex; }
 .hud-hints .ride .ic { font-size: 15u; }
 
-/* ---- selected spell: a night medallion with a brass gauge ring, the neighbours as small coins ---- */
-.hud-spell { position: absolute; right: 30u; bottom: 24u; display: flex; align-items: flex-end; gap: 16u; }
-.hud-dango { display: flex; align-items: center; gap: 6u; height: 30u; padding: 0 6u 0 7u; border-radius: 15u; margin-bottom: 26u; color: var(--star);
-  background: linear-gradient(180deg, rgba(28,38,68,.8), rgba(12,18,36,.74)); box-shadow: inset 0 0 0 1u var(--hair), 0 2u 6u rgba(0,0,0,.3); font: 600 14u/30u var(--fd); }
+/* ---- the spell dial: the selected magic as a medallion with the brass gauge ring, every magic as a glyph pip on an arc ---- */
+.hud-spell { position: absolute; right: 30u; bottom: 24u; display: flex; align-items: flex-end; gap: 62u; transition: opacity .8s; }
+.hud-spell.rest { opacity: .62; }
+.hud-dango { display: flex; align-items: center; gap: 6u; height: 30u; padding: 0 6u 0 7u; border-radius: 15u; margin-bottom: 30u; color: var(--star);
+  background: linear-gradient(180deg, rgba(28,38,68,.84), rgba(12,18,36,.78)); box-shadow: inset 0 0 0 1u var(--hair), 0 2u 6u rgba(0,0,0,.3); font: 700 14u/30u var(--fd); }
 .hud-dango .ic { font-size: 20u; }
 .hud-dango.none { opacity: .5; }
-.hud-trio { position: relative; display: flex; align-items: center; gap: 8u; padding-bottom: 26u; }
-.hud-sp { position: relative; width: 36u; height: 36u; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18u; color: var(--sc, #fff7e8);
-  background: radial-gradient(circle at 50% 34%, #26355c, #0d1328 75%); box-shadow: inset 0 0 0 1u var(--hair), 0 2u 6u rgba(0,0,0,.35); opacity: .88; transition: opacity .2s; }
-.hud-sp.none { visibility: hidden; }
-.hud-sp.main { width: 72u; height: 72u; font-size: 36u; margin: 0 6u; opacity: 1; background: radial-gradient(circle at 50% 30%, #30426e 0%, #151d38 58%, #0a0f20 100%);
-  box-shadow: inset 0 0 0 1.5u rgba(236,217,164,.55), inset 0 0 0 5u rgba(10,15,32,.6), 0 4u 12u rgba(0,0,0,.45); }
-.hud-sp.main::before { content: ''; position: absolute; inset: 9u; border-radius: 50%; background: radial-gradient(circle, color-mix(in srgb, var(--sc, #fff) 26%, transparent), transparent 70%); pointer-events: none; }
-.hud-sp.main .ic { position: relative; filter: drop-shadow(0 0 6u var(--sc, transparent)); transition: opacity .2s; }
+.hud-trio { position: relative; width: 84u; height: 84u; margin-bottom: 26u; }
+.hud-trio .pips { position: absolute; left: 50%; top: 50%; width: 0; height: 0; }
+.hud-trio .pip { position: absolute; left: -11u; top: -11u; width: 22u; height: 22u; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12u; color: var(--sc, #fff7e8);
+  transform: rotate(var(--a)) translate(66u) rotate(calc(var(--a) * -1)) scale(.36); background: rgba(236,217,164,.55); transition: transform .25s var(--ease), background .2s, box-shadow .2s; }
+.hud-trio .pip .ic { opacity: 0; transition: opacity .2s; }
+.hud-trio .pip.on { transform: rotate(var(--a)) translate(66u) rotate(calc(var(--a) * -1)); background: radial-gradient(circle at 50% 34%, #2a3a64, #0d1328 75%);
+  box-shadow: inset 0 0 0 1u rgba(236,217,164,.4), 0 1u 4u rgba(0,0,0,.45); }
+.hud-trio .pip.on .ic { opacity: .9; filter: drop-shadow(0 0 3u var(--sc)); }
+.hud-trio .pip.sel { transform: rotate(var(--a)) translate(66u) rotate(calc(var(--a) * -1)) scale(1.2); box-shadow: inset 0 0 0 1.5u var(--sc), 0 0 10u -1u var(--sc), 0 1u 4u rgba(0,0,0,.45); }
+.hud-trio .pips.few { display: none; }
+.hud-sp { position: relative; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: var(--sc, #fff7e8); }
+.hud-sp.main { position: absolute; inset: 0; font-size: 40u; background: radial-gradient(circle at 50% 30%, #33477a 0%, #151d38 58%, #0a0f20 100%);
+  box-shadow: inset 0 0 0 1.5u rgba(236,217,164,.6), inset 0 0 0 6u rgba(10,15,32,.55), inset 0 0 0 7u rgba(236,217,164,.25), 0 4u 14u rgba(0,0,0,.45); }
+.hud-sp.main::before { content: ''; position: absolute; inset: 10u; border-radius: 50%; background: radial-gradient(circle, color-mix(in srgb, var(--sc, #fff) 30%, transparent), transparent 70%); pointer-events: none; }
+.hud-sp.main::after { content: ''; position: absolute; inset: -14u; border-radius: 50%; background: var(--brass2); opacity: .4; pointer-events: none;
+  -webkit-mask: var(--mk-astro) center / contain no-repeat; mask: var(--mk-astro) center / contain no-repeat; }
+.hud-sp.main .ic { position: relative; filter: drop-shadow(0 0 7u var(--sc, transparent)); transition: opacity .2s; }
 .hud-sp.main.dry .ic { opacity: .4; filter: none; }
 .hud-sp.main .cdw { position: absolute; inset: 0; border-radius: 50%; pointer-events: none; opacity: 0; transition: opacity .15s;
   background: conic-gradient(rgba(6,8,18,.72) calc(var(--cd, 0) * 360deg), transparent 0); }
 .hud-sp.main.cooling .cdw { opacity: 1; }
 .hud-sp.main.swap { animation: hud-swap .3s cubic-bezier(.2,.8,.2,1.5); }
 @keyframes hud-swap { from { transform: scale(.75) rotate(-25deg); } }
-.hud-sp.main svg.ring { position: absolute; left: -9u; top: -9u; width: 90u; height: 90u; transform: rotate(-90deg); overflow: visible; }
-.hud-sp.main svg.ring circle { fill: none; stroke-width: 3; }
-.hud-sp.main svg.ring .trk { stroke: rgba(236,217,164,.22); stroke-width: 1.6; }
-.hud-sp.main svg.ring .arc { stroke: var(--brass2); stroke-linecap: round; }
+.hud-sp.main svg.ring { position: absolute; left: -8u; top: -8u; width: 100u; height: 100u; transform: rotate(-90deg); overflow: visible; }
+.hud-sp.main svg.ring circle { fill: none; stroke-width: 3.2; }
+.hud-sp.main svg.ring .trk { stroke: rgba(236,217,164,.2); stroke-width: 1.6; }
+.hud-sp.main svg.ring .arc { stroke: var(--brass2); stroke-linecap: round; filter: drop-shadow(0 0 2u rgba(236,217,164,.6)); }
 .hud-sp.main.ready svg.ring { animation: hud-ready 1.1s infinite; }
 @keyframes hud-ready { 50% { filter: drop-shadow(0 0 6u #ecd9a4) drop-shadow(0 0 12u #ffbf62); } }
-.hud-sp .kei { position: absolute; left: -11u; top: -11u; width: 24u; height: 24u; border-radius: 50%; color: var(--brass2); text-align: center;
-  background: radial-gradient(circle at 50% 34%, #2a3a64, #0d1328 75%); box-shadow: 0 0 0 1.2u var(--brass2), 0 1u 4u rgba(0,0,0,.5); font: 600 12u/24u var(--fd); }
+.hud-sp .kei { position: absolute; right: -8u; top: -8u; width: 26u; height: 26u; border-radius: 50%; color: var(--brass2); text-align: center;
+  background: radial-gradient(circle at 50% 34%, #2a3a64, #0d1328 75%); box-shadow: 0 0 0 1.2u var(--brass2), 0 1u 4u rgba(0,0,0,.5); font: 700 12u/26u var(--fd); }
 .hud-sp.main.ready .kei { background: linear-gradient(180deg, #fff3cf, var(--brass)); color: var(--ink); }
-.hud-sp .ult { position: absolute; left: 50%; top: -34u; transform: translateX(-50%); display: none; align-items: center; gap: 6u; white-space: nowrap; font: 600 12.5u/22u var(--fd); letter-spacing: .12em; color: var(--brass2); }
+.hud-sp .ult { position: absolute; left: 50%; top: -40u; transform: translateX(-50%); display: none; align-items: center; gap: 6u; white-space: nowrap; font: 600 12.5u/22u var(--fd); letter-spacing: .12em; color: var(--brass2); }
 .hud-sp.main.ready .ult { display: flex; animation: mv-bob 1s infinite; }
-.hud-spell .cap { position: absolute; left: 0; right: 0; bottom: 0; text-align: center; white-space: nowrap; font: 600 14u/20u var(--fd); letter-spacing: .12em; color: var(--star); }
+.hud-spell .cap { position: absolute; left: 50%; bottom: -26u; transform: translateX(-50%); text-align: center; white-space: nowrap; font: 700 14u/20u var(--fd); letter-spacing: .1em; color: var(--star); }
 .hud-spell .cap .cost { margin-left: 8u; font: 600 11.5u/20u var(--fd); letter-spacing: .02em; color: #a9cfff; }
 .hud-spell .cap .cost .ic { font-size: 11.5u; margin-right: 2u; }
 .hud-spell .cap.dim { opacity: .75; letter-spacing: .08em; font-size: 13u; }
@@ -266,18 +294,46 @@ function setBar(b, frac, rdt) {
 }
 function setWidth(b, wU) { wU = Math.round(wU); if (b.w !== wU) { b.w = wU; b.bar.style.width = `calc(var(--u)*${wU})`; } }
 
+// the crest's gauges: 270-degree arcs over the top (from bottom-left round to bottom-right); pathLength 100 makes the dash
+// offset the empty share in percent. Fill follows at once, the pale ghost trails behind a drop (as the bars did).
+function arcPath(r) {
+  const a = Math.PI * 0.75, x = (r * Math.sin(a)).toFixed(2), y = (r * Math.cos(a)).toFixed(2);
+  return `M${-x} ${-y}A${r} ${r} 0 1 1 ${x} ${-y}`;
+}
+function makeArc(svg, r, cls) {
+  const mk = (c) => { const e = document.createElementNS(SVGNS, 'path'); e.setAttribute('d', arcPath(r)); e.setAttribute('pathLength', '100'); e.setAttribute('class', cls + ' ' + c); svg.appendChild(e); return e; };
+  mk('trk');
+  const ghost = mk('ghost'), fill = mk('fill');
+  return { ghost, fill, f: -1, g: 1, gw: -1 };
+}
+function setArc(b, frac, rdt) {
+  frac = clamp(frac);
+  if (b.g < frac) b.g = frac; else if (b.g - frac > 0.001) b.g = Math.max(frac, b.g - Math.max(0.05, (b.g - frac) * 1.6) * rdt); else b.g = frac;
+  const f = Math.round(frac * 400) / 4, g = Math.round(b.g * 400) / 4;
+  if (f !== b.f) { b.f = f; b.fill.style.strokeDashoffset = String(100 - f); }
+  if (g !== b.gw) { b.gw = g; b.ghost.style.strokeDashoffset = String(100 - g); }
+}
+
 export function createHud(root) {
   const R = el('div', 'layer mv-hud', root);
 
   // ---------------- vitals ----------------
+  // a crest: the little sky (sun / moon) in a brass-rimmed medallion, life and mana as two arcs round it
   const vit = el('div', 'hud-vit cg tsh', R);
-  const orb = el('div', 'hud-orb', vit);
+  const crest = el('div', 'hud-crest', vit);
+  const arcSvg = document.createElementNS(SVGNS, 'svg');
+  arcSvg.setAttribute('viewBox', '-50 -50 100 100'); arcSvg.setAttribute('class', 'arcs');
+  crest.appendChild(arcSvg);
+  const life = makeArc(arcSvg, 45, 'life'), mana = makeArc(arcSvg, 37.5, 'mana');
+  const orb = el('div', 'hud-orb', crest);
   const orbIn = el('div', 'in', orb);
   el('i', 'sun', orbIn);
   const moon = el('i', 'moon', orbIn);
   const bars = el('div', 'bars', vit);
-  const lifeRow = el('div', 'row life', bars), life = makeBar(lifeRow), lifeNum = el('span', 'num', lifeRow);
-  const manaRow = el('div', 'row mana', bars), mana = makeBar(manaRow), manaNum = el('span', 'num', manaRow);
+  const lifeRow = el('div', 'row life', bars), lifeNum = el('span', 'num', lifeRow);
+  const lifeOf = el('span', 'of', lifeRow);
+  const restT = { vit: 0, hint: 0, tr: 0, dial: 0 };   // seconds each part has had nothing new to say
+  const manaRow = el('div', 'row mana', bars), manaNum = el('span', 'num', manaRow);
   const statusRow = el('div', 'status', bars);
   const statusEl = {};
   for (const s of STATUS) {
@@ -289,8 +345,11 @@ export function createHud(root) {
   }
 
   // ---------------- compass ----------------
+  // a ribbon banner (border-image) holding a 400u window that the strip slides behind
   const compass = el('div', 'hud-compass cg', R);
-  const strip = el('div', 'strip', compass);
+  const cwin = el('div', 'win', compass);
+  const cctr = el('div', 'ctr', cwin);   // a 400u frame centred in the window: the bearing maths stays in its units
+  const strip = el('div', 'strip', cctr);
   for (let a = -90; a <= 450; a += 15) {
     const x = (a + 90) * PPD;
     const n = ((a % 360) + 360) % 360;
@@ -299,7 +358,7 @@ export function createHud(root) {
     else e = el('i', n % 45 === 0 ? 'tk m' : 'tk', strip);
     e.style.left = `calc(var(--u)*${x.toFixed(1)})`;
   }
-  const compassMarks = el('div', '', compass);
+  const compassMarks = el('div', '', cctr);
   el('i', 'needle', compass);
   let lastStripX = 1e9;
 
@@ -367,8 +426,11 @@ export function createHud(root) {
   icon('dango', '', dango);
   const dangoNum = el('span', '', dango, '0');
   const dangoKey = keycap('', dango, 'sm');
+  // the dial: the selected magic as a medallion, every magic as a glyph pip on an arc above-left of it (unknown: a faint dot)
   const trio = el('div', 'hud-trio', spell);
-  const spPrev = el('div', 'hud-sp', trio), spPrevIc = icon('lock', '', spPrev);
+  const pipsEl = el('div', 'pips', trio);
+  const pips = [];
+  for (let i = 0; i < 8; i++) { const p = el('i', 'pip', pipsEl); const ic = icon('lock', '', p); p.style.setProperty('--a', (162 + i * (124 / 7)).toFixed(1) + 'deg'); pips.push({ p, ic, id: '', on: null, sel: null }); }
   const spMain = el('div', 'hud-sp main', trio), spMainIc = icon('lock', '', spMain);
   const cdw = el('div', 'cdw', spMain);
   let cdLast = -1;
@@ -378,7 +440,6 @@ export function createHud(root) {
   const ult = el('div', 'ult', spMain);
   const ultKey = keycap('', ult, 'sm');
   tel('span', '', ult, 'ui.hud.gaugeReady');
-  const spNext = el('div', 'hud-sp', trio), spNextIc = icon('lock', '', spNext);
   const cap = el('div', 'cap', trio);
   const capName = el('span', '', cap), capCost = el('span', 'cost', cap);
   icon('spirit', '', capCost);
@@ -401,6 +462,7 @@ export function createHud(root) {
     const k = !on ? 'off' : v.onBroom ? 'broom' : v.gliding ? 'glide' : `g${known}${ability('guard') ? 'G' : ''}${ability('broom') ? 'B' : ''}`;
     if (k === hintKey) return;
     hintKey = k;
+    restT.hint = 0;
     clear(hintList);
     if (!on) return;
     const add = (action, textKey) => { const h = el('div', 'h', hintList); keycap(key(action), h); tel('span', '', h, 'ui.hint.' + textKey); };
@@ -420,25 +482,22 @@ export function createHud(root) {
   function updateSpell(v) {
     const slots = spellSlots();
     let sel = selectedId();
-    let known = 0, selIdx = -1;
-    for (let i = 0; i < slots.length; i++) { if (slots[i].level > 0) known++; if (slots[i].id === sel) selIdx = i; }
+    let known = 0, selIdx = -1, mask = 0;
+    for (let i = 0; i < slots.length; i++) { if (slots[i].level > 0) { known++; mask |= 1 << i; } if (slots[i].id === sel) selIdx = i; }
     if (selIdx >= 0 && slots[selIdx].level <= 0) selIdx = -1;
-    let prev = -1, next = -1;
-    if (selIdx >= 0 && known > 1) {
-      for (let k = 1; k < 8; k++) { const i = (selIdx + 8 - k) % 8; if (slots[i].level > 0) { prev = i; break; } }
-      for (let k = 1; k < 8; k++) { const i = (selIdx + k) % 8; if (slots[i].level > 0) { next = i; break; } }
-      if (known === 2) prev = -1;     // two 灵诀: show the other one once, on the right
-    }
     const s = selIdx >= 0 ? slots[selIdx] : null;
-    const k = `${selIdx}|${prev}|${next}|${known}|${s ? s.name + s.cost : ''}`;
+    const k = `${selIdx}|${mask}|${s ? s.name + s.cost : ''}`;
     if (k !== spellKey) {
       spellKey = k;
-      const put = (node, ic, i) => {
-        node.classList.toggle('none', i < 0 && node !== spMain);
-        if (i >= 0) { setIcon(ic, slots[i].id); node.style.setProperty('--sc', slots[i].color); }
-        else if (node === spMain) { setIcon(ic, 'lock'); node.style.setProperty('--sc', '#8a7d70'); }
-      };
-      put(spPrev, spPrevIc, prev); put(spMain, spMainIc, selIdx); put(spNext, spNextIc, next);
+      if (selIdx >= 0) { setIcon(spMainIc, slots[selIdx].id); spMain.style.setProperty('--sc', slots[selIdx].color); }
+      else { setIcon(spMainIc, 'lock'); spMain.style.setProperty('--sc', '#8a7d70'); }
+      for (let i = 0; i < pips.length; i++) {
+        const pp = pips[i], sl = slots[i], on = !!sl && sl.level > 0, sel = i === selIdx;
+        if (pp.on !== on) { pp.on = on; pp.p.classList.toggle('on', on); }
+        if (pp.sel !== sel) { pp.sel = sel; pp.p.classList.toggle('sel', sel); }
+        if (on && pp.id !== sl.id) { pp.id = sl.id; setIcon(pp.ic, sl.id); pp.p.style.setProperty('--sc', sl.color); }
+      }
+      pipsEl.classList.toggle('few', known < 2);
       if (s) {
         cap.classList.remove('dim');
         setText(capName, s.name);
@@ -449,7 +508,7 @@ export function createHud(root) {
         setText(capName, t(known > 0 ? 'ui.hud.locked' : 'ui.hud.noSpell'));
         capCost.style.display = 'none';
       }
-      if (lastSel !== null && (s ? s.id : '') !== lastSel) replay(spMain, 'swap');
+      if (lastSel !== null && (s ? s.id : '') !== lastSel) { replay(spMain, 'swap'); restT.dial = 0; }
       lastSel = s ? s.id : '';
     }
     setOn2(spMain, 'dry', !!s && s.cost > 0 && v.mana < s.cost);
@@ -644,6 +703,7 @@ export function createHud(root) {
       }
       const k = `${d.title}|${d.objective}|${pg}|${frac}`;
       if (k === trackerKey) return;
+      restT.tr = 0;
       const first = !trackerKey;
       trackerKey = k;
       setText(trTitle, d.title || '');
@@ -691,12 +751,21 @@ export function createHud(root) {
       const v = vitals();
 
       // vitals
-      setWidth(life, clamp(150 + (v.maxHp - 100) * 0.9, 150, 250));
-      setWidth(mana, clamp(128 + (v.maxMana - 100) * 0.8, 128, 216));
-      setBar(life, v.hp / v.maxHp, rdt);
-      setBar(mana, v.mana / v.maxMana, rdt);
+      setArc(life, v.hp / v.maxHp, rdt);
+      setArc(mana, v.mana / v.maxMana, rdt);
       setText(lifeNum, String(Math.ceil(v.hp)));
+      setText(lifeOf, '/ ' + Math.round(v.maxHp));
       setText(manaNum, String(Math.floor(v.mana)));
+      // a quiet screen: the crest rests (dims, numbers fade) while she is whole and out of a fight; key hints rest after a
+      // while on the same set; the tracker folds to its title; the dial dims. Any change brings each back at once.
+      const fight = !!G.combat?.inCombat || !!bossData;
+      const whole = v.hp >= v.maxHp - 0.5 && v.mana >= v.maxMana - 0.5 && !v.dead;
+      restT.vit = fight || !whole ? 0 : restT.vit + rdt;
+      restT.hint += rdt; restT.tr += rdt; restT.dial = fight || !whole || charge() > 0.02 ? 0 : restT.dial + rdt;
+      setOn2(vit, 'rest', restT.vit > 4);
+      setOn2(hints, 'rest', restT.hint > 12 && !fight);
+      setOn2(tracker, 'rest', restT.tr > 14 && !fight);
+      setOn2(spell, 'rest', restT.dial > 9);
       const low = v.hp / v.maxHp < 0.3 && !v.dead;
       if (vit._low !== low) { vit._low = low; vit.classList.toggle('low', low); }
       for (let i = 0; i < STATUS.length; i++) setOn(statusEl[STATUS[i]], v[STATUS[i]]);

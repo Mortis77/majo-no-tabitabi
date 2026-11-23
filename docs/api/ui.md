@@ -305,3 +305,28 @@ cards cloned to seven) in `.tmp/play/<name>/`. Its result lists checks (chapter 
 only active quests, the map flew to 魔法使之国, the bag and the wardrobe row scroll, every stamp distinct) and `T.errors()`.
 Run it after any change to the registry, the journal, the map page or the stamp art.
 
+
+### Bold round: the in-play HUD (owner: 「再大胆一轮」)
+The always-on screens got their own identity in the journal language, and the play view keeps quiet when nothing is
+happening.
+- **Crest** (`hud.js` vitals): the little sky (sun / moon) in a brass-rimmed medallion with the astrolabe ring; life and
+  mana are two 270° arcs round it (SVG paths with `pathLength=100`, fill + trailing ghost as the bars had), a star in the
+  gap at the bottom; the numbers beside it (`62 / 100`, mana under it). Low life pulses the life arc.
+- **Compass ribbon**: a banner with swallowtail ends (`icons.js ribbon()` as `border-image`, `--fr-ribbon`); the bearing
+  strip slides behind a window (`.win` > `.ctr`, a 400u frame centred so the bearing maths keeps its units on any width).
+- **Objective card**: the tracker is an inked parchment card with a wine edge and a ribbon bookmark.
+- **Spell dial**: the selected magic as a medallion with the brass gauge ring and the astrolabe round it; every magic is
+  a glyph pip on an arc above-left (unknown: a faint dot; the selected pip glows in its element colour); 「蓄能」 moved to
+  the top-right of the medallion.
+- **Prompt**: a parchment pill with the key in a night medallion. **Toasts**: parchment slips; the icon is an ink stamp
+  pressed onto the slip as it arrives (`opts.color` tints the stamp ink, mixed toward ink so it reads on parchment).
+- **Foe plates**: names on small night ribbons with swallowtail ends; elites get a brass star crest and a bronze ribbon;
+  the bar has a brass hairline. The boss / duel name sits on the compass ribbon.
+- **Touch**: every button is a brooch medallion (brass rim, inner hairline, the astrolabe tick ring); 44 px floors and
+  safe areas as before.
+- **Country title card**: from the registry (below): the episode's title as a kicker over the hairline, the country
+  name, the kai line, and the country's own procedural passport stamp printed on a parchment ticket at its own tilt
+  (`stamps.js stampArt`). Regions outside the registry fall back to the plain ring with `opts.seal`.
+- **Quiet when idle** (`hud.js update`, `restT`): the crest rests (dims, numbers fade) while she is whole and out of a
+  fight for 4 s; key hints rest after 12 s on the same set; the objective card folds to its title after 14 s without a
+  change; the dial dims after 9 s without a swap, a cast charge or a fight. Any change brings each back at once.

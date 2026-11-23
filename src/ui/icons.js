@@ -221,3 +221,16 @@ export function starfield(seed = 19) {
   }
   return `url(${c.toDataURL('image/png')})`;
 }
+
+/** A banner ribbon with swallowtail ends for border-image (240 × 40, slice 12 46 12 46 fill): a night-blue body, a brass
+ *  hairline just inside its edge and a second one along the folds. Colour baked in (border-image cannot take currentColor). */
+export function ribbon() {
+  const body = 'M2 4H238L224 20L238 36H2L16 20Z';
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="240" height="40" viewBox="0 0 240 40">`
+    + `<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#22305a" stop-opacity=".9"/><stop offset="1" stop-color="#0e1428" stop-opacity=".82"/></linearGradient></defs>`
+    + `<path d="${body}" fill="url(#g)"/>`
+    + `<path d="M7 7.5H231L219.5 20L231 32.5H7L18.5 20Z" fill="none" stroke="#ecd9a4" stroke-opacity=".62" stroke-width="1"/>`
+    + `<path d="${body}" fill="none" stroke="#ecd9a4" stroke-opacity=".3" stroke-width="1"/>`
+    + `<path d="M30 7.5V32.5M210 7.5V32.5" stroke="#ecd9a4" stroke-opacity=".35" stroke-width=".8"/></svg>`;
+  return svgUrl(svg);
+}

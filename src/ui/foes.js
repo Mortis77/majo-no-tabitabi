@@ -55,10 +55,13 @@ addCss(`
 /* the grimoire look (docs/api/ui.md "Grimoire round"): serif names, capsule bars with a brass hairline, glass chips, a brass combo */
 .foe-plate { position: absolute; left: 0; top: 0; width: 124u; margin-left: -62u; display: none; will-change: transform; text-align: center; }
 .foe-plate.on { display: block; }
-.foe-plate .nm { font: 600 11.5u/1.25 var(--fd); letter-spacing: .06em; color: var(--star); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: var(--halo); }
-.foe-plate.elite .nm { color: var(--brass2); font-weight: 700; }
+.foe-plate .nm { display: inline-block; max-width: 100%; padding: 2u 12u 3u; font: 600 11u/1.25 var(--fd); letter-spacing: .05em; color: var(--star); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  background: linear-gradient(180deg, rgba(30,40,74,.92), rgba(14,20,38,.88)); clip-path: polygon(0 0, 100% 0, calc(100% - 6u) 50%, 100% 100%, 0 100%, 6u 50%); text-shadow: none; }
+.foe-plate.elite::before { content: ''; position: absolute; left: 50%; top: -13u; width: 13u; height: 13u; margin-left: -6.5u; background: var(--brass2); filter: drop-shadow(0 1u 2u rgba(0,0,0,.7));
+  -webkit-mask: var(--mk-star) center / contain no-repeat; mask: var(--mk-star) center / contain no-repeat; }
+.foe-plate.elite .nm { color: var(--brass2); font-weight: 700; background: linear-gradient(180deg, rgba(74,52,24,.94), rgba(38,26,12,.9)); }
 .foe-plate.lock .nm { color: #fff3d6; }
-.foe-plate .hp { height: 6u; margin: 3u 8u 0; border-radius: 3u; background: rgba(6,10,24,.78); -webkit-mask: none; mask: none; box-shadow: inset 0 0 0 1u rgba(236,217,164,.3), 0 1u 3u rgba(0,0,0,.4); }
+.foe-plate .hp { height: 7u; margin: 3u 6u 0; border-radius: 4u; background: rgba(6,10,24,.8); -webkit-mask: none; mask: none; box-shadow: 0 0 0 1u rgba(236,217,164,.55), 0 1u 4u rgba(0,0,0,.45); }
 .foe-plate .hp i { position: absolute; inset: 1u; border-radius: 2u; transform-origin: 0 50%; will-change: transform; }
 .foe-plate .hp .ghost { background: rgba(255,240,214,.75); }
 .foe-plate .hp .fill { background: linear-gradient(180deg, #ffb7a6 0%, var(--life) 50%, var(--life2) 100%); }

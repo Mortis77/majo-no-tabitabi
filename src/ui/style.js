@@ -3,7 +3,7 @@
 // Lengths are written as `12u` (px at 1280×720) and compiled to calc(var(--u)*12): the whole UI scales with the window.
 import { t } from '../core/i18n.js';
 import { UI, compileCss } from './dom.js';
-import { filigree, star4, flourish, astrolabe, parchTexture, starfield } from './icons.js';
+import { filigree, star4, flourish, astrolabe, parchTexture, starfield, ribbon } from './icons.js';
 import { loadFonts } from '../core/fonts.js';
 
 const BASE = `
@@ -157,11 +157,11 @@ const SL = 'env(safe-area-inset-left, 0px)', SR = 'env(safe-area-inset-right, 0p
 const FITW = (max, pad) => `min(${max}u, calc(100vw - ${pad}px - ${SL} - ${SR}))`;
 const FITH = (max, pad) => `min(${max}u, calc(100dvh - ${pad}px - ${ST} - ${SB}))`;
 const SAFE = `
-.mv-ui .hud-vit { left: calc(26u + ${SL}); top: calc(22u + ${ST}); }
-.mv-ui .hud-tr { right: calc(26u + ${SR}); top: calc(22u + ${ST}); }
-.mv-ui .hud-hints { left: calc(26u + ${SL}); bottom: calc(22u + ${SB}); }
+.mv-ui .hud-vit { left: calc(22u + ${SL}); top: calc(16u + ${ST}); }
+.mv-ui .hud-tr { right: calc(22u + ${SR}); top: calc(18u + ${ST}); }
+.mv-ui .hud-hints { left: calc(22u + ${SL}); bottom: calc(22u + ${SB}); }
 .mv-ui .hud-spell { right: calc(30u + ${SR}); bottom: calc(24u + ${SB}); }
-.mv-ui .hud-compass { top: calc(16u + ${ST}); }
+.mv-ui .hud-compass { top: calc(12u + ${ST}); }
 .mv-ui .mv-toasts { left: calc(26u + ${SL}); }
 .mv-ui .mv-saved { right: calc(30u + ${SR}); }
 .mv-ui .mvs-skip { right: calc(28px + ${SR}); bottom: calc(22px + ${SB}); }
@@ -203,7 +203,8 @@ const COMPACT = `
 /* the place-name card: a size down, and the quest tracker steps aside while it is up (they share the top on a phone) */
 .mv-ui.compact .mv-banner .tt { font-size: 50u; }
 .mv-ui.compact .mv-banner .sub { font-size: 18u; }
-.mv-ui.compact .mv-banner .stamp { width: 54u; height: 54u; margin-top: -30u; font-size: 12u; }
+.mv-ui.compact .mv-banner .stamp:not(.art) { width: 54u; height: 54u; margin-top: -30u; font-size: 12u; }
+.mv-ui.compact .mv-banner .stamp.art { width: 96u; height: 70u; margin-top: -38u; }
 .mv-ui.compact .hud-tracker.on:not(.lb) { opacity: var(--mv-yield, 1); }
 /* touch: rows, options and buttons are fingertip-sized */
 .mv-ui.touch .mv-set .row { min-height: 44px; }
@@ -241,6 +242,7 @@ export function installStyle(root) {
   s.setProperty('--mk-star', star4());
   s.setProperty('--mk-flourish', flourish());
   s.setProperty('--mk-astro', astrolabe());
+  s.setProperty('--fr-ribbon', ribbon());
   applyFonts(root);
   applyScale(root);
 }

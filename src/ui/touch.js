@@ -26,14 +26,17 @@ addCss(`
   right: calc(var(--ax) + (var(--x) - var(--d) / 2) * var(--ts) * 1px); bottom: calc(var(--ay) + (var(--y) - var(--d) / 2) * var(--ts) * 1px);
   display: none; align-items: center; justify-content: center; border-radius: 50%; pointer-events: auto; touch-action: none;
   font-size: calc(var(--d) * var(--ts) * .44px); color: #fff7e8; opacity: var(--ta);
-  background: radial-gradient(circle at 50% 34%, rgba(48,64,108,.72), rgba(10,15,32,.78) 72%);
-  box-shadow: inset 0 0 0 1.5px rgba(236,217,164,.5), inset 0 1px 0 rgba(255,255,255,.12), 0 3px 10px rgba(0,0,0,.32); transition: transform .08s, box-shadow .12s, opacity .2s; }
+  background: radial-gradient(circle at 50% 32%, rgba(54,72,120,.8), rgba(10,15,32,.82) 72%);
+  box-shadow: inset 0 0 0 1.5px rgba(236,217,164,.62), inset 0 0 0 4px rgba(10,15,32,.35), inset 0 0 0 5px rgba(236,217,164,.2), 0 3px 10px rgba(0,0,0,.32);
+  transition: transform .08s, box-shadow .12s, opacity .2s; }
 .tc-b.vis { display: flex; }
-.tc-b::after { content: ''; position: absolute; inset: -4px; border-radius: 50%; box-shadow: 0 0 0 1px rgba(236,217,164,.32); opacity: .9; pointer-events: none; transition: opacity .12s, box-shadow .12s; }
+.tc-b::after { content: ''; position: absolute; inset: -6px; background: var(--brass2); opacity: .42; pointer-events: none; transition: opacity .12s;
+  -webkit-mask: var(--mk-astro) center / contain no-repeat; mask: var(--mk-astro) center / contain no-repeat; }
+.tc-b.top::after { display: none; }
 .tc-b .ic { position: relative; filter: drop-shadow(0 1px 2px rgba(0,0,0,.7)); }
 .tc-b.on { transform: scale(.9); background: radial-gradient(circle at 50% 34%, rgba(84,104,160,.88), rgba(20,28,54,.88) 72%);
   box-shadow: inset 0 0 0 2px var(--brass2), 0 0 16px rgba(236,217,164,.45); }
-.tc-b.on::after { box-shadow: 0 0 0 1.5px rgba(236,217,164,.7); }
+.tc-b.on::after { opacity: .9; }
 .tc-b.dim .ic { opacity: .4; }
 .tc-b.latch { background: radial-gradient(circle at 50% 34%, rgba(255,240,200,.92), rgba(201,164,94,.9) 75%); color: #2a1f12; }
 .tc-b.latch .ic { filter: none; }
@@ -91,7 +94,7 @@ addCss(`
 .mv-ui.touch .hud-hints, .mv-ui.touch .hud-prompt, .mv-ui.touch .hud-spell, .mv-ui.touch .mvs-skip { display: none !important; }
 .mv-ui.touch .hud-tr { right: calc(26u + 52px + env(safe-area-inset-right, 0px)); }
 .mv-ui.touch .hud-tracker .ob { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.mv-ui.touch .hud-compass { width: 320u; margin-left: -160u; }
+.mv-ui.touch .hud-compass { width: 360u; margin-left: -180u; }
 .mv-ui.touch .hud-struggle { top: 34%; }
 /* key caps in hint lines read as "tap" on a touch screen */
 .mv-ui.touch :is(.ln-go, .en-go, .sh-hint, .mn-hint, .mp-side .ft) .keycap { display: none; }
