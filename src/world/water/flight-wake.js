@@ -111,7 +111,8 @@ export class FlightWake {
         this.strength=drive;
         if (drive>.012) {
           const dx=vx/speed,dz=vz/speed;
-          Object.assign(this.source,{x:tip.x,z:tip.z,dx,dz,speed,drive,turn});
+          const src=this.source; // reused every frame (no per-frame object)
+          src.x=tip.x; src.z=tip.z; src.dx=dx; src.dz=dz; src.speed=speed; src.drive=drive; src.turn=turn;
           const spray=speedK*(1-smooth(this.clearance,.30,1.36))*shore;
           this.accum+=dt*(26+102*speedK)*spray*this.density;
           while(this.accum>=1) {

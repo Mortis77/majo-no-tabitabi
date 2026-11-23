@@ -31,8 +31,10 @@ export class BroomAirTrail {
     const spacing = 1.2 + 1.1*drive;
     if (this.count && time-last.time < .16 && Math.hypot(x-last.x,z-last.z) < spacing) return;
     const bare = wet || surface-world.heightAt(x,z)>1.8 || world.isReserved(x,z,0);
-    Object.assign(this.sections[this.next], { x, z, dx, dz, time, bare, drive, speed, surface, clearance,
-      y: pos.y + .48, turn: wakeTurn(broom), half: spacing * .65 });
+    // fill the ring slot in place (no per-section object)
+    const s = this.sections[this.next];
+    s.x = x; s.z = z; s.dx = dx; s.dz = dz; s.time = time; s.bare = bare; s.drive = drive; s.speed = speed;
+    s.surface = surface; s.clearance = clearance; s.y = pos.y + .48; s.turn = wakeTurn(broom); s.half = spacing * .65;
     this.next = (this.next + 1) % this.sections.length;
     this.count = Math.min(this.count + 1, this.sections.length);
   }

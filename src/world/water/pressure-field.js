@@ -21,6 +21,7 @@ export class PressureField {
     this.froth = new Float32Array(len);
     this.wet = new Uint8Array(len);
     this.pixels = new Uint8Array(len * 4);
+    this.layers = [this.h, this.prev, this.froth, this.wet]; // h/prev swap each step; the set stays the same
     this.texture = new THREE.DataTexture(this.pixels, this.n, this.n);
     this.texture.minFilter = this.texture.magFilter = THREE.LinearFilter;
     this.texture.generateMipmaps = false;
@@ -47,7 +48,7 @@ export class PressureField {
     } else {
       const start = Math.max(0, -sx), end = Math.min(n, n - sx);
       // Copy rows toward the vacated side so a still-needed row is never overwritten.
-      for (const a of [this.h, this.prev, this.froth, this.wet]) {
+      for (const a of this.layers) {
         for (let row = 0; row < n; row++) {
           const j = sz >= 0 ? row : n - 1 - row;
           const i = j * n, old = (j + sz) * n;

@@ -30,7 +30,10 @@ function meadowSurvey(G, bed) {
     if(slope>.68 || farmWeight(x,z,h,slope,road,river)>.24) return false;
     if(h>86 && (world.mountainMask?.(x,z)??0)>.25) return false;
     const groundScars=G.flora?.grass?.uniforms.gCraters.value;
-    if(groundScars?.some(c=>c.w>.4 && (x-c.x)**2+(z-c.y)**2<c.z*c.z))return false;
+    if(groundScars) for(let i=0;i<groundScars.length;i++){ // a loop, not .some(): no closure per surveyed texel
+      const c=groundScars[i];
+      if(c.w>.4 && (x-c.x)**2+(z-c.y)**2<c.z*c.z)return false;
+    }
     const broad=noiseAt(x,z,128,.31,1), detail=noiseAt(x,z,20,.42,2);
     const sand=.9+1.8*noiseAt(x,z,57,.77,2);
     if(river>40 && h<sand+.62)return false;
@@ -122,6 +125,7 @@ export function createSlipstream(G) {
   const pose=new THREE.Object3D(),air=new THREE.Vector3(),lastPos=new THREE.Vector3();
   const stats={petals:0,leaves:0,airborne:0};
   let cursor=0,petalCredit=0,leafCredit=0,lastTime=-Infinity,previous=null,stamp=null;
+  const last={x:0,z:0,time:0,bare:false};
   let hasPosition=false;
 
   function loft(x,z,side,pressure,petal) {
@@ -180,7 +184,7 @@ export function createSlipstream(G) {
         stamp=s;
         const back=Math.min(1.4,s.half??1);
         field.sweep(linked?previous.x:s.x-s.dx*back,linked?previous.z:s.z-s.dz*back,s,survey,shed);
-        previous={x:s.x,z:s.z,time:s.time,bare:s.bare};
+        last.x=s.x; last.z=s.z; last.time=s.time; last.bare=s.bare; previous=last; // reused, no per-section object
       }
     } else previous=null;
     lastPos.copy(p.pos);
