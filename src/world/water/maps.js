@@ -81,6 +81,23 @@ export function waveTexture() {
 }
 
 let _flow = null;
+// Both painted detail maps use the same linear RGBA8 format, periodic 256²
+// domain and mip chain. Array layers filter independently and share a sampler.
+export function waterDetailTexture(noise) {
+  const wave = waveTexture(), { width, height, data } = wave.image;
+  const layers = new Uint8Array(data.length*2);
+  layers.set(data);
+  layers.set(noise.image.data,data.length);
+  const tex = new THREE.DataArrayTexture(layers,width,height,2);
+  tex.name = 'water:painted waves and noise';
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.magFilter = THREE.LinearFilter; tex.minFilter = THREE.LinearMipmapLinearFilter;
+  tex.generateMipmaps = true;
+  tex.anisotropy = Math.max(wave.anisotropy,noise.anisotropy);
+  tex.needsUpdate = true;
+  return tex;
+}
+
 export function flowTexture() {
   if (_flow) return _flow;
   const N = DATA_HALF / 4, cell = (DATA_HALF * 2) / N, data = new Uint8Array(N * N * 4);

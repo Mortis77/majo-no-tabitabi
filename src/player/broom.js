@@ -4,10 +4,13 @@ import * as THREE from 'three';
 import { G } from '../core/game.js';
 import { journeyBroom } from '../actors/journey-props.js';
 import { broomSeat, shaftProfile } from '../actors/broom-contact.js';
-import { clamp, damp, angleDiff, easeOutBack } from '../core/util.js';
+import { clamp, damp, easeOutBack, smoothstep } from '../core/util.js';
+import { advanceBroomMotion } from './broom-motion.js';
+import { BroomAirTrail } from '../world/broom-air-trail.js';
+import { wakeDrive } from '../world/broom-wake.js';
 
 export const BROOM = {
-  CRUISE: 16, BOOST: 28, CLIMB: 9, BOOST_MANA: 12, MAX_Y: 300,
+  CRUISE: 16, BOOST: 34, CLIMB: 9, BOOST_MANA: 12, MAX_Y: 300,
   SEAT: broomSeat[1],           // shaft axis below the two seated ischial contact points
   CLEAR: 0.42,           // lowest origin height above ground / water while riding
 };
@@ -31,8 +34,10 @@ export function createBroom(P, S) {
 
   const B = {
     holder, lantern,
+    airTrail: new BroomAirTrail(),
     active: false,
     heading: 0, speed: 0, strafe: 0, vy: 0, bank: 0, pitch: 0, yawRate: 0,
+    course: 0, gust: 0, riseRate: 0, acceleration: 0, skim: 0,
     boosting: false, appear: 0, vanishing: false,
     trail: null, sparkle: null,
 
@@ -45,11 +50,14 @@ export function createBroom(P, S) {
     mount() {
       if (B.active) return false;
       B.active = true;
+      B.airTrail.clear();
       B.vanishing = false;
       B.appear = 0;
       holder.visible = true;
       holder.scale.setScalar(0.01);
-      B.heading = P.yaw;
+      B.course = B.heading = P.yaw;
+      B.gust = B.riseRate = B.acceleration = B.skim = B.yawRate = 0;
+      B._wasBoost = false;
       B.speed = Math.hypot(P.vel.x, P.vel.z) * 0.8;
       B.vy = Math.max(P.vel.y, 0) + (P.grounded ? 3.5 : 1.5);
       B.strafe = 0; B.bank = 0; B.pitch = 0;
@@ -75,8 +83,7 @@ export function createBroom(P, S) {
       if (B.trail) { B.trail.stop?.(); B.trail = null; }
       if (B.sparkle) { B.sparkle.remove?.(); B.sparkle = null; }
       // carry some momentum into the jump off
-      const fx = Math.sin(B.heading), fz = Math.cos(B.heading);
-      P.vel.set(fx * B.speed * 0.55, reason === 'manual' ? Math.max(B.vy, 2.5) : 0, fz * B.speed * 0.55);
+      P.vel.set(P.vel.x * 0.55, reason === 'manual' ? Math.max(B.vy, 2.5) : 0, P.vel.z * 0.55);
       B.speed = 0; B.boosting = false;
       G.events.emit('player:dismount', { reason });
       return true;
@@ -106,38 +113,38 @@ export function createBroom(P, S) {
       B.boosting = inp.boost && inp.my > 0 && !empty;
       if (B.boosting) {
         P.mana = Math.max(0, P.mana - BROOM.BOOST_MANA * dt);
-        if (!B._wasBoost) { G.cam?.fovKick?.(0.6); G.fx?.burst('dash', B.lanternWorld(_v), { color: 0xffd27a, scale: 0.7 }); G.audio?.sfx('broom_boost', { pos: P.pos }); }
+        if (!B._wasBoost) {
+          // This cue plays once when a boost begins.
+          G.audio?.sfx('broom_boost', { pos: P.pos });
+        }
       }
       B._wasBoost = B.boosting;
       if (inp.boost && inp.my > 0 && empty && !B._toldEmpty) { B._toldEmpty = true; G.ui?.toast?.(G.t('player.noMana'), { dur: 2 }); }
       if (!empty) B._toldEmpty = false;
 
-      // forward speed
-      const target = inp.my > 0 ? (B.boosting ? boostV : cruise) : inp.my < 0 ? -3.5 : 0;
-      const acc = B.boosting ? 20 : inp.my > 0 ? 11 : inp.my < 0 ? 14 : 6;
-      B.speed += clamp(target - B.speed, -acc * dt, acc * dt);
-
-      // heading follows the camera when moving (mouse steering), rate-limited -> banking
       const camYaw = G.cam ? G.cam.yaw + Math.PI : B.heading;
-      let rate = 0;
-      if (Math.abs(B.speed) > 1.5 || inp.my !== 0) {
-        const maxRate = B.boosting ? 1.5 : 2.3;
-        rate = clamp(angleDiff(B.heading, camYaw) * 3.2, -maxRate, maxRate);
-      }
-      B.yawRate = damp(B.yawRate, rate, 8, dt);
-      B.heading += B.yawRate * dt;
-      B.strafe = damp(B.strafe, inp.mx * 6.5, 5, dt);
+      advanceBroomMotion(B, inp, camYaw, cruise, boostV, dt);
 
       // vertical: keys, plus diving / climbing by looking down / up while moving forward
       let vyT = BROOM.CLIMB * k * ((inp.up ? 1 : 0) - (inp.down ? 1 : 0));
       if (inp.my > 0 && G.cam) vyT += Math.sin(clamp(G.cam.pitch + 0.2, -1, 0.8)) * B.speed * 0.6;
+      // Round out a fast dive using the ground the broom is about to cross.
+      // Leave a shallow sink at deck height so the brush can skim the surface.
+      if (vyT < 0 && B.speed > 8) {
+        const lead = .22;
+        const x = P.pos.x + Math.sin(B.course)*B.speed*lead;
+        const z = P.pos.z + Math.cos(B.course)*B.speed*lead;
+        const ahead = Math.max(W.heightAt(x,z),W.isWater(x,z) ? W.seaLevel : -Infinity);
+        const gap = P.pos.y - (ahead + BROOM.CLEAR);
+        vyT = Math.max(vyT,clamp(-gap/lead - 1,-22,7));
+      }
       if (empty) vyT = Math.min(vyT, -2.2);                               // graceful descent when out of mana
       if (P.pos.y > BROOM.MAX_Y - 4) vyT = Math.min(vyT, (BROOM.MAX_Y - P.pos.y) * 1.5);
       B.vy = damp(B.vy, vyT, 4.5, dt);
       if (Math.abs(B.speed) < 1 && !inp.up && !inp.down) B.vy += Math.sin(G.time.t * 2.2) * 0.25 * dt; // hover bob
 
       // integrate
-      const fx = Math.sin(B.heading), fz = Math.cos(B.heading);
+      const fx = Math.sin(B.course), fz = Math.cos(B.course);
       const rx = -fz, rz = fx; // her right is -X when facing +Z  => right = (-cos, sin)
       P.vel.set(fx * B.speed + rx * B.strafe, B.vy, fz * B.speed + rz * B.strafe);
       _w.copy(P.pos);
@@ -160,6 +167,8 @@ export function createBroom(P, S) {
         B.vy = Math.max(B.vy, 0);
       }
       const hgt = P.pos.y - floor;
+      B.riseRate = damp(B.riseRate, clamp((P.pos.y-_w.y)/Math.max(dt,.001),-16,16),5,dt);
+      B.skim = damp(B.skim, (1-smoothstep(.55,4.5,hgt))*smoothstep(6,16,Math.abs(B.speed)),6,dt);
       // auto dismount: settled onto ground / water at low speed
       const descending = inp.down || (!inp.up && B.vy < 0.5);
       if (hgt < 0.12 && Math.abs(B.speed) < 5 && descending && B.appear >= 1) {
@@ -168,26 +177,27 @@ export function createBroom(P, S) {
       }
 
       // visuals: bank + pitch
-      B.bank = damp(B.bank, clamp(-B.yawRate * 0.34 + inp.mx * 0.22, -0.7, 0.7), 6, dt);
-      B.pitch = damp(B.pitch, clamp(-B.vy * 0.03, -0.38, 0.38) + (B.boosting ? 0.1 : 0), 5, dt);
+      const drive = wakeDrive(Math.abs(B.speed));
+      B.pitch = damp(B.pitch, clamp(-B.riseRate*.035 + .1*drive + B.acceleration*.009,-.42,.45),5,dt);
+      B.airTrail.record(P.pos, P.vel, B, floor-BROOM.CLEAR, overWater, G.time.t, W);
       P.yaw = B.heading;
       P.speed = Math.hypot(P.vel.x, P.vel.z);
       // trail + sparkle
       B.lanternWorld(_v);
       const sp = Math.abs(B.speed);
-      if (sp > 8 && !B.trail) B.trail = G.fx?.trail?.({ color: 0xffb347, color2: 0x7fc8ff, width: 0.2, life: 0.45, style: 'glow', intensity: 1.1 - 0.5 * (G.env.veil || 0) }) || null;
+      if (sp > 8 && !B.trail) B.trail = G.fx?.trail?.({ color: 0xffd9a2, color2: 0xffc78e, width: 0.10, life: 0.20, style: 'glow', intensity: .7 }) || null;
       if (B.trail) {
         if (sp < 6) { B.trail.stop?.(); B.trail = null; }
-        else { B.trail.setWidth?.(B.boosting ? 0.32 : 0.2); B.trail.push(_v); }
+        else { B.trail.setWidth?.((.06 + .10*drive)*(1-.83*B.skim)); B.trail.push(_v); }
       }
       if (B.sparkle) { B.sparkle.pos.copy(_v); B.sparkle.rate = 0.12 + sp / 40; }
       // speed lines: fine streaks born ahead and to the sides rush past the lens while boosting
       B.lineT = (B.lineT || 0) - dt;
-      if (B.boosting && sp > 18 && B.lineT <= 0 && G.fx?.burst) {
-        B.lineT = 0.07;
+      if (B.boosting && sp > 18 && B.skim < .25 && B.lineT <= 0 && G.fx?.burst) {
+        B.lineT = .22 - .09*drive;
         const hx = Math.sin(B.heading), hz = Math.cos(B.heading), a = Math.random() * Math.PI * 2, r = 1.6 + Math.random() * 2.2;
         _v.set(P.pos.x + hx * 6 + hz * Math.cos(a) * r, P.pos.y + 1.1 + Math.sin(a) * r * 0.8, P.pos.z + hz * 6 - hx * Math.cos(a) * r);
-        G.fx.burst('dash', _v, { dir: _w.set(-hx, 0, -hz), count: 1, scale: 2.2, grounded: false });
+        G.fx.burst('dash', _v, { dir: _w.set(-hx, 0, -hz), count: 1, scale: .9+.55*drive, grounded: false });
       }
       return 'fly';
     },

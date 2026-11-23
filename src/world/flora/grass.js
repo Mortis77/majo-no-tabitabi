@@ -21,6 +21,7 @@ import { plotGLSL } from '../terrain/paddyLayout.js';
 import { flowerPatch, flowerVertex } from './meadowFlowers.js';
 import { BELL } from '../../data/bellcrown.js';
 import { createSlipstream } from './slipstream.js';
+import { plantWake, plantWakeGLSL } from './wake-field.js';
 import { meadowPattern } from './meadowPattern.js';
 
 const lin = (hex, k = 1) => { const c = new THREE.Color().setHex(hex); return `vec3(${(c.r * k).toFixed(4)}, ${(c.g * k).toFixed(4)}, ${(c.b * k).toFixed(4)})`; };
@@ -238,7 +239,7 @@ uniform float gOffset;
 uniform sampler2D gCells;
 uniform float gHeightK;
 uniform vec4 gBlast[${MAXB}];
-uniform vec4 gWake[6];
+${plantWakeGLSL}
 uniform float gAerial;
 uniform vec4 gPushT[4];   // her recent footsteps (x, z, strength): the carpet springs back behind her
 attribute vec4 aBlade;
@@ -255,7 +256,7 @@ uniform vec3 gField;    // field origin xz, size metres
 const BEND = /* glsl */`
 // bend vector at a root: breeze + travelling gusts + heroine + blast rings. w.x = gust strength (for colour)
 float gSheen;   // broad soft wind wave (0..1), shared with the terrain's grass paint (terrain trGust)
-vec2 gBend(vec2 root, float hA, out float gustK, out float flatK) {
+vec2 gBend(vec2 root, float hA, out float gustK, out float flatK, vec3 wake) {
   vec2 wd = gWind.xz; float ws = length(wd);
   vec2 wdir = ws > 1e-3 ? wd / ws : vec2(1.0, 0.0);
   float wsK = clamp(ws / 6.0, 0.15, 1.6);
@@ -281,13 +282,8 @@ vec2 gBend(vec2 root, float hA, out float gustK, out float flatK) {
     bend += tq / max(td, 0.01) * tk * 1.1;
     flatK = max(flatK, tk * 0.5);
   }
-  for(int i=0;i<6;i++) {
-    vec4 pt=gWake[i]; if(pt.w<=.001)continue;
-    vec2 r=root-pt.xy; float radius=length(r);
-    float influence=pt.w*(1.-smoothstep(.12,pt.z,radius));
-    bend+=(r+.22*vec2(-r.y,r.x))/max(.22,radius)*influence*.77;
-    flatK=max(flatK,influence*.57);
-  }
+  bend+=wake.xy*1.3;
+  flatK=max(flatK,wake.z);
   // blasts: an outward shock ring, then a lingering flattened disc
   for (int i = 0; i < ${MAXB}; i++) {
     vec4 b = gBlast[i];
@@ -397,7 +393,8 @@ vec3 gPos; vec3 gNrm; float gKill = 0.0;
   len *= mix(mix(.10,1.0,smoothstep(.55,2.8,dist)),1.0,eyeLevel);
   if (len < 0.025) gKill = 1.0;
   float gustK, flatK;
-  vec2 bend = gBend(root, hA, gustK, flatK);
+  vec4 memory=plantWakeAt(root);
+  vec2 bend = gBend(root, hA, gustK, flatK, memory.xyz);
   float t = position.y;
   float yaw = aBlade.z * 6.2832 + hC * 6.2832;
   vec2 sideV = vec2(cos(yaw), sin(yaw));
@@ -461,6 +458,8 @@ vec3 gPos; vec3 gNrm; float gKill = 0.0;
   vGCol = mix(vGCol, vGCol * 1.2 + vec3(0.022, 0.026, 0.016), gSheen * t * 0.7 * (1.0 - .65 * nearGrass));
   // far: the blade becomes a soft stroke of the ground colour, a little lighter toward its tip (never darker than the soil)
   vGCol = mix(vGCol, col * ${GRASS_TOP} * mix(0.98, 1.12, t) * (1.0 + 0.12 * gSheen), far * 0.9 * (1.0 - g.cropK));
+  // A laid-over swath catches the light on the side facing the broom.
+  vGCol *= 1.+memory.z*(.22*t-.18+.16*dot(memory.xy,vec2(.8,.6)));
   vGCol = mix(vGCol, ${lin(0xe8f4ff)}, smoothstep(0.0, 0.6, g.sc.b) * 0.8);
   float pulse = 0.65 + 0.35 * sin(gTime * 0.9 + root.x * 0.05 + root.y * 0.04);
   vec3 veinC = mix(${lin(0x3de0c0)}, ${lin(0x9c7cff)}, smoothstep(0.3, 0.7, g.n.x));
@@ -494,7 +493,7 @@ totalEmissiveRadiance += vGGlow;`)
   reflectedLight.indirectDiffuse *= mix(1.0, mix(0.85, 1.0, mvLitK), clamp(mvDay * 3.0, 0.0, 1.0)); // light r3: 0.62 -> 0.85 (the hook already darkens the shade)
 }`);
   };
-  m.customProgramCacheKey = () => (flower ? 'mvFlowers3' : 'mvGrass4');
+  m.customProgramCacheKey = () => (flower ? 'mvFlowers4' : 'mvGrass5');
   return hookMaterial(m);
 }
 
@@ -507,8 +506,10 @@ export function createGrass(G) {
   const qn = q.name || 'high';
   const dens = Math.max(0.3, q.density ?? 1);
   const wake = createSlipstream(G);
+  plantWake.gMeadowMemory.value = wake.field.texture;
+  plantWake.gMeadowBounds.value = wake.field.bounds;
   const shared = {
-    gWake: { value: wake.trail }, gAerial: { value: 1 },
+    ...plantWake, gAerial: { value: 1 },
     gData: { value: TR.dataTexture }, gNoise: { value: TR.noiseTexture }, gScorch: TU.trScorch || { value: TR.scorchLayer?.tex },
     gTime: { value: 0 }, gWind: { value: new THREE.Vector3(2, 0, 0) }, gPush: { value: new THREE.Vector4(0, 0, 1.6, 0) },
     gCenter: { value: new THREE.Vector2() }, gCam: { value: new THREE.Vector3() }, gHeightK: { value: 1 },
@@ -662,7 +663,7 @@ export function createGrass(G) {
   const _f = new THREE.Vector3(), _f2 = new THREE.Vector3(), _sd = new THREE.Vector3();
   const lowerBound = (a, v) => { let l = 0, h = a.length; while (l < h) { const m = (l + h) >> 1; if (a[m] < v) l = m + 1; else h = m; } return l % a.length; };
   const api = {
-    meshes, uniforms: shared, _fieldRT: fieldRT,
+    meshes, uniforms: shared, _fieldRT: fieldRT, meadowWake:wake,
     refreshField() {fieldAge=Infinity;},
     /** Remove grass inside a radius for `life` seconds (it grows back from the edge over the last third). */
     clear(x, z, r, life = 90) {

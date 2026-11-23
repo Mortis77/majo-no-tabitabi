@@ -7,9 +7,9 @@ export function flowerPatch(distant) {
   const stems = distant ? [[.24,.4],[.53,.57],[.75,.32]] : [[.16,.40],[.40,.31],[.63,.58],[.77,.71]];
   for (let j=0;j<stems.length;j++) {
     const [u,v]=stems[j], yaw=j*2.399+.34, variation=(j*.373+.12)%1;
-    const add=(x,y,z,role,center=[0,0,0])=>{
+    const add=(x,y,z,role,center=[0,0,0],rank=0)=>{
       const i=pos.length/3;pos.push(x,y,z);blade.push(u,v,yaw,variation);
-      shape.push(role,Math.max(0,Math.min(1,.48+3.8*(x-center[0])+2.7*(z-center[2]))),0,0);head.push(center[0],center[1],center[2],0);return i;
+      shape.push(role,Math.max(0,Math.min(1,.48+3.8*(x-center[0])+2.7*(z-center[2]))),rank,0);head.push(center[0],center[1],center[2],0);return i;
     };
     const ribbon=(start,end,width,role)=>{
       const a=add(start[0]-width,start[1],start[2],role);
@@ -29,17 +29,18 @@ export function flowerPatch(distant) {
       const ctr=k===0?[.035,.99,.015]:[Math.cos(a)*(.11+.02*k),.70+.09*k,Math.sin(a)*.105];
       const [cx,cy,cz]=ctr;
       if(k)ribbon([.02,cy-.18,.009],ctr,distant?.009:.005,0);
-      const rays=distant?5:6,rad=(k?.75:1)*(distant ? .172 : .143);
+      const rays=distant?5:6,rad=(k?.79:1)*(distant ? .215 : .183);
       const core=add(cx,cy+.012,cz,3,ctr);
       const rim=[];
       for(let k2=0;k2<rays;k2++){
         const angle=k2*6.283185/rays+.22*k;
-        const at=(off,r,y,role)=>add(cx+r*Math.cos(angle+off),cy+y,cz+r*Math.sin(angle+off),role,ctr);
+        const rank=((k2*(distant?2:5)+k+j)%rays+.5)/rays;
+        const at=(off,r,y,role)=>add(cx+r*Math.cos(angle+off),cy+y,cz+r*Math.sin(angle+off),role,ctr,rank);
         rim.push(at(0,rad*.31,.012,3));
         const a0=at(0,rad*.20,0,2);
-        const a1=at(-.32,rad*.72,.018,2);
+        const a1=at(-.32,rad*(distant?.94:.72),.018,2);
         const a2=at(-.04,rad,.034,2);
-        const a3=at(.34,rad*.74,.023,2);
+        const a3=at(.34,rad*(distant?.94:.74),.023,2);
         if(distant) indices.push(a0,a1,a3);
         else indices.push(a0,a1,a2,a0,a2,a3);
       }
@@ -93,10 +94,18 @@ vec3 gPos=vec3(0.0,-1.e4,0.0),gNrm=vec3(0.,1.,0.);
     float spike=max(wet*.84,forest*(1.-.70*dusk))*(1.-night*.55);
     float stature=mix(.94,1.18,wet)+.10*dusk-.035*forest;
     float len=stature*(.88+.31*aBlade.w+.16*tile)*grow;
-    float role=aBlade2.x,t=position.y;
+    float role=aBlade2.x;
+    vec4 memory=plantWakeAt(root);
     vec3 form=position;
     if(role>1.5){
       vec3 delta=position-aBlade3.xyz;
+      if(role<2.5) {
+        // Each ray shrinks into the receptacle at its own threshold. The same
+        // stable permutation reveals individual new rays as the patch regrows.
+        float rank=.045+.91*fract(aBlade2.z+tile*.97);
+        delta*=smoothstep(-.035,.035,rank-memory.w);
+        form=aBlade3.xyz+delta;
+      }
       float radial=length(delta.xz);
       form.xz=aBlade3.xz*mix(1.,.72,spike)+delta.xz*gRing2.x*mix(1.,.72,spike);
       form.y-=spike*(radial*1.03+.024);
@@ -105,7 +114,8 @@ vec3 gPos=vec3(0.0,-1.e4,0.0),gNrm=vec3(0.,1.,0.);
     float turn=aBlade.z+tile*6.28318;
     mat2 rot=mat2(cos(turn),sin(turn),-sin(turn),cos(turn));
     float gust,flatten;
-    vec2 wind=gBend(root,aBlade.w,gust,flatten);
+    vec2 wind=gBend(root,aBlade.w,gust,flatten,memory.xyz);
+    float t=form.y;
     float t2=t*t;
     gPos=vec3(root.x,ground.r-.032,root.y);
     gPos.xz+=rot*(form.xz*grow*(.96+.32*aBlade.w))+len*t2*(wind*.54+rot*vec2(.09,.02));
