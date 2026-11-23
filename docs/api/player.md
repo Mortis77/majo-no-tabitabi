@@ -19,7 +19,7 @@ Measured results:
 - Step-up: walking onto a 0.45 m platform needs no jump. A 0.5 m wooden crate (a physics body) and a 1.0 m platform are both reached.
 - Swimming across the river at z=88 works. She enters the water, swims along the y=0 water line, gets wet and climbs the bank. The bank there is 0.88 rad steep, so I raised the slide threshold to 0.93 rad.
 - Broom:
-  - Speed: cruise 16, boost 28 m/s. Boost uses 12 mana/s and widens the view from 60° to about 72°.
+  - Speed: cruise 15, boost 26 m/s; diving trades height for speed (up to 1.18 × boost). Boost uses 12 mana/s and widens the view from 60° to about 72°.
   - Vertical: climbs at about 8–9 m/s and stops at 300 m. A platform ceiling stops the climb exactly at the head.
   - Steering and diving: the broom steers toward the camera and banks into turns. Looking down while moving dives at about -6 m/s.
   - Out of mana: it switches to a slow descent until mana recovers to 15. Because mana regenerates in daylight, I could not watch the descent in the sunlit test, so that path is checked in code only.
@@ -134,7 +134,7 @@ Events emitted:
   player:damaged {amount, element, from}, player:died {element, from}, player:respawn, player:healed {amount}
 'save:collect' writes state.player {x, y, z, yaw, hp, mana} (on the broom, y is the ground below). start() restores from it.
 
-Exports: MOVE (tuning constants) from player.js; BROOM { CRUISE 16, BOOST 28, CLIMB 9, BOOST_MANA 12, MAX_Y 300, SEAT 0.46, CLEAR 0.42 } from broom.js.
+Exports: MOVE (tuning constants) from player.js; BROOM { CRUISE 15, BOOST 26, CLIMB 9, BOOST_MANA 12, MAX_Y 300, SEAT 0.46, CLEAR 0.42 } from broom.js.
 
 == G.cam ==
 Fields: yaw, pitch, dist, targetDist, forward (Vector3), shoulder (0..1), cinematicActive

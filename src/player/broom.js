@@ -10,7 +10,7 @@ import { BroomAirTrail } from '../world/broom-air-trail.js';
 import { wakeDrive } from '../world/broom-wake.js';
 
 export const BROOM = {
-  CRUISE: 16, BOOST: 28, CLIMB: 9, BOOST_MANA: 12, MAX_Y: 300,
+  CRUISE: 15, BOOST: 26, CLIMB: 9, BOOST_MANA: 12, MAX_Y: 300,
   SEAT: broomSeat[1],           // shaft axis below the two seated ischial contact points
   CLEAR: 0.42,           // lowest origin height above ground / water while riding
 };

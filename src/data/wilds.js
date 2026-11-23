@@ -136,19 +136,19 @@ export const PERCHES = [
 /**
  * Ring courses (broom). rings: [x, z, dy] (world, height above the terrain or the sea). Medal times in seconds,
  * calibrated by the steering bot of tools/acceptance/journey-activities.mjs (ACT_RINGS=all) at plain cruise, broom level 0:
- * heart 50.3 s, coast 95.6 s, vale 66.6 s. Gold ≈ 0.88 × that (needs boosts and tight lines), silver ≈ 1.04 ×, bronze ≈ 1.35 ×. pay: first-time stardust per medal (better medals pay the difference).
+ * heart 54.9 s, coast 106.3 s, vale 71.5 s (cruise 15 m/s, bank-to-turn handling). Gold ≈ 0.88 × that (needs boosts and tight lines), silver ≈ 1.04 ×, bronze ≈ 1.35 ×. pay: first-time stardust per medal (better medals pay the difference).
  */
 export const RINGS = [
   {
-    id: 'rc_coast', start: 'cairn_southeast', radius: 3.6, medals: [84, 100, 130],
+    id: 'rc_coast', start: 'cairn_southeast', radius: 3.6, medals: [94, 111, 144],
     rings: [[2050, 380, 6], [2105, 300, 9], [2230, 330, 12], [2350, 330, 7], [2370, 190, 14], [2362, 40, 12], [2320, -150, 18], [2260, -330, 14], [2205, -432, 20], [2060, -470, 12], [1915, -455, 10]],
   },
   {
-    id: 'rc_heart', start: 'tor_south', radius: 3.6, medals: [44, 52, 68],
+    id: 'rc_heart', start: 'tor_south', radius: 3.6, medals: [48, 57, 74],
     rings: [[640, 290, 7], [585, 360, 6], [520, 300, 12], [482, 262, 26], [420, 205, 16], [350, 250, 8], [330, 340, 8], [400, 420, 12], [500, 440, 9], [590, 400, 7]],
   },
   {
-    id: 'rc_vale', start: 'flower_valley', radius: 3.6, medals: [58, 69, 90],
+    id: 'rc_vale', start: 'flower_valley', radius: 3.6, medals: [63, 74, 96],
     rings: [[-470, 320, 5], [-600, 370, 9], [-760, 430, 12], [-905, 470, 5], [-985, 440, 10], [-1095, 335, 4], [-1160, 285, 16], [-1190, 210, 16], [-1240, 120, 12], [-1320, 60, 9]],
   },
 ];

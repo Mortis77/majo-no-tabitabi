@@ -3,7 +3,7 @@ import { clamp, smoothstep } from '../core/util.js';
 // Cruise barely parts the surface. It can reach full downwash before top
 // speed, including on a downhill glide with the boost key already released.
 export function wakeDrive(speed) {
-  return 0.38 * smoothstep(2, 16, speed) + 0.62 * smoothstep(16, 28, speed);
+  return 0.38 * smoothstep(2, 15, speed) + 0.62 * smoothstep(15, 26, speed);
 }
 
 // Positive yaw bends toward (dz, -dx), so the outside is (-dz, dx).
