@@ -46,13 +46,13 @@ addCss(`
 .mv-banner.on .tt { animation: ban-tt 4.6s both cubic-bezier(.2,.7,.2,1); }
 @keyframes ban-tt { 0% { letter-spacing: .42em; margin-right: -.42em; } 22% { letter-spacing: .14em; margin-right: -.14em; } }
 .mv-banner .stamp { position: absolute; left: 100%; top: 50%; width: 62u; height: 62u; margin: -34u 0 0 14u; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-  color: #f08f8c; font: 700 13.5u/1.1 var(--fd); letter-spacing: .12em; text-indent: .12em; box-shadow: inset 0 0 0 2u currentColor; opacity: 0;
+  color: #f27c77; font: 700 15u/1.1 var(--fd); letter-spacing: .1em; text-indent: .1em; box-shadow: inset 0 0 0 2.6u currentColor; opacity: 0;
   filter: drop-shadow(0 0 1u rgba(6,8,18,.85)) drop-shadow(0 1u 4u rgba(6,8,18,.6)); }
-.mv-banner .stamp::before { content: ''; position: absolute; inset: 5u; border-radius: 50%; border: 1u solid currentColor; opacity: .85; }
+.mv-banner .stamp::before { content: ''; position: absolute; inset: 5.5u; border-radius: 50%; border: 1.3u solid currentColor; opacity: .9; }
 .mv-banner .stamp::after { content: ''; position: absolute; left: 50%; top: 8u; width: 8u; height: 8u; margin-left: -4u; background: currentColor;
   -webkit-mask: var(--mk-star) center / contain no-repeat; mask: var(--mk-star) center / contain no-repeat; }
 .mv-banner.on .stamp { animation: ban-stamp 4.6s both; }
-@keyframes ban-stamp { 0%, 20% { opacity: 0; transform: rotate(-4deg) scale(1.9); } 25% { opacity: .95; transform: rotate(-14deg) scale(.93); } 29%, 100% { opacity: .92; transform: rotate(-12deg) scale(1); } }
+@keyframes ban-stamp { 0%, 20% { opacity: 0; transform: rotate(-4deg) scale(1.9); } 25% { opacity: .95; transform: rotate(-14deg) scale(.93); } 29%, 100% { opacity: .96; transform: rotate(-12deg) scale(1); } }
 .mv-banner .sub { position: relative; margin-top: 8u; padding: 3u 30u; font: 400 20u/1.4 var(--fb); letter-spacing: .18em; margin-right: -.18em; color: #fff4e0; text-shadow: var(--halo); }
 .mv-banner.on .sub { animation: ban-sub 4.6s both; }
 @keyframes ban-sub { 0%, 14% { opacity: 0; transform: translateY(6u); } 28%, 100% { opacity: 1; transform: none; } }
