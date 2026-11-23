@@ -31,6 +31,7 @@ try{
     G.renderFrame=()=>{};
     const tick=async(n=1)=>{for(let i=0;i<n;i++)await clock.step(50);};
     // the finish keeps clear of the enlarged City of Magic: the line passes ~30 m south of its south wall towers
+    // 4815 m at cruise (15 m/s, BROOM.CRUISE) ≈ 321 s
     const start={x:2395,z:55},finish={x:-2395,z:-430};
     const dx=finish.x-start.x,dz=finish.z-start.z,length=Math.hypot(dx,dz),heading=Math.atan2(dx,dz);
     G.state.abilities.broom=true;G.state.upgrades.broom=0;
@@ -43,7 +44,7 @@ try{
     let minTerrain=Infinity,low=Infinity,high=0,greatestStep=0;
     let px=P.pos.x,pz=P.pos.z,flockFrames=0;
     T.key('KeyW',true);
-    for(let frame=0;frame<6400;frame++){
+    for(let frame=0;frame<7000;frame++){
       G.cam.yaw=heading-Math.PI;G.cam.pitch=-.2;
       const flock=frame>40&&frame%20===0&&!flockFrames&&!shots.flyway?G.life.groups.find(g=>g.def.id==='geese'&&!g.leaving&&g.agents[0]?.s>.9&&Math.hypot(g.x-P.pos.x,g.z-P.pos.z)<85):null;
       if(flock) {
@@ -64,11 +65,11 @@ try{
       }
       if(frame%1200===0)samples.push({s:+(G.time.t-t0).toFixed(1),x:+px.toFixed(1),z:+pz.toFixed(1),region:G.world.regionAt(px,pz),speed:+P.speed.toFixed(2)});
       if(d<1)break;
-      if(frame===6399)throw Error('failed to reach endpoint '+d);
+      if(frame===6999)throw Error('failed to reach endpoint '+d);
     }
     T.key('KeyW',false);
     const s=G.time.t-t0;
-    if(s<292||s>310||greatestStep>1.0)throw Error('wrong flight time/discontinuity: '+s+' / '+greatestStep);
+    if(s<311||s>331||greatestStep>1.0)throw Error('wrong flight time/discontinuity: '+s+' / '+greatestStep);
     const endpoint=P.pos.toArray(),flora=G.flora.stats();
     const grovePlots=[[900,-335],[520,-16],[-1135,-460],[2006,134]].map(([x,z])=>({x,z,stems:0,upper:0,lower:0}));
     const store=G.flora.store;
