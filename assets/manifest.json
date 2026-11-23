@@ -22356,5 +22356,407 @@
   "author": "rendered for this project from the game itself (tools/costume/portraits.mjs)",
   "source": "tools/costume/portraits.mjs: \"innkeeper\" head and shoulders, three-quarter, lens 28 deg, cut out by difference matting",
   "notes": "dialogue portrait (src/ui/dialogue.js, the arched cameo); transparent around the figure, no text; the page draws the frame. Re-make after the character changes."
+ },
+ "sculpt_rock_field": {
+  "file": "models/sculpt/rock_field.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/rock_family.mjs (facet kit, rock_facet.mjs)",
+  "scale": 1,
+  "size": [
+   1.007,
+   0.845,
+   0.869
+  ],
+  "tris": 408,
+  "lods": [
+   408,
+   199,
+   70
+  ],
+  "materials": [
+   "Rock_rock",
+   "Moss_none"
+  ],
+  "mats": {
+   "Rock_rock": {
+    "surface": "rock",
+    "look": {
+     "rim": 0.22,
+     "wrap": 0.3
+    }
+   },
+   "Moss_none": {
+    "surface": "none",
+    "look": {
+     "rim": 0.3,
+     "wrap": 0.5
+    }
+   }
+  },
+  "notes": "Facet rock (field): exact planes with bevelled edges, beds / joints as geometry, moss cushion as its own primitive (Moss_none). Vertex colour only (COLOR_0 linear rgb, neutral stone ~#9b9b9b; moss its own green). LOD tris 408 / 199 / 70. Origin = foot centre, ~1 m unit; the game fits it into the species box (flora/procgen.js facetRock)."
+ },
+ "sculpt_rock_split": {
+  "file": "models/sculpt/rock_split.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/rock_family.mjs (facet kit, rock_facet.mjs)",
+  "scale": 1,
+  "size": [
+   1.012,
+   0.873,
+   1.089
+  ],
+  "tris": 403,
+  "lods": [
+   403,
+   188,
+   67
+  ],
+  "materials": [
+   "Rock_rock",
+   "Moss_none"
+  ],
+  "mats": {
+   "Rock_rock": {
+    "surface": "rock",
+    "look": {
+     "rim": 0.22,
+     "wrap": 0.3
+    }
+   },
+   "Moss_none": {
+    "surface": "none",
+    "look": {
+     "rim": 0.3,
+     "wrap": 0.5
+    }
+   }
+  },
+  "notes": "Facet rock (split): exact planes with bevelled edges, beds / joints as geometry, moss cushion as its own primitive (Moss_none). Vertex colour only (COLOR_0 linear rgb, neutral stone ~#9b9b9b; moss its own green). LOD tris 403 / 188 / 67. Origin = foot centre, ~1 m unit; the game fits it into the species box (flora/procgen.js facetRock)."
+ },
+ "sculpt_rock_ledge": {
+  "file": "models/sculpt/rock_ledge.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/rock_family.mjs (facet kit, rock_facet.mjs)",
+  "scale": 1,
+  "size": [
+   1.078,
+   0.954,
+   0.821
+  ],
+  "tris": 742,
+  "lods": [
+   742,
+   464,
+   125
+  ],
+  "materials": [
+   "Rock_rock",
+   "Moss_none"
+  ],
+  "mats": {
+   "Rock_rock": {
+    "surface": "rock",
+    "look": {
+     "rim": 0.22,
+     "wrap": 0.3
+    }
+   },
+   "Moss_none": {
+    "surface": "none",
+    "look": {
+     "rim": 0.3,
+     "wrap": 0.5
+    }
+   }
+  },
+  "notes": "Facet rock (ledge): exact planes with bevelled edges, beds / joints as geometry, moss cushion as its own primitive (Moss_none). Vertex colour only (COLOR_0 linear rgb, neutral stone ~#9b9b9b; moss its own green). LOD tris 742 / 464 / 125. Origin = foot centre, ~1 m unit; the game fits it into the species box (flora/procgen.js facetRock)."
+ },
+ "sculpt_rock_shelf": {
+  "file": "models/sculpt/rock_shelf.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/rock_family.mjs (facet kit, rock_facet.mjs)",
+  "scale": 1,
+  "size": [
+   1.386,
+   0.544,
+   1.19
+  ],
+  "tris": 500,
+  "lods": [
+   500,
+   300,
+   87
+  ],
+  "materials": [
+   "Rock_rock",
+   "Moss_none"
+  ],
+  "mats": {
+   "Rock_rock": {
+    "surface": "rock",
+    "look": {
+     "rim": 0.22,
+     "wrap": 0.3
+    }
+   },
+   "Moss_none": {
+    "surface": "none",
+    "look": {
+     "rim": 0.3,
+     "wrap": 0.5
+    }
+   }
+  },
+  "notes": "Facet rock (shelf): exact planes with bevelled edges, beds / joints as geometry, moss cushion as its own primitive (Moss_none). Vertex colour only (COLOR_0 linear rgb, neutral stone ~#9b9b9b; moss its own green). LOD tris 500 / 300 / 87. Origin = foot centre, ~1 m unit; the game fits it into the species box (flora/procgen.js facetRock)."
+ },
+ "sculpt_rock_crag": {
+  "file": "models/sculpt/rock_crag.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/rock_family.mjs (facet kit, rock_facet.mjs)",
+  "scale": 1,
+  "size": [
+   1.023,
+   1.405,
+   0.858
+  ],
+  "tris": 824,
+  "lods": [
+   824,
+   501,
+   122
+  ],
+  "materials": [
+   "Rock_rock",
+   "Moss_none"
+  ],
+  "mats": {
+   "Rock_rock": {
+    "surface": "rock",
+    "look": {
+     "rim": 0.22,
+     "wrap": 0.3
+    }
+   },
+   "Moss_none": {
+    "surface": "none",
+    "look": {
+     "rim": 0.3,
+     "wrap": 0.5
+    }
+   }
+  },
+  "notes": "Facet rock (crag): exact planes with bevelled edges, beds / joints as geometry, moss cushion as its own primitive (Moss_none). Vertex colour only (COLOR_0 linear rgb, neutral stone ~#9b9b9b; moss its own green). LOD tris 824 / 501 / 122. Origin = foot centre, ~1 m unit; the game fits it into the species box (flora/procgen.js facetRock)."
+ },
+ "sculpt_rock_cobble": {
+  "file": "models/sculpt/rock_cobble.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/rock_family.mjs (facet kit, rock_facet.mjs)",
+  "scale": 1,
+  "size": [
+   0.851,
+   0.593,
+   0.674
+  ],
+  "tris": 524,
+  "lods": [
+   524,
+   336,
+   81
+  ],
+  "materials": [
+   "Rock_rock",
+   "Moss_none"
+  ],
+  "mats": {
+   "Rock_rock": {
+    "surface": "rock",
+    "look": {
+     "rim": 0.22,
+     "wrap": 0.3
+    }
+   },
+   "Moss_none": {
+    "surface": "none",
+    "look": {
+     "rim": 0.3,
+     "wrap": 0.5
+    }
+   }
+  },
+  "notes": "Facet rock (cobble): exact planes with bevelled edges, beds / joints as geometry, moss cushion as its own primitive (Moss_none). Vertex colour only (COLOR_0 linear rgb, neutral stone ~#9b9b9b; moss its own green). LOD tris 524 / 336 / 81. Origin = foot centre, ~1 m unit; the game fits it into the species box (flora/procgen.js facetRock)."
+ },
+ "sculpt_wall_drystone": {
+  "file": "models/sculpt/wall_drystone.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/wall_drystone.mjs (facet kit, rock_facet.mjs)",
+  "scale": 1,
+  "size": [
+   2.684,
+   1.032,
+   0.621
+  ],
+  "tris": 987,
+  "lods": [
+   987,
+   365,
+   256
+  ],
+  "materials": [
+   "Rock_rock",
+   "Moss_none"
+  ],
+  "mats": {
+   "Rock_rock": {
+    "surface": "rock",
+    "look": {
+     "rim": 0.2,
+     "wrap": 0.35
+    }
+   },
+   "Moss_none": {
+    "surface": "none",
+    "look": {
+     "rim": 0.3,
+     "wrap": 0.5
+    }
+   }
+  },
+  "notes": "2.4 m dry-stone wall segment: three offset courses of rounded through-stones (bevel ring + dome), leaning cope on edge, dark hearting, moss on the cope (Moss_none). Courses tile end to end. Vertex colour only (linear). LOD tris 987 / 365 / 256."
+ },
+ "sculpt_mill_lake": {
+  "file": "models/sculpt/mill_lake.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/mill_lake.mjs (facet kit, rock_facet.mjs)",
+  "scale": 1,
+  "size": [
+   6.468,
+   13.303,
+   9.861
+  ],
+  "tris": 14578,
+  "lods": [
+   14578,
+   2841
+  ],
+  "materials": [
+   "MillStone_stone",
+   "MillTimber_wood",
+   "MillSlate_paint",
+   "MillCloth_cloth",
+   "MillIron_metal"
+  ],
+  "mats": {
+   "MillStone_stone": {
+    "surface": "stone",
+    "look": {
+     "detail": 0.3,
+     "bump": 0.35
+    }
+   },
+   "MillTimber_wood": {
+    "surface": "wood",
+    "look": {
+     "detail": 0.4
+    }
+   },
+   "MillSlate_paint": {
+    "surface": "paint",
+    "look": {
+     "detail": 0.2,
+     "spec": 0.08,
+     "specPower": 40
+    }
+   },
+   "MillCloth_cloth": {
+    "surface": "cloth",
+    "look": {
+     "trans": 0.25
+    }
+   },
+   "MillIron_metal": {
+    "surface": "metal",
+    "look": {
+     "spec": 0.3
+    }
+   }
+  },
+  "notes": "The lake tower mill (static): coursed limestone blocks on the batter, footing, cornice, door / windows with timber frames, timber curb, flared fish-scale slate roof, windshaft housing, tail pole and winding wheel. Vertex colour only (linear). Hub of the sails at [0, 9.15, 4]. LOD tris 14578 / 2841."
+ },
+ "sculpt_mill_lake_sails": {
+  "file": "models/sculpt/mill_lake_sails.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/mill_lake.mjs (facet kit, rock_facet.mjs)",
+  "scale": 1,
+  "size": [
+   12,
+   12,
+   0.62
+  ],
+  "tris": 2164,
+  "lods": [
+   2164,
+   844
+  ],
+  "materials": [
+   "MillStone_stone",
+   "MillTimber_wood",
+   "MillSlate_paint",
+   "MillCloth_cloth",
+   "MillIron_metal"
+  ],
+  "mats": {
+   "MillStone_stone": {
+    "surface": "stone",
+    "look": {
+     "detail": 0.3,
+     "bump": 0.35
+    }
+   },
+   "MillTimber_wood": {
+    "surface": "wood",
+    "look": {
+     "detail": 0.4
+    }
+   },
+   "MillSlate_paint": {
+    "surface": "paint",
+    "look": {
+     "detail": 0.2,
+     "spec": 0.08,
+     "specPower": 40
+    }
+   },
+   "MillCloth_cloth": {
+    "surface": "cloth",
+    "look": {
+     "trans": 0.25
+    }
+   },
+   "MillIron_metal": {
+    "surface": "metal",
+    "look": {
+     "spec": 0.3
+    }
+   }
+  },
+  "notes": "The lake mill's sails (they turn about local z; origin = hub): canister, four whips with lattice and canvas (one furled). Vertex colour only. LOD tris 2164 / 844."
  }
 }
