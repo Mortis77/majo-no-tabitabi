@@ -191,7 +191,7 @@ const COMPACT = `
 .mv-ui.compact .ln-rays, .mv-ui.compact .ln-emb { top: 32%; }
 .mv-ui.compact .ln-emb { transform: scale(.72); }
 .mv-ui.compact .ln-ghost { top: 32%; font-size: 380u; }
-.mv-ui.compact .ln-txt { top: calc(32% + 104u); }
+.mv-ui.compact .ln-txt { top: calc(32% + 132u); }
 .mv-ui.compact .ln-name { margin-top: 8u; font-size: 44u; }
 .mv-ui.compact .ln-desc { margin-top: 16u; max-width: ${FITW(620, 40)}; font-size: 15u; line-height: 1.75; }
 .mv-ui.compact .ln-go { bottom: calc(14u + ${SB}); }

@@ -9,15 +9,15 @@ import { addCss } from './style.js';
 addCss(`
 /* ---- learnSpell: starlight rays, a brass astrolabe round the element's ring, the serif name over an ornament ---- */
 .mv-learn { pointer-events: auto; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; transition: opacity .45s;
-  background: radial-gradient(circle at 50% 42%, rgba(30,42,80,.55) 0, rgba(8,11,24,.9) 60%, rgba(4,6,14,.96) 100%); }
+  background: radial-gradient(circle at 50% 38%, rgba(30,42,80,.55) 0, rgba(8,11,24,.9) 60%, rgba(4,6,14,.96) 100%); }
 .mv-learn.on { opacity: 1; }
 .mv-learn.out { opacity: 0; transition: opacity .5s; }
 .mv-learn::before { content: ''; position: absolute; inset: 0; background-image: var(--tex-stars); background-size: 256u 256u; opacity: .55; pointer-events: none; }
-.ln-rays { position: absolute; left: 50%; top: 42%; width: 900u; height: 900u; margin: -450u; border-radius: 50%; opacity: .0;
+.ln-rays { position: absolute; left: 50%; top: 38%; width: 900u; height: 900u; margin: -450u; border-radius: 50%; opacity: .0;
   background: repeating-conic-gradient(from 0deg, rgba(236,217,164,.15) 0deg 3deg, rgba(236,217,164,0) 3deg 15deg);
   -webkit-mask: radial-gradient(circle, #000 18%, transparent 68%); mask: radial-gradient(circle, #000 18%, transparent 68%); animation: mv-spin 60s linear infinite; transition: opacity 1.5s .3s; }
 .mv-learn.on .ln-rays { opacity: 1; }
-.ln-emb { position: absolute; left: 50%; top: 42%; width: 0; height: 0; }
+.ln-emb { position: absolute; left: 50%; top: 38%; width: 0; height: 0; }
 .ln-ring { position: absolute; left: -120u; top: -120u; width: 240u; height: 240u; border-radius: 50%;
   background: radial-gradient(circle, #0c1124 0, #172142 60%, var(--lc) 63.5%, #fff6dc 66%, var(--lc) 68.5%, rgba(236,217,164,0) 79%);
   box-shadow: 0 0 90u 20u color-mix(in srgb, var(--lc) 40%, transparent); transform: scale(.2); opacity: 0; transition: transform 1s cubic-bezier(.2,1.3,.3,1) .15s, opacity .5s .15s; }
@@ -28,9 +28,9 @@ addCss(`
 .ln-ico { position: absolute; left: -60u; top: -60u; width: 120u; height: 120u; display: flex; align-items: center; justify-content: center; font-size: 84u; color: var(--lc);
   filter: drop-shadow(0 0 16u var(--lc)); opacity: 0; transform: scale(1.6); transition: transform .7s cubic-bezier(.2,1.4,.3,1) .7s, opacity .4s .7s; }
 .mv-learn.on .ln-ico { opacity: 1; transform: none; }
-.ln-ghost { position: absolute; left: 50%; top: 42%; transform: translate(-50%, -54%); font: 700 500u/1 var(--fd); color: var(--lc); opacity: 0; transition: opacity 2s .4s; pointer-events: none; }
+.ln-ghost { position: absolute; left: 50%; top: 38%; transform: translate(-50%, -54%); font: 700 500u/1 var(--fd); color: var(--lc); opacity: 0; transition: opacity 2s .4s; pointer-events: none; }
 .mv-learn.on .ln-ghost { opacity: .06; }
-.ln-txt { position: absolute; left: 0; right: 0; top: calc(42% + 160u); display: flex; flex-direction: column; align-items: center; text-align: center; }
+.ln-txt { position: absolute; left: 0; right: 0; top: calc(38% + 188u); display: flex; flex-direction: column; align-items: center; text-align: center; }
 .ln-kick { display: flex; align-items: center; gap: 14u; font: 600 14u/1 var(--fd); letter-spacing: .5em; margin-right: -.5em; color: var(--brass2); opacity: 0; transition: opacity .8s 1s; }
 .ln-kick::before, .ln-kick::after { content: ''; width: 60u; height: 1u; background: linear-gradient(90deg, transparent, var(--brass2)); }
 .ln-kick::after { transform: scaleX(-1); }
