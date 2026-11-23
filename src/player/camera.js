@@ -2,6 +2,7 @@
 // aiming, wider + faster on the broom, lock-on framing, cinematics, screen shake, and the title beauty shot.
 import * as THREE from 'three';
 import { G } from '../core/game.js';
+import { wakeDrive } from '../world/broom-wake.js';
 import { clamp, damp, dampAngle, angleDiff, easeInOutCubic, lerp } from '../core/util.js';
 
 const _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vector3(), _dir = new THREE.Vector3();
@@ -17,6 +18,7 @@ export function createCamera() {
   const relFrom = { pos: new THREE.Vector3(), look: new THREE.Vector3() };
   let fovKick = 0, fovBase = 60, fov = 60;
   let idleLook = 0;         // seconds without mouse look
+  let chaseYaw = 0, chaseRoll = 0;
   let titleT = 0;
   let snapNext = true;
   let lockW = 0;
@@ -126,7 +128,9 @@ export function createCamera() {
       const aiming = !onBroom && (P.aiming || inp.held('cast') || inp.held('attack'));
       C.shoulder = damp(C.shoulder, aiming ? 1 : 0, 8, rdt);
       let want = 5.2;
-      if (onBroom) want = 4.8 + clamp(P.speed - 12, 0, 20) * 0.06 + (P.boosting ? 0.5 : 0); // close enough that she and the broom read
+      const flightDrive = onBroom ? wakeDrive(P.speed) : 0;
+      const skim = onBroom ? P.broom.skim : 0;
+      if (onBroom) want = 4.55 + 2.8 * flightDrive - .55 * skim;
       else if (gliding) want = 6.6;
       else if (swim) want = 5.6;
       else if (P.state === 'air') want = 5.6;
@@ -139,9 +143,13 @@ export function createCamera() {
       C.targetDist = want;
 
       // ---- desired position ----
-      const cp = Math.cos(C.pitch), sp = Math.sin(C.pitch);
-      _dir.set(Math.sin(C.yaw) * cp, -sp, Math.cos(C.yaw) * cp); // pivot -> camera
-      const rightX = Math.cos(C.yaw), rightZ = -Math.sin(C.yaw);
+      // Preserve aim yaw for steering, but let the chase boom swing out while
+      // the rider banks. At speed the horizon and the ground remain in frame.
+      chaseYaw = !onBroom || snapNext || cine || tpos ? C.yaw : dampAngle(chaseYaw,C.yaw,10-5*flightDrive,rdt);
+      const pitch = C.pitch*(1-.22*skim);
+      const cp = Math.cos(pitch), sp = Math.sin(pitch);
+      _dir.set(Math.sin(chaseYaw) * cp, -sp, Math.cos(chaseYaw) * cp); // pivot -> camera
+      const rightX = Math.cos(chaseYaw), rightZ = -Math.sin(chaseYaw);
       const sh = 0.28 + 0.42 * C.shoulder;                         // over the right shoulder
       _v2.set(pivot.x + rightX * sh, pivot.y + 0.12 * C.shoulder, pivot.z + rightZ * sh);
       // collision: march terrain + platforms, then physics bodies / static colliders
@@ -157,14 +165,20 @@ export function createCamera() {
       _pos.copy(_v2).addScaledVector(_dir, C.dist);
       // never inside the ground (or the water surface when swimming)
       const gy = W.groundAt(_pos.x, _pos.z, _pos.y + 0.3);
-      const floor = Math.max(gy, P.state === 'swim' ? W.seaLevel : -Infinity) + 0.35;
+      const floor = Math.max(gy, swim || (onBroom && W.isWater(_pos.x,_pos.z)) ? W.seaLevel : -Infinity) + 0.35;
       if (_pos.y < floor) _pos.y = floor;
       _look.copy(_v2).addScaledVector(_dir, -6);
       _look.y += 0.15;
+      if (onBroom && !cine && !tpos) {
+        const lead = .105 * flightDrive;
+        _look.x += P.vel.x * lead;
+        _look.z += P.vel.z * lead;
+        _look.y -= .45*skim;
+      }
       if (tpos) { _v3.set(tpos.x, tpos.y + 1, tpos.z); _look.lerp(_v3, 0.25 * lockW); }
 
       // ---- FOV ----
-      fovBase = 60 + (onBroom ? clamp((P.speed - 10) * 0.45, 0, 10) + (P.boosting ? 4 : 0) : 0) + (P.sprinting ? 2 : 0);
+      fovBase = 60 + 13 * flightDrive + (!onBroom && P.sprinting ? 2 : 0);
       fovKick = damp(fovKick, 0, 4, rdt);
       fov = damp(fov, fovBase + fovKick, 6, rdt);
 
@@ -237,6 +251,9 @@ export function createCamera() {
 
       cam.position.copy(_pos);
       cam.lookAt(_look);
+      const freeFlight = onBroom && !cine && !tpos && !releaseT && strW<.002;
+      chaseRoll = damp(chaseRoll,freeFlight ? clamp(-P.broom.bank*.19,-.12,.12) : 0,6,rdt);
+      if (freeFlight) cam.rotateZ(chaseRoll);
       const so = G.fx?.shakeOffset;
       if (so) cam.position.add(so);
       const fovOut = fov + duelFov;

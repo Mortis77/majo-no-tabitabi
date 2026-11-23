@@ -291,7 +291,12 @@ export function createMechanics(api) {
       P.pos.x = BARRIER.x + dx * k * BARRIER.rx; P.pos.z = BARRIER.z + dz * k * BARRIER.rx;
       if (dy > 0.05) P.pos.y = Math.max(P.pos.y, BARRIER.y0 + dy * k * BARRIER.ry - 0.8);
       const out = Math.atan2(_n.x, _n.z);
-      if (P.onBroom && P.broom) { P.broom.heading = out; P.broom.speed = Math.min(P.broom.speed, 10); P.broom.vy = Math.max(P.broom.vy || 0, 2); }
+      if (P.onBroom && P.broom) {
+        P.broom.heading = P.broom.course = out;
+        P.broom.yawRate = P.broom.bank = 0;
+        P.broom.speed = Math.min(P.broom.speed, 10);
+        P.broom.vy = Math.max(P.broom.vy || 0, 2);
+      }
       P.vel.x = _n.x * 12; P.vel.z = _n.z * 12; if (!P.onBroom) P.vel.y = Math.max(P.vel.y, 3);
       if (P.yaw !== undefined) P.yaw = out;
       _w.copy(P.pos); _w.y += 0.9;

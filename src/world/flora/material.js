@@ -13,10 +13,12 @@
 // A matching MeshDepthMaterial carries the same vertex code so shadows sway, face the light and lose their crowns too.
 import * as THREE from 'three';
 import { canopyPigment, crownPlane } from './canopyBrush.js';
+import { plantWake, plantWakeGLSL } from './wake-field.js';
 import { toonGradient, hookMaterial } from '../../core/mats.js';
 
 /** Uniforms shared by every flora material (updated once per frame by flora.js). */
 export const FU = {
+  ...plantWake,
   fTime: { value: 0 },
   fWind: { value: new THREE.Vector3(2, 0, 0) },
   fPush: { value: new THREE.Vector4(0, -999, 0, 1.4) },
@@ -67,6 +69,9 @@ attribute float aMix;
 uniform float fTime;
 uniform vec3 fWind;
 uniform vec4 fPush;
+#ifdef FLORA_MEADOW_WAKE
+${plantWakeGLSL}
+#endif
 uniform vec4 fCam;    // camera position (fades)
 uniform vec4 fPart;   // height, flex (m per m/s at the top), crown centre y, crown flag
 uniform vec4 fLook;   // tint flag, glow strength, tip lo, tip hi
@@ -105,7 +110,15 @@ vFFade = 1.0;
     w += vec3(sin(ph * 1.7), 0.0, cos(ph * 1.3)) * (0.3 + 0.15 * wl);
     vec3 dp = io - fPush.xyz; dp.y = 0.0;
     float dl = length(dp);
-    w += dp / max(dl, 0.001) * 16.0 * (1.0 - smoothstep(fPush.w * 0.35, fPush.w, dl)) * (1.0 - step(2.5, fPart.x));
+    if (fPart.x < 2.5) {
+      float reach = 1. - smoothstep(.6,2.,abs(fPush.y-io.y));
+      w += dp / max(dl, .001) * 16. * (1. - smoothstep(fPush.w*.35,fPush.w,dl)) * reach;
+#ifdef FLORA_MEADOW_WAKE
+      vec3 pass = plantWakeAt(io.xz).xyz;
+      w.xz += 12. * pass.xy;
+      w.y -= 4. * pass.z;
+#endif
+    }
     vec3 d = w * (fPart.y * hN * hN);
     float fl = sin(fTime * 5.3 + position.x * 3.1 + position.z * 2.3 + aFx.z * 20.0);
     d += vec3(fl, 0.0, cos(fTime * 4.4 + position.y * 2.7 + aFx.z * 13.0)) * (0.1 * fPart.y * hN);
@@ -332,6 +345,7 @@ export function makeFloraMaterial(opts) {
   m.alphaToCoverage = a2c;
   m.name = 'flora';
   const defs = {};
+  if (opts.flex > 0 && (opts.height || 1) < 2.5) defs.FLORA_MEADOW_WAKE = '';
   if (opts.leaf) defs.FLORA_LEAF = '';
   if (opts.bill) defs.FLORA_BILL = '';
   if (opts.tex) defs.FLORA_TEX = '';

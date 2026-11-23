@@ -1,7 +1,6 @@
 // GLSL of the water material (injected into a MeshPhongMaterial, then passed through hookMaterial).
 // WQ = 0 low / 1 med / 2 high. See src/world/water.js for the model.
 import * as THREE from 'three';
-import { TRAIL_SAMPLES } from './flight-wake.js';
 import { DATA_HALF } from '../terrain/textures.js';
 
 export const MAX_RIPPLES = 12, MAX_WAKES = 24;
@@ -31,7 +30,9 @@ float wCalmAt(vec2 p) {
 `;
 
 export const VERT_PARS = /* glsl */`
-uniform sampler2D wData;
+uniform sampler2D wData, wPressureMap;
+uniform vec4 wPressureRegion;
+varying vec4 vPressure;
 uniform float wTime;
 uniform vec4 wLake, wMoat, wTrial;
 varying vec3 vWW;
@@ -43,7 +44,13 @@ export const VERT_MAIN = /* glsl */`
   float wdep = max(0.0, -texture2D(wData, (wq.xz + ${H}) / ${H2}).r);
   float wsea = smoothstep(4.0, 10.0, wdep) * (1.0 - wCalmAt(wq.xz)) * (1.0 - smoothstep(140.0, 380.0, distance(wq.xz, cameraPosition.xz)));
   vec2 wg;
-  transformed.y += wSwell(wq.xz, wTime, wg) * wsea;
+  vPressure = vec4(0.);
+  vec2 uvP = (wq.xz-wPressureRegion.xy)*wPressureRegion.z+wPressureRegion.w;
+  if(wPressureRegion.z>0. && all(greaterThanEqual(uvP,vec2(wPressureRegion.w))) && all(lessThanEqual(uvP,vec2(1.-wPressureRegion.w)))) {
+    vec4 field = texture2D(wPressureMap,uvP);
+    vPressure = vec4((field.rgb*(255./127.)-128./127.)*1.5, field.a);
+  }
+  transformed.y += wSwell(wq.xz, wTime, wg) * wsea + vPressure.x;
   vWW = wq; vWW.y += transformed.y - position.y;
 }
 `;
@@ -51,7 +58,10 @@ export const VERT_MAIN = /* glsl */`
 export function fragPars(WQ) {
   return /* glsl */`
 #define WQ ${WQ}
-uniform sampler2D wData, wNoise, wWave, wFlow, wReflTex, wSkyLow, wSkyHemisphere;
+uniform sampler2D wData, wFlow, wReflTex, wSkyLow, wSkyHemisphere;
+uniform highp sampler2DArray wDetail;
+vec4 wPaint(vec2 uv) { return texture(wDetail,vec3(uv,0.)); }
+vec4 wNoiseAt(vec2 uv) { return texture(wDetail,vec3(uv,1.)); }
 uniform float wHasHemisphere;
 uniform float wTime, wWind, wRingK, wReflK, wSkyK, wRain, wDebug;
 uniform vec4 wVeil, wLake, wMoat, wTrial;
@@ -60,7 +70,7 @@ uniform vec3 wSunDir, wSunCol, wRingCol;
 uniform mat4 wReflMat, wViewProj, wInvViewProj;
 uniform vec4 wRipples[${MAX_RIPPLES}];
 uniform vec4 wWakes[${MAX_WAKES}];
-uniform vec4 wFlightPath[${TRAIL_SAMPLES}], wFlightBounds;
+varying vec4 vPressure;
 uniform sampler2D wRefrTex, wRefrDepth;
 uniform float wRefrK;
 uniform vec2 wScreenInv, wNearFar;
@@ -131,8 +141,8 @@ float wSeaK = smoothstep(4.0, 10.0, wDepth) * (1.0 - wCalm);
 float wAmpD = 1.0 / (1.0 + wDist / 70.0);
 
 // ---- waves: two painted layers (+ a flow-mapped layer on the rivers), mip-filtered so they calm with distance
-vec4 wS1 = texture2D(wWave, wP.xz / 41.0 + vec2(wt * 0.0105, wt * 0.0062));
-vec4 wS2 = texture2D(wWave, mat2(0.8, -0.6, 0.6, 0.8) * wP.xz / 14.0 + vec2(-wt * 0.0175, wt * 0.0118));
+vec4 wS1 = wPaint(wP.xz / 41.0 + vec2(wt * 0.0105, wt * 0.0062));
+vec4 wS2 = wPaint(mat2(0.8, -0.6, 0.6, 0.8) * wP.xz / 14.0 + vec2(-wt * 0.0175, wt * 0.0118));
 vec4 wFl = texture2D(wFlow, wUV);
 // A shallow inlet widens west to east before losing its current in the still basin.
 float channelX=wP.x-1505.;
@@ -148,16 +158,16 @@ if (wRiver > 0.01) {
   float ph0 = fract(wt * 0.4), ph1 = fract(wt * 0.4 + 0.5);
   float fw = abs(ph0 * 2.0 - 1.0);
   vec2 base = wP.xz / 6.5;
-  vec4 fa = texture2D(wWave, base - wVel * ph0 * 2.5 / 6.5);
-  vec4 fb = texture2D(wWave, base - wVel * ph1 * 2.5 / 6.5 + vec2(0.37, 0.61));
+  vec4 fa = wPaint(base - wVel * ph0 * 2.5 / 6.5);
+  vec4 fb = wPaint(base - wVel * ph1 * 2.5 / 6.5 + vec2(0.37, 0.61));
   wS3 = mix(fa, fb, fw);
   wS2 = mix(wS2, wS3, wRiver * 0.85);
 }
 // round 3: break the tiling of the open water — a third, rotated large layer and two slow macro masks that trade the
 // layers against each other (patches of choppy / glassy water), and a painted far sea: with distance the chop gives way
 // to long soft swell bands across the view (see the far-sea block in the reflection)
-vec4 wS4 = texture2D(wWave, mat2(0.31, 0.95, -0.95, 0.31) * wP.xz / 97.0 + vec2(wt * 0.0047, -wt * 0.0069));
-vec4 wMac = texture2D(wNoise, wP.xz / 430.0 + vec2(wt * 0.0011, wt * 0.0007));
+vec4 wS4 = wPaint(mat2(0.31, 0.95, -0.95, 0.31) * wP.xz / 97.0 + vec2(wt * 0.0047, -wt * 0.0069));
+vec4 wMac = wNoiseAt(wP.xz / 430.0 + vec2(wt * 0.0011, wt * 0.0007));
 float wMa = smoothstep(0.25, 0.75, wMac.r), wMb = smoothstep(0.3, 0.7, wMac.g);
 float wFarK = smoothstep(70.0, 360.0, wDist) * (1.0 - wCalm);
 vec2 wG = ((wS1.rg - 0.5) * 0.7 * (0.55 + 0.9 * wMa) + (wS2.rg - 0.5) * 0.42 * (1.0 - 0.55 * wCalm) * (1.35 - 0.7 * wMb * wMa)
@@ -184,41 +194,33 @@ float wRainS = 0.0;
 if (wRain > 0.01 && wDist < 50.0) wRainS = wRainRings(wP.xz, wt, wG) * wRain * (1.0 - smoothstep(25.0, 50.0, wDist));
 wRip += wRainS * 0.6;
 #endif
-// History is sampled by travelled distance. Locate only the nearest segment so joins stay smooth through turns.
+// Height, gradients and residual froth all follow the free surface, including after lift-off.
+vec2 displacedSlope = vPressure.yz;
+wG += displacedSlope;
+float pressureMask = smoothstep(.016,.23,max(abs(vPressure.x),length(displacedSlope)*.76));
+float flightFacet = clamp(dot(displacedSlope,normalize(-wSunDir.xz+vec2(.0001)))*1.65 + vPressure.x*.52,-.84,.85);
+// The steep shoulder carries a sky-facing lip and an opposite, darker face.
+// Keep that pair legible even when both facets reflect the same tree or cloud.
+float bankFace = .21*smoothstep(.025,.16,vPressure.x)-.16*smoothstep(.035,.21,-vPressure.x);
+bankFace *= smoothstep(.025,.17,length(displacedSlope));
 float flightFoam = 0.0;
-if (all(greaterThanEqual(wP.xz, wFlightBounds.xy)) && all(lessThanEqual(wP.xz, wFlightBounds.zw))) {
-  float nearest = 900.0, age = 0.0, drive = 0.0;
-  vec2 outward = vec2(0.0);
-  for (int j = 1; j < ${TRAIL_SAMPLES}; ++j) {
-    vec4 a = wFlightPath[j-1], b = wFlightPath[j];
-    vec2 line = b.xy-a.xy;
-    float len2 = dot(line,line);
-    if (len2 < 0.0001 || a.w < 0.0 || b.w < 0.0) continue;
-    float t = clamp(dot(wP.xz-a.xy,line)/len2,0.0,1.0);
-    vec2 offset = wP.xz-mix(a.xy,b.xy,t);
-    float dist2 = dot(offset,offset);
-    if (dist2 < nearest) {
-      nearest = dist2; age = wTime-mix(a.z,b.z,t); drive = mix(a.w,b.w,t);
-      vec2 wing = vec2(-line.y,line.x)*inversesqrt(len2);
-      outward = wing*sign(dot(offset,wing));
-    }
-  }
-  float swell = 1.0-exp(-max(0.0,age)*2.7);
-  float width = .08 + swell*(.66+1.65*drive);
-  vec2 foamUV = wP.xz*3.0 + vec2(wt*.24,-wt*.15);
-  float grain = .62*wWakeNoise(foamUV)+.38*wWakeNoise(foamUV*3.3+vec2(wt*.17));
-  float tuft = wWakeNoise(foamUV*.34+vec2(.2*wt,4.2));
-  float d = sqrt(nearest);
-  float ridge = d - width*(.71+.54*tuft) - (grain-.5)*(.09+.45*swell);
-  float thick = .037+.06*drive+.14*swell;
-  float edge = exp(-ridge*ridge/(thick*thick));
-  float ripple = exp(-pow((ridge+.22+.24*swell)/(thick*.48),2.));
-  float churn = exp(-d*d/(.02+.17*swell))*(1.0-swell);
-  float broken = mix(.48+.42*grain, smoothstep(.27,.70,grain)*smoothstep(.12,.61,tuft),.3+.70*swell);
-  float fade = drive*(1.0-smoothstep(.50,1.68,age))*smoothstep(.06,.65,wDepth);
-  flightFoam = clamp(((edge+.33*ripple)*broken*2.0 + churn*grain)*fade,0.0,1.0);
-  wG += outward*clamp(ridge/thick,-2.0,2.0)*edge*fade*.21;
-
+if (pressureMask > .001) {
+  vec2 foamUV = wP.xz + displacedSlope*.45;
+  // Capillary ripples run over the big wave face. They break up reflected
+  // sky even where the mirror only has a single light cloud to work with.
+  vec2 capillary = wPaint(foamUV*.24 + vec2(.045*wt,-.064*wt)).rg-.5;
+  float roughLip = smoothstep(.015,.18,vPressure.x)*pressureMask;
+  wG += capillary*.085*roughLip;
+  flightFacet += roughLip*.09*dot(capillary,vec2(.8,-.6));
+  float islands = wWakeNoise(foamUV*1.43+vec2(.23*wt,-.19*wt));
+  float grain = wWakeNoise(foamUV*5.4+vec2(-.19*wt,.16*wt));
+  float filament = 1.-smoothstep(.035,.16,abs(grain-.52));
+  float lip = smoothstep(.070,.29,vPressure.x);
+  float breakage = smoothstep(.45,.71,islands+.09*grain);
+  // Thin bubble filaments and occasional specks cover a fraction of each
+  // breaking crest. The rest of the shoulder keeps its glassy water colour.
+  flightFoam = lip * smoothstep(.045,.32,vPressure.w+.18*lip) * breakage *
+    (.37*filament+.19*smoothstep(.70,.92,grain));
 }
 vec3 wNrm = normalize(vec3(-wG.x, 1.0, -wG.y));
 
@@ -226,7 +228,7 @@ vec3 wNrm = normalize(vec3(-wG.x, 1.0, -wG.y));
 vec3 wShallow = ${lin(0x62e8d4)} * wSun + ${lin(0xf4b890)} * wDusk + ${lin(0x164a62)} * wNight;
 vec3 wMid     = ${lin(0x1aaccc)} * wSun + ${lin(0xbc7490)} * wDusk + ${lin(0x0c2c46)} * wNight;
 vec3 wDeep    = ${lin(0x10528e)} * wSun + ${lin(0x553874)} * wDusk + ${lin(0x040e22)} * wNight;
-float wb1 = texture2D(wNoise, wP.xz / 83.0 + vec2(wt * 0.003, wt * 0.002)).b;
+float wb1 = wNoiseAt(wP.xz / 83.0 + vec2(wt * 0.003, wt * 0.002)).b;
 wShallow=mix(wShallow,${lin(0x4cc69e)},basin*.86);
 wMid=mix(wMid,${lin(0x138f93)},basin*.79);
 wDeep=mix(wDeep,${lin(0x125674)},basin*.88);
@@ -234,14 +236,16 @@ vec3 wBase = mix(wShallow, wMid, smoothstep(0.3, 3.5, wDepth));
 wBase = mix(wBase, wDeep, smoothstep(3.0, 14.0, wDepth + (wb1 - 0.5) * 3.0));
 wBase *= (0.9 + 0.2 * wb1)*mix(vec3(1.),vec3(.36,.48,.66),wAtmosphere.y);
 wBase *= 0.94 + 0.12 * wMa * wSeaK; // choppy patches a touch lighter
+wBase *= 1.0 + .36*flightFacet - .20*smoothstep(.035,.49,-vPressure.x);
+wBase += vec3(.030,.105,.12)*smoothstep(.045,.36,vPressure.x)*(1.-.78*wNight);
 // optical path: see-through shallows, opaque at grazing angles and in the deep
 float wPath = wDepth / max(0.12, -wView.y);
 float wA0 = 1.0 - exp(-wPath * mix(0.42, 0.62, wNight)) * (1.0 - smoothstep(0.0, 1.0, wDist / 700.0));
 wA0 = clamp(wA0 + 0.06, 0.0, 1.0);
 
 // ---- foam: shore lip, swash lines rolling in, river streaks, whitecaps, rings
-float wn = texture2D(wNoise, wP.xz / 7.0 + vec2(wt * 0.02, -wt * 0.013)).g;
-float wn2 = texture2D(wNoise, wP.xz / 19.0 - vec2(wt * 0.008, 0.0)).r;
+float wn = wNoiseAt(wP.xz / 7.0 + vec2(wt * 0.02, -wt * 0.013)).g;
+float wn2 = wNoiseAt(wP.xz / 19.0 - vec2(wt * 0.008, 0.0)).r;
 float wEdge = smoothstep(0.0, 0.1, wDepth);
 float wLip = (1.0 - smoothstep(0.08, 0.24 + wn * 0.3, wDepth)) * smoothstep(0.0, 0.05, wDepth);
 float wFringe = (1.0 - smoothstep(0.2, 1.1 + wn2 * 0.6, wDepth)) * smoothstep(0.45, 0.7, wn * 0.7 + wn2 * 0.5);
@@ -301,9 +305,11 @@ export function fragReflect(ringR) {
   vec3 wRefl = wSky;
   float wCover = 0.0;
   if (wReflK > 0.001) {
-    vec4 rp = wReflMat * vec4(wP.x, 0.0, wP.z, 1.0);
+    vec4 rp = wReflMat * vec4(wP.x, vPressure.x, wP.z, 1.0);
     // distortion grows with distance from the camera: the mirror right at her feet stays calm and readable
     vec2 ru = rp.xy / max(rp.w, 1e-4) + vec2(wG.x, wG.y*0.64) * mix(0.018, 0.008, wCalm) * (0.4 + 0.6 * wAmpD) * mix(0.35, 1.0, smoothstep(3.0, 28.0, wDist));
+    vec3 bentRay = (viewMatrix * vec4(displacedSlope.x, 0., displacedSlope.y, 0.)).xyz;
+    ru += vec2(bentRay.x, -bentRay.z)*.023;
     vec4 rc = texture2D(wReflTex, clamp(ru, 0.001, 0.999));
     vec2 edge = min(ru,1.0-ru);
     float inFrame = smoothstep(-0.002,0.008,min(edge.x,edge.y))*step(0.001,rp.w);
@@ -312,12 +318,16 @@ export function fragReflect(ringR) {
     // A broad directional fill keeps the rider and shoreline coherent across the rough sea.
     wF = mix(wF,max(wF,0.38+0.12*wCalm), wCover*(1.0-wFoamA));
   }
+  wRefl *= 1.0 + .34 * flightFacet + bankFace;
+  wRefl += vec3(.014,.037,.040)*max(0.,bankFace)*mix(1.,.20,wNight);
+  wRefl = mix(wRefl, skyHor, .19*max(0.0,flightFacet));
   float wOpen = 1.0 - wCover;
+  wF = mix(wF,min(wF,.68),pressureMask*wOpen*.85);
   // painted far sea: long soft bands across the view (brighter crests catching the sky, darker troughs), no texel pattern
   if (wFarK > 0.001) {
     vec2 vd = normalize(wView.xz + vec2(1e-4, 0.0));
     vec2 bq = vec2(dot(wP.xz, vec2(-vd.y, vd.x)) / 340.0, dot(wP.xz, vd) / 34.0);
-    float band = texture2D(wNoise, bq + vec2(wt * 0.0009, -wt * 0.006)).r * 0.65 + texture2D(wNoise, bq * vec2(2.3, 2.9) + vec2(0.31, wt * 0.011)).g * 0.35;
+    float band = wNoiseAt(bq + vec2(wt * 0.0009, -wt * 0.006)).r * 0.65 + wNoiseAt(bq * vec2(2.3, 2.9) + vec2(0.31, wt * 0.011)).g * 0.35;
     band = smoothstep(0.3, 0.75, band);
     wRefl = mix(wRefl, wRefl * (0.86 + 0.28 * band) + skyHor * 0.06 * band, wFarK * wOpen);
     wF = mix(wF, clamp(wF * (0.8 + 0.4 * band), 0.0, 0.96), wFarK);
@@ -358,8 +368,8 @@ export function fragReflect(ringR) {
   cK *= sunVis;
   if (cK > 0.001 && wDist < 120.0) {
     vec2 cu = wP.xz + wG * wDepth * 2.0;
-    float c1 = texture2D(wWave, cu / 6.3 + vec2(wt * 0.021, wt * 0.013)).a;
-    float c2 = texture2D(wWave, mat2(0.6, 0.8, -0.8, 0.6) * cu / 4.9 - vec2(wt * 0.016, -wt * 0.011)).a;
+    float c1 = wPaint(cu / 6.3 + vec2(wt * 0.021, wt * 0.013)).a;
+    float c2 = wPaint(mat2(0.6, 0.8, -0.8, 0.6) * cu / 4.9 - vec2(wt * 0.016, -wt * 0.011)).a;
     float c = pow(clamp(c1 * c2 * 1.6 + max(c1, c2) * 0.25, 0.0, 2.0), 1.3);
     X += wSunCol * c * cK * 0.75 * (1.0 - wA0) * (1.0 - wF) * (1.0 - smoothstep(60.0, 120.0, wDist));
   }

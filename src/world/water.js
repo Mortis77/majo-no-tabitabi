@@ -17,30 +17,34 @@ import { VEIL, POI, MOAT } from '../data/world.js';
 import { TRIAL_LAKE, trialLakeActive, trialLakeContains } from './trial-lake.js';
 import { SUN_DIR, SUN_ANGULAR_RADIUS } from './veil.js';
 import { U } from '../render/atmo.js';
-import { waveTexture, flowTexture } from './water/maps.js';
-import { FlightWake, TRAIL_SAMPLES } from './water/flight-wake.js';
+import { waterDetailTexture, flowTexture } from './water/maps.js';
+import { FlightWake } from './water/flight-wake.js';
+import { DATA_HALF } from './terrain/textures.js';
 import { PlanarReflection } from './water/reflect.js';
 import { createLegacyWater } from './water/legacy.js';
 import { MAX_RIPPLES, MAX_WAKES, VERT_PARS, VERT_MAIN, fragPars, FRAG_COLOR, FRAG_NORMAL, fragReflect } from './water/glsl.js';
 
 /** Grid that is ~2 m apart near the centre and stretches to ±4500 m at the rim. */
-function waterGeometry(n = 128, near = 2, far = 4500) {
+function waterGeometry(n = 128, near = 2, far = 4500, exponent = 4) {
   const a = near * n / 2;
-  const f = (s) => Math.sign(s) * (a * Math.abs(s) + (far - a) * Math.pow(Math.abs(s), 4));
-  const pos = new Float32Array((n + 1) * (n + 1) * 3), idx = [];
+  const f = (s) => Math.sign(s) * (a * Math.abs(s) + (far - a) * Math.pow(Math.abs(s), exponent));
+  const pos = new Float32Array((n + 1) * (n + 1) * 3), idx = new Uint16Array(n * n * 6);
+  const axis = new Float32Array(n+1);
+  for (let i=0; i<=n; i++) axis[i] = f(2*i/n-1);
   for (let j = 0; j <= n; j++) for (let i = 0; i <= n; i++) {
     const o = (j * (n + 1) + i) * 3;
-    pos[o] = f(i / n * 2 - 1); pos[o + 1] = 0; pos[o + 2] = f(j / n * 2 - 1);
+    pos[o] = axis[i]; pos[o + 1] = 0; pos[o + 2] = axis[j];
   }
   for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {
     const a0 = j * (n + 1) + i, b = a0 + 1, c = a0 + n + 1, d = c + 1;
-    idx.push(a0, c, b, b, c, d);
+    const o = (j*n+i)*6;
+    idx[o] = a0; idx[o+1] = c; idx[o+2] = b; idx[o+3] = b; idx[o+4] = c; idx[o+5] = d;
   }
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   const nrm = new Float32Array(pos.length); for (let i = 1; i < nrm.length; i += 3) nrm[i] = 1;
   g.setAttribute('normal', new THREE.BufferAttribute(nrm, 3));
-  g.setIndex(idx);
+  g.setIndex(new THREE.BufferAttribute(idx,1));
   return g;
 }
 
@@ -66,11 +70,9 @@ export function createWater(G, { data, noise }) {
   const wakes = Array.from({ length: MAX_WAKES }, () => new THREE.Vector4(0, 0, -99, 0));
   const black = new THREE.DataTexture(new Uint8Array([0, 0, 0, 0]), 1, 1); black.needsUpdate = true;
   const refl = new PlanarReflection({ level: SEA_LEVEL, scale: [0.33, 0.45, 0.60][WQ], maxWidth: [530, 840, 1280][WQ], detail: WQ });
-  const wakePath = Array.from({ length: TRAIL_SAMPLES }, () => new THREE.Vector4(0, 0, -99, 0));
-  const wakeBounds = new THREE.Vector4(0, 0, -1, -1);
   const lake = POI.lake;
   const uniforms = {
-    wData: { value: data }, wNoise: { value: noise }, wWave: { value: waveTexture() }, wFlow: { value: flowTexture() },
+    wData: { value: data }, wDetail: { value: waterDetailTexture(noise) }, wFlow: { value: flowTexture() },
     wReflTex: { value: refl.rt.texture }, wSkyLow: { value: black }, wSkyHemisphere: { value: black }, wHasHemisphere: { value: 0 },
     wTime: { value: 0 }, wRingK: { value: 0 }, wReflK: { value: 0 }, wSkyK: { value: 0 }, wRain: { value: 0 }, wDebug: { value: 0 },
     wVeil: { value: new THREE.Vector4(VEIL.x, VEIL.z, VEIL.inner, VEIL.outer) },
@@ -81,7 +83,6 @@ export function createWater(G, { data, noise }) {
     wSunDir: U.mvSunDir, wSunCol: U.mvSunCam, wRingCol: U.mvRingCol,
     wReflMat: { value: refl.textureMatrix }, wViewProj: { value: new THREE.Matrix4() }, wInvViewProj: { value: new THREE.Matrix4() },
     wRipples: { value: ripples }, wWakes: { value: wakes },
-    wFlightPath: { value: wakePath }, wFlightBounds: { value: wakeBounds },
     // refraction (round 2): the opaque scene captured just before the water draws (G.post.captureOpaque)
     wRefrTex: { value: black }, wRefrDepth: { value: black }, wRefrK: { value: 0 },
     wScreenInv: { value: new THREE.Vector2(1, 1) }, wNearFar: { value: new THREE.Vector2(0.1, 1000) },
@@ -104,10 +105,12 @@ export function createWater(G, { data, noise }) {
       .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n' + FRAG_NORMAL)
       .replace('#include <envmap_fragment>', '#include <envmap_fragment>\n' + fragReflect(SUN_ANGULAR_RADIUS * 1.02));
   };
-  mat.customProgramCacheKey = () => 'mvWaterFlight5:' + WQ;
+  mat.customProgramCacheKey = () => 'mvWaterPressure6:' + WQ;
   hookMaterial(mat);
 
-  const mesh = new THREE.Mesh(waterGeometry(WQ === 0 ? 96 : 128), mat);
+  const baseGrid = waterGeometry(WQ === 0 ? 96 : 128);
+  const pressureGrid = waterGeometry([120,152,176][WQ],[.65,.54,.48][WQ],4500,12);
+  const mesh = new THREE.Mesh(baseGrid, mat);
   mesh.name = 'water';
   mesh.frustumCulled = false;
   mesh.receiveShadow = true;
@@ -205,13 +208,12 @@ export function createWater(G, { data, noise }) {
     /** Height of the water surface at (x,z): 0 where there is water (ground below sea level), else -Infinity. */
     levelAt(x, z) { return heightAt(x, z) < SEA_LEVEL ? SEA_LEVEL : -Infinity; },
     /**
-     * Height of the VISIBLE surface at (x,z), swell included (round 2): the open-sea swell the shader draws (deep
-     * open water near the camera only). -Infinity on dry land. levelAt() stays the flat gameplay level.
+     * Visible surface including the sea swell and local pressure field. -Infinity on dry land.
      */
     surfaceAt(x, z) {
       const h = heightAt(x, z);
       if (!(h < SEA_LEVEL)) return -Infinity;
-      return SEA_LEVEL + swellAt(x, z, SEA_LEVEL - h, uniforms.wTime.value, G.camera?.position);
+      return SEA_LEVEL + swellAt(x, z, SEA_LEVEL - h, uniforms.wTime.value, G.camera?.position) + flightWake.field.heightAt(x,z);
     },
     kindAt(x,z) {return heightAt(x,z)>=SEA_LEVEL?'land':trialLakeContains(x,z)?'craterLake':G.world.riverDist(x,z)<24?'river':'openWater';},
     /** Water depth at (x,z) in metres (0 on dry land). */
@@ -239,7 +241,6 @@ export function createWater(G, { data, noise }) {
     update(dt) {
       uniforms.wTime.value += dt;
       const cam = G.camera, c = cam.position;
-      mesh.position.x = Math.round(c.x / 4) * 4; mesh.position.z = Math.round(c.z / 4) * 4;
       uniforms.wRingK.value = U.mvRingK.value;
       uniforms.wTrial.value.z=trialLakeActive()?TRIAL_LAKE.rx:0;
       const skyWeather=G.journeyWeather?.state;
@@ -251,7 +252,15 @@ export function createWater(G, { data, noise }) {
       }
       const low = G.sky?.mesh?.material?.uniforms?.uLow?.value;
       if (low && WQ > 0) { uniforms.wSkyLow.value = low; uniforms.wSkyK.value = 1; }
-      if (dt > 0) flightWake.update(dt, uniforms.wTime.value);
+      if (dt > 0) {
+        flightWake.update(dt, uniforms.wTime.value, depthVersion !== data.version);
+        depthVersion = data.version;
+      }
+      const hasPressure = flightWake.field.remaining > 0;
+      const gridStep = hasPressure ? .5 : 4;
+      mesh.position.x = Math.round(c.x/gridStep)*gridStep;
+      mesh.position.z = Math.round(c.z/gridStep)*gridStep;
+      mesh.geometry = hasPressure ? pressureGrid : baseGrid;
       // rain
       if (WQ > 0 && --rainTick <= 0) {
         rainTick = 15;
@@ -275,7 +284,23 @@ export function createWater(G, { data, noise }) {
       }
     },
   };
-  const flightWake = new FlightWake(G, water, WQ, wakePath, wakeBounds);
+  // Survey newly exposed wave cells from the same terrain depth texture the water
+  // draws. Bilerp includes the dynamic flooded basin and the latest crater edits.
+  const image = data.image, n = image.width, toWorldUV = n/(2*DATA_HALF);
+  const fromHalf = THREE.DataUtils.fromHalfFloat;
+  function depthForWave(x,z) {
+    const u = Math.max(0, Math.min(n-1.0001,(x+DATA_HALF)*toWorldUV-.5));
+    const v = Math.max(0, Math.min(n-1.0001,(z+DATA_HALF)*toWorldUV-.5));
+    const i = Math.floor(u), j = Math.floor(v), k = 4*(j*n+i), row = 4*n;
+    const a = u-i, b = v-j, r = image.data;
+    const lo = (1-a)*fromHalf(r[k]) + a*fromHalf(r[k+4]);
+    const hi = (1-a)*fromHalf(r[k+row]) + a*fromHalf(r[k+row+4]);
+    return SEA_LEVEL - ((1-b)*lo + b*hi);
+  }
+  let depthVersion = data.version;
+  const flightWake = new FlightWake(G, water, WQ, depthForWave);
+  uniforms.wPressureMap = { value: flightWake.field.texture };
+  uniforms.wPressureRegion = { value: flightWake.field.mapping };
   water.flightWakeStats = () => flightWake.stats();
   water.impact = (pos, power) => flightWake.impact(pos, power);
   // anything landing in the water makes rings
