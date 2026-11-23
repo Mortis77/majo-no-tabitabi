@@ -10,12 +10,13 @@ lexicon:
 - loc = src/locales/zh-CN/<ns>.js; read via t()/raw(); ns filename starts with owning system name
 - J = docs/JOURNEY.md (source of truth; wins all conflicts)
 - api = docs/api/<system>.md; trailing "round/as built" sections = this game
-- moon = inherited Moonveil engine docs (docs/DESIGN.md + early api sections: shrine/灵诀/影祟/月帷)
+- moon = inherited Moonveil engine docs (docs/DESIGN.md + early api sections: shrine/Spirit Arts/shade/Moonveil)
 - play = $node tools/play.mjs (headless, throwaway profile, autostart=1 writes no save)
 - acc = `tools/acceptance/journey-{story,activities,errands,flight,city-clouds,eclipse}.mjs`
 - q = G.quality tier mobile|low|med|high (phones default mobile, ≥1080 lines)
 - anchors = JOURNEY_ANCHORS `src/data/journey-map.js`
 - ep1/ep2 = episode 1/2 · named = flag majo_named · finished = flag majo_finished
+- claim = comment `/claim` on an issue → bot assigns commenter (fallback: label claimed + bot comment); 1 holder/issue; released after 7 days w/o linked open PR|progress comment; `/unclaim` releases. bot = `.github/scripts/claims.cjs`
 rule: new abbreviation → add to §key first, then use.
 
 ## read
@@ -47,6 +48,7 @@ F credits `src/locales/zh-CN/ui.js` credits: "Director: Shoal_Rat" · "github.co
 F wardrobe: swimsuits unlock only after finished (heroine 14–15 in ep1); designs modest; during an active quest the story picks the outfit.
 F city: City of Magic = vertical city (tall houses, tall gate, dim street canyons, life on balconies/broom). N shrink|lower|brighten canyons.
 F readme: README.md = Chinese (default) · README.en.md = English · keep in sync.
+F lang: dev-facing text (docs, templates, bot replies, comments, AGENTS.md) = English · player-facing (README*, loc, bug.yml, issue #7, CREDITS) keeps its language.
 
 ## verify
 V always: $node tools/check-i18n.mjs src · $node tools/dead-code.mjs
@@ -55,8 +57,15 @@ V other change: acc touching the changed system.
 V probe: play --name X --script f.js [--mobile] (helpers: header of `tools/play.mjs`).
 V dev: $npm ci → $npm run serve (127.0.0.1:8751) · release: $npm run release
 
-## pr
-M flow: branch from main → small focused change → V → PR {changed, player-visible effect, how verified, screenshots if visual} → CI green → maintainer merges.
+## contrib
+R contrib: `CONTRIBUTING.md` (human-facing copy of these rules).
+M flow: issue (template) → claim → branch from main → small focused change → V → PR via `.github/pull_request_template.md` → CI + Claim check green → maintainer merges.
+M issue: 1 change/issue; template `.github/ISSUE_TEMPLATE/proposal.yml` (change) | `.github/ISSUE_TEMPLATE/bug.yml` (bug); every required field filled.
+M pr body: `Closes #N` · what/why · player-visible effect · play-time/difficulty effect · how verified (cmds + scenes; screenshots|GIF if visual) · AI-assisted yes|no.
+N pr: PR without own claim on the issue it closes (exempt: maintainer, bots, PRs #≤10).
+N claim: issue held by someone else → ask in the issue instead.
+F play time: change that shortens trips|speeds travel|eases difficulty → maintainer OK in the issue first.
+V contrib bots: $node .github/scripts/claims.test.mjs after touching `.github/scripts/` or claim workflows.
 
 ## feedback
-R reports: issue #7 (pinned, label feedback) · template `.github/ISSUE_TEMPLATE/bug.yml`
+R reports: issue #7 (pinned, label feedback) · template `.github/ISSUE_TEMPLATE/bug.yml` · proposals: `.github/ISSUE_TEMPLATE/proposal.yml` (label proposal)

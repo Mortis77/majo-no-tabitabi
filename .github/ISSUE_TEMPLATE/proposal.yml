@@ -1,0 +1,104 @@
+name: Proposal
+description: A change you want to make or see. Write it up before starting; to do it yourself, comment /claim after posting
+title: "[Proposal] "
+labels: ["proposal"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        One change per issue. To work on it yourself, comment `/claim` after posting, then open a pull request with `Closes #<issue>` in the description. The flow is in [CONTRIBUTING.md](https://github.com/shoal-rat/majo-no-tabitabi/blob/main/CONTRIBUTING.md).
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Pick one or more. System names come from systems.manifest.json.
+      multiple: true
+      options:
+        - "story · plot, quests and journal goals"
+        - "gameplay · commissions, discoveries and items"
+        - "player · the heroine and broom flight"
+        - "spells · magic"
+        - "combat · spell duels"
+        - "elements · elements and combinations"
+        - "ui · interface, dialogue and touch controls"
+        - "structures · buildings and towns (incl. the City of Magic)"
+        - "terrain · terrain and ground"
+        - "landforms · rocks and landforms"
+        - "flora · plants and flowers"
+        - "life · small animals and ambient creatures"
+        - "props · scene props"
+        - "destruction · terrain destruction and recovery"
+        - "sky · sky, lighting and weather"
+        - "fx · visual effects"
+        - "audio · sound and music"
+        - "physics · physics and collision"
+        - "other (docs, tools, build)"
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or goal
+      description: What is missing or wrong today, or what you want to achieve.
+    validations:
+      required: true
+  - type: textarea
+    id: change
+    attributes:
+      label: Proposed change
+      description: The approach and the files or systems it touches.
+    validations:
+      required: true
+  - type: textarea
+    id: effect
+    attributes:
+      label: Player-visible effect
+      description: Where and when a player notices the difference.
+    validations:
+      required: true
+  - type: dropdown
+    id: playtime
+    attributes:
+      label: Effect on play time and difficulty
+      options:
+        - "unchanged"
+        - "longer or harder"
+        - "shorter, faster or easier (explain below)"
+    validations:
+      required: true
+  - type: textarea
+    id: playtime-why
+    attributes:
+      label: Why
+      description: |
+        This is a journey meant to be taken slowly. Shorter trips, faster travel or easier play must be justified; changes that only save time are usually declined. If nothing changes, say why in one line.
+    validations:
+      required: true
+  - type: textarea
+    id: verify
+    attributes:
+      label: How to verify
+      description: Acceptance commands to run, scenes to check, screenshots to compare.
+      placeholder: |
+        node tools/acceptance/journey-flight.mjs
+        Fly low over the lake and check whether the wake ...
+    validations:
+      required: true
+  - type: dropdown
+    id: ai
+    attributes:
+      label: AI-assisted
+      options:
+        - "no"
+        - "yes"
+    validations:
+      required: true
+  - type: checkboxes
+    id: rules
+    attributes:
+      label: Confirm
+      options:
+        - label: I searched existing issues and pull requests; this is not a duplicate.
+          required: true
+        - label: The content is original; no anime stills, official art or other games' characters and levels.
+          required: true
