@@ -42,4 +42,4 @@ AI-assisted: <!-- yes / no -->
 - [ ] Dialogue, foes and landmarks are original; no names, characters, looks or levels from other games.
 - [ ] No new runtime dependencies, no three/rapier bumps.
 - [ ] New content scales with the quality tier; the mobile tier was tried too.
-- [ ] Third-party assets are CC0 or CC-BY only, and listed in `assets/manifest.json` and `CREDITS.md`.
+- [ ] Third-party assets are CC0 or CC-BY only (fonts: SIL OFL), and listed in `assets/manifest.json` and `CREDITS.md`.
