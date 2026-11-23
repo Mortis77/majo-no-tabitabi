@@ -46,17 +46,17 @@ assert(flow.sections[(flow.next-1+flow.sections.length)%flow.sections.length].ba
 function flyFor(rate,rise,boosting=true) {
   const b = {speed:16,gust:0,acceleration:0,heading:0,course:0,bank:0,
     yawRate:0,strafe:0,boosting,riseRate:rise};
-  for(let i=0;i<rate;i++) advanceBroomMotion(b,{mx:0,my:1},.75,16,34,1/rate);
+  for(let i=0;i<rate;i++) advanceBroomMotion(b,{mx:0,my:1},.75,16,28,1/rate);
   return b;
 }
 const banked=flyFor(60,0);
-assert(banked.speed>29 && banked.speed<34);
+assert(banked.speed>24 && banked.speed<28);
 assert(banked.heading>banked.course && banked.course>0 && banked.bank<0);
 assert(Math.abs(flyFor(30,0).speed-flyFor(120,0).speed)<.25);
 assert(flyFor(60,-7,false).speed>16 && flyFor(60,7,false).speed<16);
 banked.boosting=false;
-for (let i=0;i<15;i++) advanceBroomMotion(banked,{mx:0,my:1},.75,16,34,1/60);
-assert(banked.speed>27, 'the rider coasts when releasing boost');
-for (let i=0;i<180;i++) advanceBroomMotion(banked,{mx:0,my:-1},.75,16,34,1/60);
+for (let i=0;i<15;i++) advanceBroomMotion(banked,{mx:0,my:1},.75,16,28,1/60);
+assert(banked.speed>24, 'the rider coasts when releasing boost');
+for (let i=0;i<180;i++) advanceBroomMotion(banked,{mx:0,my:-1},.75,16,28,1/60);
 assert.equal(banked.speed,-3.5);
 console.log('PASS: bank-to-turn, carried speed, braking, dive energy, ground image and counter-rotating vortices');
