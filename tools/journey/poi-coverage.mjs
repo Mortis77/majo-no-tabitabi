@@ -9,7 +9,7 @@
 // sampled on a 10 m grid; trees are ignored). Also records how many 90° sectors hold a visible point (pull in different
 // directions) and the distance to the nearest point. Writes a PNG heat map per set / height and prints the numbers.
 //   before = story places + the wayside notes (what the map had);  after = before + src/data/landmarks.js.
-// Also flies the road and the straight east-west line at 16 m/s and reports how often a NEW point comes into view.
+// Also flies the road and the straight east-west line at cruise speed (15 m/s) and reports how often a NEW point comes into view.
 import fs from 'node:fs';
 import path from 'node:path';
 import sharp from 'sharp';
@@ -101,7 +101,7 @@ async function heat(cells, file) {
   }
   await sharp(img, { raw: { width: w, height: h, channels: 3 } }).resize(w * 2, h * 2, { kernel: 'nearest' }).png().toFile(file);
 }
-// new points per stretch of flight (16 m/s)
+// new points per stretch of flight (cruise, 15 m/s)
 function flight(points, line, eyeH) {
   const seen = new Set(), news = [];
   let s = 0, last = 0, gaps = [];
@@ -116,7 +116,7 @@ function flight(points, line, eyeH) {
     s += L;
   }
   gaps.sort((a, b) => a - b);
-  return { length: Math.round(s), newPoints: seen.size, medianGapM: Math.round(gaps[gaps.length >> 1] || 0), maxGapM: Math.round(gaps[gaps.length - 1] || 0), medianGapS: +((gaps[gaps.length >> 1] || 0) / 16).toFixed(1) };
+  return { length: Math.round(s), newPoints: seen.size, medianGapM: Math.round(gaps[gaps.length >> 1] || 0), maxGapM: Math.round(gaps[gaps.length - 1] || 0), medianGapS: +((gaps[gaps.length >> 1] || 0) / 15).toFixed(1) };
 }
 const report = {};
 const sets = SET === 'both' ? { before, after } : SET === 'before' ? { before } : { after };
