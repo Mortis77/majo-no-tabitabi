@@ -114,8 +114,10 @@ export function createBroom(P, S) {
       if (B.boosting) {
         P.mana = Math.max(0, P.mana - BROOM.BOOST_MANA * dt);
         if (!B._wasBoost) {
+          G.cam?.fovKick?.(0.6);
+          G.fx?.burst('dash', B.lanternWorld(_v), { color: 0xffd27a, scale: 0.7 });
           // This cue plays once when a boost begins.
-          G.audio?.sfx('broom_boost', { pos: P.pos });
+          G.audio?.sfx('player_broom_boost', { pos: P.pos });
         }
       }
       B._wasBoost = B.boosting;
