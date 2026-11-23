@@ -1,4 +1,4 @@
-// 月帷巫女 — the whole user interface (docs/DESIGN.md §6.5): a DOM overlay inside G.uiRoot, drawn as a picture scroll.
+// 魔女之旅 — the whole user interface: a DOM overlay inside G.uiRoot, drawn as a traveller's grimoire (docs/api/ui.md "Grimoire round").
 // This file wires the views together and exposes G.ui; each view lives in its own module next to it.
 import { G } from '../core/game.js';
 import { t, has, onLocaleChange } from '../core/i18n.js';
@@ -8,7 +8,7 @@ import { loadFontsWithin } from '../core/fonts.js';
 import { touchSpells } from './model.js';
 import { createHud } from './hud.js';
 import { createStage } from './stage.js';
-import { createDialogue } from './dialogue.js';
+import { createDialogue, portraitOf } from './dialogue.js';
 import { createWheel } from './wheel.js';
 import { createTitle } from './title.js';
 import { createMenu } from './menu.js';
@@ -70,6 +70,8 @@ export const uiSystem = {
       letterbox: (on) => stage.letterbox(on),
       hurt: (k) => stage.hurt(k),
       say: (o) => dialogue.say(o),
+      /** portraitOf(who) -> url | null: the in-game portrait of a story speaker (say({ portrait })) */
+      portraitOf,
       // ---- full-screen layers ----
       openMenu: (tab) => menu.open(tab),
       closeMenu: () => menu.close(false),

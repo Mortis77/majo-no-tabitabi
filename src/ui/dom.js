@@ -73,7 +73,7 @@ export function hintLine(node, tkey, caps, capCls = 'sm') {
 /** A paper key cap element. */
 export function keycap(label, parent, cls) { return el('span', 'keycap' + (cls ? ' ' + cls : ''), parent, label); }
 
-/** A washi sheet: returns the content element; the textured, deckle-edged background sits behind it. */
+/** A parchment sheet: returns the content element; the grained, filigree-framed background sits behind it. */
 export function paper(cls, parent) {
   const p = el('div', 'mv-paper ' + (cls || ''), parent);
   el('div', 'bg', p);

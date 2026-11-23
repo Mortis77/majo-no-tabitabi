@@ -51,6 +51,43 @@ addCss(`
 .foe-combo .rk.pop { animation: foe-pop .5s cubic-bezier(.2,.8,.2,1.4); }
 @keyframes foe-pop { from { transform: scale(1.7); opacity: .2; } }
 `);
+addCss(`
+/* the grimoire look (docs/api/ui.md "Grimoire round"): serif names, capsule bars with a brass hairline, glass chips, a brass combo */
+.foe-plate { position: absolute; left: 0; top: 0; width: 124u; margin-left: -62u; display: none; will-change: transform; text-align: center; }
+.foe-plate.on { display: block; }
+.foe-plate .nm { font: 600 11.5u/1.25 var(--fd); letter-spacing: .06em; color: var(--star); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: var(--halo); }
+.foe-plate.elite .nm { color: var(--brass2); font-weight: 700; }
+.foe-plate.lock .nm { color: #fff3d6; }
+.foe-plate .hp { height: 6u; margin: 3u 8u 0; border-radius: 3u; background: rgba(6,10,24,.78); -webkit-mask: none; mask: none; box-shadow: inset 0 0 0 1u rgba(236,217,164,.3), 0 1u 3u rgba(0,0,0,.4); }
+.foe-plate .hp i { position: absolute; inset: 1u; border-radius: 2u; transform-origin: 0 50%; will-change: transform; }
+.foe-plate .hp .ghost { background: rgba(255,240,214,.75); }
+.foe-plate .hp .fill { background: linear-gradient(180deg, #ffb7a6 0%, var(--life) 50%, var(--life2) 100%); }
+.foe-plate.elite .hp .fill { background: linear-gradient(180deg, #ffe0a0 0%, #e8a23a 50%, #b8701e 100%); }
+.foe-plate.elite .hp { box-shadow: inset 0 0 0 1u rgba(236,217,164,.6), 0 0 6u rgba(236,217,164,.25); }
+.foe-plate .wd { display: none; align-items: center; gap: 3u; margin: 3u 8u 0; }
+.foe-plate .wd.on { display: flex; }
+.foe-plate .wd .bar { flex: 1; height: 4u; border-radius: 2u; background: rgba(6,10,24,.72); overflow: hidden; position: relative; }
+.foe-plate .wd .bar i { position: absolute; inset: 0; transform-origin: 0 50%; background: var(--wc); box-shadow: 0 0 4u var(--wc); }
+.foe-plate .wd .ic { font-size: 10u; color: var(--wc); filter: drop-shadow(0 0 2u rgba(0,0,0,.9)); }
+.foe-plate .wd .ans { font: 600 9.5u/1 var(--fd); color: var(--ac); text-shadow: 0 1u 2u rgba(0,0,0,.9); white-space: nowrap; }
+.foe-plate .wd.down .bar i { opacity: .25; }
+.foe-plate .ch { display: flex; justify-content: center; gap: 3u; margin-top: 3u; height: 14u; }
+.foe-plate .ch span { display: none; font: 600 9.5u/14u var(--fd); padding: 0 5u; border-radius: 7u; background: rgba(14,20,40,.82); color: var(--star); box-shadow: inset 0 0 0 1u currentColor; }
+.foe-plate .ch span.on { display: inline-block; }
+.foe-plate .ch .st { color: var(--sc); padding: 0 3u; }
+.foe-plate .ch .st .ic { font-size: 10u; vertical-align: -1u; }
+.foe-plate .ch .ex { color: #ffe7a4; animation: mv-pulse .5s infinite; }
+.foe-plate .ch .af { color: var(--brass2); }
+
+/* the combo meter: a serif count with a brass glow, the label and the rank word */
+.foe-combo { position: absolute; right: 34u; top: 46%; text-align: right; opacity: 0; transition: opacity .35s; }
+.foe-combo.on { opacity: 1; }
+.foe-combo .n { font: 700 40u/1 var(--fd); color: #fffaf0; letter-spacing: .02em; text-shadow: 0 2u 3u rgba(6,8,18,.9), 0 0 14u rgba(236,217,164,.45); }
+.foe-combo .lb { margin-top: 2u; font: 600 11.5u/1.2 var(--fd); letter-spacing: .32em; color: var(--brass2); text-shadow: var(--halo); }
+.foe-combo .rk { font: 600 17u/1.3 var(--fd); letter-spacing: .2em; color: #ffe3a0; text-shadow: var(--halo), 0 0 10u rgba(255,196,96,.45); min-height: 22u; }
+.foe-combo .rk.pop { animation: foe-pop .5s cubic-bezier(.2,.8,.2,1.4); }
+@keyframes foe-pop { from { transform: scale(1.7); opacity: .2; } }
+`);
 
 const _v = new THREE.Vector3();
 const MAX = 6;

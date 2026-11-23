@@ -1,7 +1,7 @@
-// 衣装 — the wardrobe page of the pause scroll (src/ui/menu.js). Elaina's four outfits (src/data/outfits.js) as cards: a
+// 衣装 — the wardrobe page of the pause grimoire (src/ui/menu.js). Elaina's four outfits (src/data/outfits.js) as cards: a
 // painted picture of her in the outfit (rendered once from the game, cut out: tools/costume/wardrobe-pics.mjs, manifest ids
-// ui_outfit_<id>) on a washi plate in an ink frame with a brush-torn edge (the scroll's own deckle masks), the name, a line
-// or two of description, the worn one sealed. Without its picture a card shows the outfit's pictogram instead.
+// ui_outfit_<id>) on a softly lit plate in an arched brass frame (wine for the worn one), the name, a line or two of
+// description, the worn one sealed. Without its picture a card shows the outfit's pictogram instead.
 // An outfit the player may not pick yet (outfits.js `unlock`: her everyday and witch clothes from her naming, the two
 // swimsuits after both episodes) shows no picture: a folded-away card with its name and when it opens. While episode two is
 // running a note says the story dresses her for its own scenes (story.js syncOutfit).
@@ -19,46 +19,50 @@ addCss(`
 .wd-wrap { position: absolute; inset: 0; }
 .wd-grid { position: absolute; inset: 0 0 6u; display: grid; grid-template-columns: repeat(4, 1fr); gap: 18u; padding: 6u 10u 0; }
 .wd-wrap.note .wd-grid { bottom: 34u; }
-.wd-card { position: relative; display: flex; flex-direction: column; align-items: center; min-height: 0; min-width: 0; padding: 12u 12u 10u; cursor: pointer; pointer-events: auto;
-  background: rgba(35,31,29,.04); box-shadow: inset 0 0 0 1u rgba(35,31,29,.14); border-radius: 3u; transition: background .15s, box-shadow .15s, transform .2s; touch-action: manipulation; }
-.wd-card:hover { background: rgba(35,31,29,.07); }
-.wd-card.sel { background: rgba(35,31,29,.09); box-shadow: inset 0 0 0 1.5u var(--red), 0 4u 14u rgba(35,31,29,.12); transform: translateY(-2u); }
-/* the picture: an ink frame (rough deckle) round a washi plate (fine deckle) with the outfit's own colour wash */
-.wd-pic { position: relative; align-self: stretch; flex: 1 1 auto; min-height: 110u; filter: drop-shadow(0 3u 6u rgba(0,0,0,.22)); transition: filter .2s, transform .25s cubic-bezier(.2,.8,.2,1); }
-.wd-pic .fr { position: absolute; inset: 0; background: var(--ink); opacity: .82; -webkit-mask: var(--mk-deckle-rough) center / 100% 100% no-repeat; mask: var(--mk-deckle-rough) center / 100% 100% no-repeat; }
-.wd-pic .wash { position: absolute; inset: 7u; background-color: var(--paper); background-image: var(--tex-paper), radial-gradient(ellipse 70% 60% at 50% 42%, rgba(255,252,242,.95), var(--wd-tint) 78%, var(--wd-tint2));
-  background-size: 256u 256u, 100% 100%; background-blend-mode: multiply, normal; -webkit-mask: var(--mk-deckle) center / 100% 100% no-repeat; mask: var(--mk-deckle) center / 100% 100% no-repeat; overflow: hidden; }
-.wd-pic .wash::after { content: ''; position: absolute; left: 22%; right: 22%; bottom: 5%; height: 7%; border-radius: 50%; background: radial-gradient(closest-side, rgba(35,31,29,.32), transparent); }
-.wd-pic img { position: absolute; left: 0; right: 0; top: 4%; bottom: 3.5%; width: 100%; height: 92.5%; object-fit: contain; z-index: 1; pointer-events: none; user-select: none; }
-.wd-pic .ic { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); font-size: 120u; color: var(--ink); z-index: 1; }
-.wd-card.sel .wd-pic { filter: drop-shadow(0 5u 10u rgba(0,0,0,.28)); }
-.wd-card.worn .wd-pic .fr { background: var(--red); opacity: .9; }
-/* not yet: the plate folded away, the robe-stand pictogram faint, a small lock */
+.wd-card { position: relative; display: flex; flex-direction: column; align-items: center; min-height: 0; min-width: 0; padding: 12u 12u 10u; cursor: pointer; pointer-events: auto; border-radius: 8u;
+  background: radial-gradient(ellipse at 50% 30%, rgba(255,253,246,.7), rgba(148,113,47,.06)); box-shadow: inset 0 0 0 1u rgba(148,113,47,.28);
+  transition: background .15s, box-shadow .15s, transform .22s var(--ease); touch-action: manipulation; }
+.wd-card:hover { background-color: rgba(148,113,47,.05); }
+.wd-card.sel { box-shadow: inset 0 0 0 1.5u var(--brass3), 0 6u 18u rgba(80,60,30,.18); transform: translateY(-3u); }
+/* the picture: an arched brass frame round a softly lit plate in the outfit's own colour wash */
+.wd-pic { position: relative; align-self: stretch; flex: 1 1 auto; min-height: 110u; filter: drop-shadow(0 3u 6u rgba(60,40,20,.2)); transition: filter .2s, transform .25s var(--ease); }
+.wd-pic .fr { position: absolute; inset: 0; border-radius: 50% 50% 6u 6u / 16% 16% 6u 6u; background: linear-gradient(180deg, #f3e2b4, var(--brass) 45%, var(--brass3));
+  box-shadow: inset 0 0 0 1u rgba(255,248,226,.6); }
+.wd-pic .wash { position: absolute; inset: 5u; border-radius: 50% 50% 4u 4u / 15% 15% 4u 4u; overflow: hidden;
+  background-color: var(--parch); background-image: radial-gradient(ellipse 70% 60% at 50% 40%, rgba(255,252,242,.95), var(--wd-tint) 78%, var(--wd-tint2)), var(--tex-parch);
+  background-size: 100% 100%, 256u 256u; background-blend-mode: normal, multiply; box-shadow: inset 0 0 0 1u rgba(122,92,46,.35), inset 0 0 22u rgba(122,92,46,.18); }
+.wd-pic .wash::after { content: ''; position: absolute; left: 22%; right: 22%; bottom: 5%; height: 7%; border-radius: 50%; background: radial-gradient(closest-side, rgba(42,36,30,.3), transparent); }
+.wd-pic img { position: absolute; left: 0; right: 0; top: 5%; bottom: 3.5%; width: 100%; height: 91.5%; object-fit: contain; z-index: 1; pointer-events: none; user-select: none; }
+.wd-pic .ic { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); font-size: 116u; color: var(--ink); z-index: 1; }
+.wd-card.sel .wd-pic { filter: drop-shadow(0 6u 12u rgba(60,40,20,.28)); }
+.wd-card.worn .wd-pic .fr { background: linear-gradient(180deg, #f0cbd0, var(--wine2) 45%, var(--wine)); }
+/* not yet: a pale frame, the robe-stand pictogram faint, a small lock */
 .wd-card.lock { cursor: default; }
-.wd-card.lock .wd-pic .fr { opacity: .35; }
-.wd-card.lock .wd-pic .wash { background-image: var(--tex-paper), radial-gradient(ellipse 70% 60% at 50% 42%, rgba(246,240,228,.9), rgba(200,194,184,.5) 78%, rgba(160,154,146,.55)); }
+.wd-card.lock .wd-pic .fr { background: linear-gradient(180deg, #e2d8c4, #b9ab92); opacity: .7; }
+.wd-card.lock .wd-pic .wash { background-image: radial-gradient(ellipse 70% 60% at 50% 42%, rgba(246,240,228,.9), rgba(200,194,184,.5) 78%, rgba(160,154,146,.55)), var(--tex-parch); }
 .wd-card.lock .wd-pic .wash::after { display: none; }
-.wd-card.lock .wd-pic .ic { color: var(--ink3); opacity: .42; font-size: 96u; }
-.wd-card.lock .wd-pic .ic.lk { top: auto; bottom: 12%; transform: translateX(-50%); z-index: 2; font-size: 26u; color: var(--ink2); opacity: .7; }
+.wd-card.lock .wd-pic .ic { color: var(--ink3); opacity: .4; font-size: 92u; }
+.wd-card.lock .wd-pic .ic.lk { top: auto; bottom: 12%; transform: translateX(-50%); z-index: 2; font-size: 24u; color: var(--ink2); opacity: .7; }
 .wd-card.lock .wd-nm { color: var(--ink3); }
 .wd-card.lock .wd-desc { color: var(--ink3); }
 .wd-card.no { animation: wd-no .32s; }
 @keyframes wd-no { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-4u); } 60% { transform: translateX(3u); } }
-.wd-nm { margin-top: 12u; font: 700 24u/1.3 var(--ft); color: var(--ink); letter-spacing: .26em; margin-right: -.26em; white-space: nowrap; }
-.wd-rule { width: 70%; height: 1u; margin: 7u 0 7u; background: linear-gradient(90deg, transparent, rgba(194,59,42,.55), transparent); flex: none; }
-.wd-desc { font: 500 13u/1.6 var(--fb); color: var(--ink2); letter-spacing: .04em; text-align: center; min-height: 3.2em; max-width: 100%;
+.wd-nm { margin-top: 12u; font: 600 21u/1.3 var(--fd); color: var(--ink); letter-spacing: .16em; margin-right: -.16em; white-space: nowrap; }
+.wd-rule { width: 70%; height: 1u; margin: 7u 0; background: linear-gradient(90deg, transparent, rgba(148,113,47,.6), transparent); flex: none; }
+.wd-desc { font: 400 13.5u/1.6 var(--fb); color: var(--ink2); letter-spacing: .03em; text-align: center; min-height: 3.2em; max-width: 100%;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.wd-worn { position: absolute; top: 22u; right: 22u; z-index: 2; display: flex; align-items: center; gap: 6u; font: 700 12u/1 var(--ft); color: var(--red); letter-spacing: .26em;
-  padding: 5u 8u 5u 5u; background: rgba(250,244,230,.88); border-radius: 2u; }
-.wd-worn .seal { width: 26u; height: 26u; font-size: 14u; }
-.wd-go { padding-top: 6u; min-height: 21u; font: 600 13u/1 var(--ft); color: var(--ink3); letter-spacing: .2em; opacity: 0; transition: opacity .15s; white-space: nowrap; }
+.wd-worn { position: absolute; top: 20u; right: 20u; z-index: 2; display: flex; align-items: center; gap: 6u; font: 600 12u/1 var(--fd); color: var(--brass2); letter-spacing: .16em;
+  padding: 4u 10u 4u 4u; background: rgba(18,26,47,.9); border-radius: 14u; box-shadow: inset 0 0 0 1u var(--hair), 0 2u 6u rgba(0,0,0,.25); }
+.wd-worn .seal { width: 22u; height: 22u; font-size: 11u; }
+.wd-worn .seal::before { inset: 2u; }
+.wd-go { padding-top: 6u; min-height: 21u; font: 600 12.5u/1 var(--fd); color: var(--brass3); letter-spacing: .14em; opacity: 0; transition: opacity .15s; white-space: nowrap; }
 .wd-card.sel .wd-go { opacity: 1; }
 .wd-card.worn .wd-go { opacity: 0; }
-.wd-card.busy .wd-go { opacity: 1; color: var(--red); }
-.wd-note { position: absolute; left: 0; right: 0; bottom: 4u; text-align: center; font: 500 13u/1.4 var(--fb); color: var(--ink3); letter-spacing: .12em; }
+.wd-card.busy .wd-go { opacity: 1; color: var(--wine); }
+.wd-note { position: absolute; left: 0; right: 0; bottom: 4u; text-align: center; font: 400 13u/1.4 var(--fb); color: var(--ink3); letter-spacing: .08em; }
 .mv-ui.compact .wd-grid { gap: 10u; padding: 2u 4u 0; }
 .mv-ui.compact .wd-pic { min-height: 80u; }
-.mv-ui.compact .wd-nm { font-size: 20u; margin-top: 8u; }
+.mv-ui.compact .wd-nm { font-size: 18u; margin-top: 8u; }
 .mv-ui.compact .wd-desc { -webkit-line-clamp: 2; }
 `);
 // the colour wash behind each picture (a hint of the outfit's own colours)

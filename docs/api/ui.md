@@ -142,3 +142,100 @@ while any modal is open. Never read `Mouse0` / key codes for something a player 
 
 **Testing.** `.tmp/agents/mobile/run.mjs` (CDP: `Emulation.setDeviceMetricsOverride` mobile + `setTouchEmulationEnabled`,
 real `Input.dispatchTouchEvent`), scenarios `sc-*.mjs` there.
+
+## Grimoire round: the interface redesign (2026-11, as built)
+**Why.** The inherited look was a Japanese shrine scroll (washi with deckle edges, vermilion seals, brush script, a
+noren curtain over the shop). This game is a travelling witch's journey through a sunlit European storybook land, so
+the interface became her *traveller's grimoire*: night-blue glass and leather with thin brass filigree, ivory
+parchment pages, ink, and a little starlight. Everything stays readable over a bright meadow sky; nothing glares.
+
+### Palette (CSS custom properties on `.mv-ui`, `style.js` BASE)
+| token | value | use |
+| --- | --- | --- |
+| `--night0` / `--night` / `--night2` / `--night3` | `#0a0f1e` / `#121a2f` / `#1c2744` / `#2c3a5e` | glass panels, covers, discs, hover |
+| `--glass` / `--glass2` | `rgba(15,21,40,.62)` / `rgba(20,28,52,.8)` | HUD plates, chips, toasts |
+| `--parch` / `--parch2` / `--parch3` | `#f6efe0` / `#ebdfc6` / `#d8c6a1` | parchment pages, cards |
+| `--ink` / `--ink2` / `--ink3` | `#2a241e` / `#5d5144` / `#8e806f` | text on parchment |
+| `--brass` / `--brass2` / `--brass3` | `#c9a45e` / `#ecd9a4` / `#94712f` | frames, rules, selection; `2` on night, `3` on parchment |
+| `--star` / `--moon` | `#fff7e8` / `#cfdcff` | light text on night, starlight accents |
+| `--wine` / `--wine2` | `#8b3343` / `#b6495b` | wax seals, "main" marks, destructive buttons |
+| `--life` / `--mana` | `#e8685c` / `#78b2ff` | the two vitals (gradients use `--life2` `#b23a39`, `--mana2` `#4f74d8`) |
+
+The inherited names stay as aliases so older rules and other systems keep working: `--paper`=`--parch`,
+`--red`=`--wine`, `--red2`=`--wine2`, `--gold`=`--brass`, `--gold2`=`--brass2`, `--indigo`=`--night`.
+Element colours are unchanged (`icons.js EL_COLOR`).
+
+### Type
+Three roles, all from the locale (`core.meta`), never hard-coded:
+- `--fd` display: **MV Serif** (Noto Serif SC, variable 200–900, a 0.5 MB subset of the locale characters, see
+  `tools/font-subset.mjs`) — headings, tabs, names, place names, labels, buttons, every numeral (`tabular-nums`).
+- `--fb` body: MV WenKai (hand-written kai) — dialogue, descriptions, objectives, hints: the diary voice.
+- `--ft` brush and `--fs` running script stay for the world's signs and canvas lettering only; the interface no longer
+  uses them.
+
+Scale in design units (`u`, px at 1280×720): title 92 · card 54 · page title 28 · section/name plate 19–21 · label 15 ·
+small label 13 · kicker 12 (letter-spacing .24em, brass) · body 15 (line-height 1.85) · dialogue 20 (1.75) · hint 13.
+Weights: display 600–700, labels 600, kickers 600, body 400. CJK headings are tracked .06–.16em (the old .3–.5em read
+as gaps, not elegance).
+
+### Surfaces, frames and ornaments
+- **Night glass** (`.mv-night`, HUD plates): `--night`/`--glass` gradient, 1u brass hairline at ~35 % alpha, a faint top
+  highlight, soft drop shadow. HUD plates never use `backdrop-filter` (it would re-blur the 3D picture every frame on a
+  phone).
+- **Parchment** (`.mv-paper`, unchanged hook): ivory gradient lighter at the centre, a faint fibre texture
+  (`paperTexture`), a soft inner edge, and a framed border drawn by `.bg::after` with `border-image` from a generated
+  SVG (`icons.js filigree()`: hairline double rule, a curl-and-diamond flourish in each corner). Two colourways:
+  `--fr-paper` (dark brass on parchment) and `--fr-night` (light brass on night).
+- **Rules** (`.rule`): a hairline fading at both ends with a four-point star in the middle (`--mk-star`).
+- **Wax seal** (`.seal`): round, wine, embossed rim; replaces the vermilion square seal everywhere (journal marks,
+  shop stamp, confirm slip, the 「终」 of the ending).
+- **Key caps** (`.keycap`): small night-glass keys with a brass hairline; on parchment (`.mv-paper`, the menu page
+  `.mn-body`) they turn ivory with an ink rim.
+- **Buttons** (`.btn`): serif label, a brass underline that grows from the centre and a star marker on hover/selection;
+  `.btn.red` turns wine.
+- **Medallions**: spells, wheel slots and touch buttons are night discs with a thin brass ring and the element's glow.
+- The washi deckle, brush-stroke masks, ensō rings and the wave pattern are gone from the interface (the generators
+  that only they used were removed after `tools/dead-code.mjs` reported them).
+
+### Motion
+`--ease: cubic-bezier(.2,.8,.2,1)`. Hover 120–160 ms; panels fade + rise 8u + scale .985→1 in 240 ms; the place-name
+card keeps its 4.4 s arc with an ornament that draws out from the centre; selection underlines grow from the centre;
+gauge-ready and the selected wheel slot get a slow brass sheen. `prefers-reduced-motion: reduce` stops sheens, bobs
+and spins.
+
+### Screens
+- HUD: brass astrolabe emblem (sun/moon disc) beside capsule vitals; compass as a fading night ribbon with serif
+  cardinals; serif tracker with a star bullet; glass counter, prompt and key hints; the spell medallion with a brass
+  gauge ring; thin ivory crosshair; rose lock-on brackets; boss/duel bar with filigree end caps.
+- Place-name card: kicker (the region's major name between hairlines), serif title, ornament, kai subtitle.
+- Toasts: night-glass slips with a brass edge and a coin icon.
+- Dialogue: parchment card with the filigree frame, a night name plate with a brass rim, an arched cameo holding the
+  speaker's portrait (below), a brass star "next" mark; choices are glass pills with numbered coins.
+- Pause menu: a night-blue leather cover (frame `--fr-night`) holding the tab bar and footer, with the page itself
+  in parchment (`.mn-body`); lists, details, spells, items, wardrobe, settings and the map are ink on parchment.
+- Shop: the curtain became a hanging sign (night plaque with brass frame); stamp = wax seal.
+- Title: serif name with a brass sheen and an ornament, a star-marked menu; sheets and confirm slips in parchment.
+- Spell wheel: a night-glass ring with brass hairlines and medallion slots; ceremony and ending in starlight and brass.
+- Phones: everything above, plus the existing touch rules — targets ≥ 44 px, `env(safe-area-inset-*)`, nothing
+  over the stick (left-lower quarter) or the button cluster (lower right).
+
+### Dialogue portraits
+The cameo shows a head-and-shoulders picture of the speaker, rendered by the game itself from the character's own 3D
+model — never official art. `tools/costume/portraits.mjs` (+ `portraits.shot.js`) uses the wardrobe pictures' method:
+the figure and the lights on a layer of their own, the world hidden, drawn over a dark and a light flat ground, cut out by
+difference matting. Every speaker gets the same lens (28°), distance (2.6 m) and framing round the head bone, so all
+share one scale; Elaina looks to the right of her picture (she speaks from the left of the box), the others to the left.
+Out: `assets/textures/ui/ui_portrait_<id>.webp` (320×400, 9–21 KB, manifest `ui_portrait_<id>`, licence "In-game
+render"): `elaina_apprentice`, `elaina_elaina`, `fran`, `saya`, `mother`, `father`, `exam`, `innkeeper`.
+- `G.ui.portraitOf(who) -> url | null` (`dialogue.js portraitOf`): the manifest picture for a story speaker id; Elaina's
+  follows `G.player.outfit` (the witch's robe when that outfit has none). `story/dialogue.js` passes it as
+  `say({ portrait })`; speakers without a picture (roadside travellers, the narrator has no cameo) keep the glyph.
+- Re-run `node tools/costume/portraits.mjs [--only id,…]` after a character's look changes; `--no-shoot` re-cuts the
+  last shots (to change the crop: `ABOVE` / `BELOW` in the tool).
+
+### Hooks kept
+Class names the acceptance scripts and other systems read are unchanged (`.mn-subtabs .st`, `.mn-list .scroll .mn-row`,
+`.mv-ui`, `.mv-paper`, `.modal`, every `hud-*` / `dlg-*` / `tc-*` / `wh-*` / `foe-*` hook); the only DOM additions are
+ornaments (`.mv-banner .kick` now holds the region's major name, `.tt-name .orn`) and the menu sheet's `.mv-night` class.
+No exported function or data shape changed.
+

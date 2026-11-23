@@ -27,11 +27,12 @@ R deploy: main → CI build → GitHub Pages (public). PR only; N push main.
 
 ## rules
 M text: player-visible strings ∈ loc; keys in text as {action} placeholders (guard, cast, broom …). V $node tools/check-i18n.mjs src
+M version: `package.json` version = the title screen's version (build.mjs → G.version); maintainer bumps it when merging a player-visible change (feature → minor, fix → patch).
 M save: key majo_no_tabitabi_episodes_save_v1 immutable; new persistent field → default in `src/core/save.js` defaultState()|defaultSettings(); old saves load unchanged.
 M test: play|acc only. N maintainer browser|desktop app|port 47327.
 M code: cross-system access via optional chaining (G.fx?.x()); update(): N throw, N per-frame alloc, N full-scene walk.
 M perf: new content count scales with q.
-M asset: third-party ∈ CC0|CC-BY; row in `assets/manifest.json` via $node tools/manifest-patch.mjs + `CREDITS.md`.
+M asset: third-party ∈ CC0|CC-BY|OFL (fonts only); row in `assets/manifest.json` via $node tools/manifest-patch.mjs + `CREDITS.md`.
 M story: anchors moved → update quests/guards/tests together → V acc story.
 N media: official anime stills|screenshots|art|music in repo or docs. README/docs images = in-game captures only.
 N content: other games' names|characters|looks|levels. dialogue/foes/landmarks = original.

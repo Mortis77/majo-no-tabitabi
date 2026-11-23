@@ -13,44 +13,46 @@ import { spellSlots, selectedId, selectSpell } from './model.js';
 const R_SLOT = 182;   // design px from the centre to a slot
 
 addCss(`
-.mv-wheel { opacity: 0; visibility: hidden; transition: opacity .14s, visibility 0s .14s; background: radial-gradient(circle at 50% 50%, rgba(8,8,22,.5) 0%, rgba(8,8,22,.62) 38%, rgba(8,8,22,.3) 100%); }
+.mv-wheel { opacity: 0; visibility: hidden; transition: opacity .14s, visibility 0s .14s; background: radial-gradient(circle at 50% 50%, rgba(6,10,24,.5) 0%, rgba(6,10,24,.62) 38%, rgba(6,10,24,.3) 100%); }
 .mv-wheel.on { opacity: 1; visibility: visible; transition: opacity .14s; }
 .wh-disc { position: absolute; left: 50%; top: 50%; width: 0; height: 0; transform: scale(calc(var(--whs, 1) * .86)) rotate(-10deg); transition: transform .26s cubic-bezier(.2,.9,.2,1.25); }
 .mv-wheel.on .wh-disc { transform: scale(var(--whs, 1)); }
+/* a night-glass ring with brass hairlines and the astrolabe round it */
 .wh-ring { position: absolute; left: -256u; top: -256u; width: 512u; height: 512u; border-radius: 50%;
-  background: radial-gradient(circle, rgba(14,13,30,.35) 0, rgba(14,13,30,.35) 39.5%, rgba(14,13,30,.8) 40%, rgba(18,17,40,.84) 72%, rgba(14,13,30,.55) 99%, rgba(14,13,30,0) 100%);
-  box-shadow: inset 0 0 0 1.2u rgba(255,226,160,.4); }
-.wh-ring::before { content: ''; position: absolute; inset: 153u; border-radius: 50%; box-shadow: 0 0 0 1.2u rgba(255,226,160,.5); }
-.wh-ring::after { content: ''; position: absolute; inset: -26u; background: var(--gold2); opacity: .55; -webkit-mask: var(--mk-enso2) center / contain no-repeat; mask: var(--mk-enso2) center / contain no-repeat; }
-.wh-needle { position: absolute; left: -8u; top: -124u; width: 16u; height: 124u; transform-origin: 50% 100%; opacity: 0; transition: opacity .12s; will-change: transform; }
-.wh-needle::before { content: ''; position: absolute; left: 0; top: 0; border: 8u solid transparent; border-top: 0; border-bottom: 15u solid var(--red2); filter: drop-shadow(0 0 4u rgba(228,87,60,.8)); }
+  background: radial-gradient(circle, rgba(10,15,32,.3) 0, rgba(10,15,32,.3) 39.5%, rgba(14,20,42,.84) 40%, rgba(22,30,58,.88) 72%, rgba(12,18,38,.6) 99%, rgba(12,18,38,0) 100%);
+  box-shadow: inset 0 0 0 1.2u rgba(236,217,164,.45); }
+.wh-ring::before { content: ''; position: absolute; inset: 153u; border-radius: 50%; box-shadow: 0 0 0 1.2u rgba(236,217,164,.5), 0 0 24u rgba(236,217,164,.12); }
+.wh-ring::after { content: ''; position: absolute; inset: -24u; background: var(--brass2); opacity: .5; -webkit-mask: var(--mk-astro) center / contain no-repeat; mask: var(--mk-astro) center / contain no-repeat; }
+.wh-needle { position: absolute; left: -9u; top: -126u; width: 18u; height: 126u; transform-origin: 50% 100%; opacity: 0; transition: opacity .12s; will-change: transform; }
+.wh-needle::before { content: ''; position: absolute; left: 0; top: 0; width: 18u; height: 18u; background: var(--brass2); filter: drop-shadow(0 0 5u rgba(236,217,164,.8));
+  -webkit-mask: var(--mk-star) center / contain no-repeat; mask: var(--mk-star) center / contain no-repeat; }
 .wh-needle.on { opacity: 1; }
-.wh-slot { position: absolute; width: 78u; height: 78u; margin: -39u; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 40u; color: var(--sc);
-  background: radial-gradient(circle at 50% 35%, rgba(46,42,72,.95), rgba(14,12,26,.95)); box-shadow: inset 0 0 0 1.5u rgba(243,233,212,.28), 0 4u 12u rgba(0,0,0,.5);
+.wh-slot { position: absolute; width: 78u; height: 78u; margin: -39u; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 38u; color: var(--sc);
+  background: radial-gradient(circle at 50% 32%, rgba(50,68,116,.96), rgba(12,18,36,.96) 74%); box-shadow: inset 0 0 0 1.2u var(--hair), 0 4u 12u rgba(0,0,0,.5);
   transition: transform .14s cubic-bezier(.2,.8,.2,1.4), box-shadow .14s; }
 .wh-slot .ic { filter: drop-shadow(0 0 6u var(--sc)); }
-.wh-slot .nm { position: absolute; left: 50%; top: 100%; transform: translateX(-50%); margin-top: 5u; white-space: nowrap; font: 700 15u/1.3 var(--ft); letter-spacing: .2em; margin-right: -.2em; color: var(--paper);
-  text-shadow: 0 1u 3u rgba(0,0,0,.95), 0 0 8u rgba(0,0,0,.8); }
+.wh-slot .nm { position: absolute; left: 50%; top: 100%; transform: translateX(-50%); margin-top: 6u; white-space: nowrap; font: 600 14u/1.3 var(--fd); letter-spacing: .12em; margin-right: -.12em; color: var(--star);
+  text-shadow: var(--halo); }
 .wh-slot .num { position: absolute; left: -4u; top: -4u; }
-.wh-slot .lk { position: absolute; right: -4u; bottom: -2u; width: 26u; height: 26u; border-radius: 50%; background: var(--ink); color: var(--paper3); display: none; align-items: center; justify-content: center; font-size: 14u;
-  box-shadow: 0 0 0 1u rgba(243,233,212,.4); }
-.wh-slot.locked { color: #6f6a80; }
+.wh-slot .lk { position: absolute; right: -4u; bottom: -2u; width: 26u; height: 26u; border-radius: 50%; background: radial-gradient(circle at 50% 34%, #2a3a64, #0d1328 75%); color: var(--brass2); display: none; align-items: center; justify-content: center; font-size: 13u;
+  box-shadow: 0 0 0 1u var(--hair2); }
+.wh-slot.locked { color: #6f7590; }
 .wh-slot.locked .ic { filter: none; opacity: .55; }
 .wh-slot.locked .lk { display: flex; }
 .wh-slot.locked .lk .ic { opacity: 1; }
-.wh-slot.locked .nm { color: #a9a3b8; font-weight: 500; }
-.wh-slot.cur { box-shadow: inset 0 0 0 2u var(--gold2), 0 4u 12u rgba(0,0,0,.5); }
-.wh-slot.hov { transform: scale(1.2); box-shadow: inset 0 0 0 2.5u var(--sc), 0 0 22u 2u var(--sc), 0 4u 12u rgba(0,0,0,.5); }
-.wh-slot.hov.locked { box-shadow: inset 0 0 0 2u #8d88a0, 0 4u 12u rgba(0,0,0,.5); }
-.wh-slot.hov .nm { color: var(--gold2); }
+.wh-slot.locked .nm { color: #a9adbf; font-weight: 500; }
+.wh-slot.cur { box-shadow: inset 0 0 0 2u var(--brass2), 0 4u 12u rgba(0,0,0,.5); }
+.wh-slot.hov { transform: scale(1.18); box-shadow: inset 0 0 0 2u var(--sc), 0 0 22u 2u color-mix(in srgb, var(--sc) 70%, transparent), 0 4u 12u rgba(0,0,0,.5); }
+.wh-slot.hov.locked { box-shadow: inset 0 0 0 2u #8d90a8, 0 4u 12u rgba(0,0,0,.5); }
+.wh-slot.hov .nm { color: var(--brass2); }
 .wh-mid { position: absolute; left: -96u; top: -96u; width: 192u; height: 192u; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-.wh-mid .gl { position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-52%); font: 700 150u/1 var(--ft); color: var(--sc, #fff); opacity: .11; }
-.wh-mid .kick { position: relative; font: 500 12u/1.4 var(--fb); letter-spacing: .4em; margin-right: -.4em; color: var(--gold2); }
-.wh-mid .nm { position: relative; font: 700 32u/1.25 var(--ft); letter-spacing: .2em; margin-right: -.2em; color: #fffaf0; text-shadow: 0 2u 6u rgba(0,0,0,.9); }
-.wh-mid .ds { position: relative; margin-top: 4u; font: 500 13u/1.5 var(--fb); letter-spacing: .06em; color: var(--paper); max-width: 180u; }
-.wh-mid .ds .ic { color: #9fd6ff; font-size: 13u; margin: 0 2u 0 6u; }
-.wh-mid .ds b { color: #9fd6ff; font-weight: 700; }
-.wh-hint { position: absolute; left: 0; right: 0; top: calc(50% + 292u * var(--whs, 1)); text-align: center; font: 500 14u/22u var(--fb); letter-spacing: .14em; color: var(--paper); text-shadow: 0 1u 3u rgba(0,0,0,.9); }
+.wh-mid .gl { position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-52%); font: 700 140u/1 var(--fd); color: var(--sc, #fff); opacity: .1; }
+.wh-mid .kick { position: relative; font: 600 11.5u/1.4 var(--fd); letter-spacing: .32em; margin-right: -.32em; color: var(--brass2); }
+.wh-mid .nm { position: relative; font: 600 30u/1.25 var(--fd); letter-spacing: .12em; margin-right: -.12em; color: #fffaf0; text-shadow: 0 2u 6u rgba(0,0,0,.9); }
+.wh-mid .ds { position: relative; margin-top: 4u; font: 400 13.5u/1.5 var(--fb); letter-spacing: .04em; color: var(--star); max-width: 180u; }
+.wh-mid .ds .ic { color: #a9cfff; font-size: 13u; margin: 0 2u 0 6u; }
+.wh-mid .ds b { font-family: var(--fd); color: #a9cfff; font-weight: 600; }
+.wh-hint { position: absolute; left: 0; right: 0; top: calc(50% + 292u * var(--whs, 1)); text-align: center; font: 400 14u/22u var(--fb); letter-spacing: .1em; color: var(--star); text-shadow: var(--halo); }
 .wh-hint .keycap { margin: 0 6u; }
 .mv-wheel.touch { pointer-events: auto; touch-action: none; }
 .mv-wheel.touch .wh-slot { pointer-events: auto; cursor: pointer; }

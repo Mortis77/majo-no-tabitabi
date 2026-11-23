@@ -9,6 +9,8 @@ export default {
       { family: 'MV WenKai', file: 'fonts/zh-CN/LXGWWenKaiLite-Regular.ttf', weight: '100 900' },
       { family: 'MV Brush', file: 'fonts/zh-CN/MaShanZheng-Regular.ttf', weight: '100 900' },
       { family: 'MV Running', file: 'fonts/zh-CN/ZhiMangXing-Regular.ttf', weight: '100 900' },
+      // the interface's display serif: a variable subset of Noto Serif SC (tools/font-subset.mjs), real weights 200-900
+      { family: 'MV Serif', file: 'fonts/zh-CN/NotoSerifSC-UI.woff2', weight: '200 900' },
     ],
     // Hero inscriptions painted as images for this locale (assets/lettering/zh-CN, generated, see the manifest). A sign
     // whose whole text matches a key is drawn from the image instead of the font; other locales fall back to the font.
@@ -17,6 +19,8 @@ export default {
     fontTitle: '"MV Brush", "Kaiti SC", "STKaiti", "KaiTi", "Songti SC", serif',
     fontBody: '"MV WenKai", "Kaiti SC", "STKaiti", "KaiTi", "PingFang SC", "Microsoft YaHei", sans-serif',
     fontSign: '"MV Running", "MV Brush", "Kaiti SC", "STKaiti", "KaiTi", serif',
+    // display: the interface's headings, names, labels and numerals (docs/api/ui.md "Grimoire round")
+    fontDisplay: '"MV Serif", "Songti SC", "STSong", "Noto Serif CJK SC", "Source Han Serif SC", "SimSun", serif',
   },
   title: '魔女之旅',
   boot: {

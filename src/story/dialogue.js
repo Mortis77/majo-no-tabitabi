@@ -186,7 +186,7 @@ export function createDialogue(story) {
         const name = who === 'narrator' ? '' : fill(G.npcs?.nameOf?.(who) ?? t('story.name.' + who), ctx.vars);   // roadside travellers name themselves
         const choices = Array.isArray(ln.choices) ? ln.choices.map((c) => fill(c.text, ctx.vars)) : undefined;
         let r;
-        try { r = await G.ui.say({ name, text, portrait: who === 'narrator' ? null : true, choices, side: who === 'elaina' || who === 'dango' ? 'left' : 'right' }); }
+        try { r = await G.ui.say({ name, text, portrait: who === 'narrator' ? null : (G.ui.portraitOf?.(who) || true), choices, side: who === 'elaina' || who === 'dango' ? 'left' : 'right' }); }
         catch (e) { G.reportError('dialogue:say', e); }
         mouth(who, text, false);
         // the listener acknowledges now and then

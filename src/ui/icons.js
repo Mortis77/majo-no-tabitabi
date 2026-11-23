@@ -1,5 +1,5 @@
-// Every picture in the UI is drawn here in code: SVG pictograms, the washi texture, brush-stroke masks and the ensō ring.
-// No external images or fonts.
+// Every picture in the UI is drawn here in code: SVG pictograms, the parchment grain, the starfield, the filigree frame,
+// the star, the heading ornament and the astrolabe ring. No external images.
 import { mulberry32, TAU } from '../core/util.js';
 
 export const ELEMENTS = ['fire', 'water', 'ice', 'wind', 'thunder', 'earth', 'sun', 'moon'];
@@ -129,8 +129,54 @@ export function setIcon(e, name) {
 // ---- generated textures / masks (returned as CSS url() values) -----------------------------------------------
 const svgUrl = (svg) => `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
 
-/** Washi: pale fibre noise, used with multiply over the paper colour. */
-export function paperTexture(seed = 11) {
+// ---- grimoire ornaments (docs/api/ui.md "Grimoire round"): frames, rules, the astrolabe ring, parchment and stars ----
+
+/** Frame for border-image (slice 36 of a 120 box): a hairline outer rule, an inner rule with notched corners, a four-point
+ *  star in each corner and a dot where the inner rule ends. Colour is baked in (border-image cannot take currentColor). */
+export function filigree(stroke = '#94712f', alpha = 0.8) {
+  const corner = `<path d="M8 34V22a14 14 0 0 0 14-14h12" fill="none" stroke-width=".9"/>`
+    + `<path d="M9.5 3.6l1.3 4.6 4.6 1.3-4.6 1.3-1.3 4.6-1.3-4.6-4.6-1.3 4.6-1.3z" stroke="none" fill="${stroke}"/>`
+    + `<circle cx="8" cy="37.5" r="1.2" stroke="none" fill="${stroke}"/><circle cx="37.5" cy="8" r="1.2" stroke="none" fill="${stroke}"/>`;
+  const g = (tr) => `<g transform="${tr}">${corner}</g>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120"><g fill="none" stroke="${stroke}" stroke-opacity="${alpha}" fill-opacity="${alpha}">`
+    + `<rect x="3.5" y="3.5" width="113" height="113" stroke-width="1"/>`
+    + `<path d="M41 8H79M41 112H79M8 41V79M112 41V79" stroke-width=".9"/>`
+    + g('') + g('translate(120 0) scale(-1 1)') + g('translate(0 120) scale(1 -1)') + g('translate(120 120) scale(-1 -1)')
+    + `</g></svg>`;
+  return svgUrl(svg);
+}
+
+/** Four-point star (mask). */
+export function star4() {
+  return svgUrl('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 1.5c.7 5.6 4.9 9.8 10.5 10.5-5.6.7-9.8 4.9-10.5 10.5C11.3 16.9 7.1 12.7 1.5 12 7.1 11.3 11.3 7.1 12 1.5z" fill="#000"/></svg>');
+}
+
+/** A horizontal heading ornament (mask, 240 × 20): tapering rules, two small curls, a star in the middle. */
+export function flourish() {
+  const half = '<path d="M6 10C38 9.7 68 9.1 92 9.1v1.8C68 10.9 38 10.3 6 10z"/>'
+    + '<path d="M96 10c3-4.6 8-5.2 10.6-2.4 1.8 2-.2 4.6-2.4 3.4-1.4-.8-.6-2.6.8-2.2-1.6-1.4-5.6-.4-8.4 1.6z"/>'
+    + '<circle cx="111.4" cy="10" r="1.1"/>';
+  return svgUrl(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 20"><g fill="#000">${half}<g transform="translate(240 0) scale(-1 1)">${half}</g>`
+    + '<path d="M120 2.2c.5 4 3.3 7.3 7.6 7.8-4.3.5-7.1 3.8-7.6 7.8-.5-4-3.3-7.3-7.6-7.8 4.3-.5 7.1-3.8 7.6-7.8z"/></g></svg>');
+}
+
+/** The astrolabe ring (mask, 100 × 100): a fine double ring, 24 ticks (every sixth long) and four star points. */
+export function astrolabe() {
+  let ticks = '';
+  for (let i = 0; i < 24; i++) {
+    const a = (i / 24) * TAU, long = i % 6 === 0;
+    const r0 = long ? 39.5 : 42.4, r1 = 46;
+    ticks += `<path d="M${(50 + Math.sin(a) * r0).toFixed(2)} ${(50 - Math.cos(a) * r0).toFixed(2)}L${(50 + Math.sin(a) * r1).toFixed(2)} ${(50 - Math.cos(a) * r1).toFixed(2)}" stroke-width="${long ? 2.4 : 1.3}"/>`;
+  }
+  let pts = '';
+  for (let i = 0; i < 4; i++) pts += `<path transform="rotate(${i * 90} 50 50)" d="M50 .8l1.6 4.4L50 8.6l-1.6-3.4z"/>`;
+  return svgUrl(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g fill="none" stroke="#000">`
+    + '<circle cx="50" cy="50" r="46.6" stroke-width="2.4"/><circle cx="50" cy="50" r="39.6" stroke-width="1.2"/>' + ticks
+    + `</g><g fill="#000">${pts}</g></svg>`);
+}
+
+/** Parchment grain: warm mottling and faint fibres (tiles; used with multiply over the parchment colour). */
+export function parchTexture(seed = 7) {
   const N = 256;
   const c = document.createElement('canvas');
   c.width = c.height = N;
@@ -138,85 +184,40 @@ export function paperTexture(seed = 11) {
   const r = mulberry32(seed);
   const img = g.createImageData(N, N);
   for (let i = 0; i < N * N; i++) {
-    const v = 238 + r() * 17;
-    img.data[i * 4] = v; img.data[i * 4 + 1] = v - 1; img.data[i * 4 + 2] = v - 4; img.data[i * 4 + 3] = 255;
+    const v = 244 + r() * 11;
+    img.data[i * 4] = v; img.data[i * 4 + 1] = v - 2; img.data[i * 4 + 2] = v - 7; img.data[i * 4 + 3] = 255;
   }
   g.putImageData(img, 0, 0);
-  g.lineCap = 'round';
-  for (let i = 0; i < 260; i++) {       // fibres
-    const x = r() * N, y = r() * N, a = r() * TAU, l = 6 + r() * 26;
-    g.strokeStyle = r() < 0.5 ? `rgba(255,255,255,${0.25 + r() * 0.35})` : `rgba(120,96,60,${0.05 + r() * 0.09})`;
-    g.lineWidth = 0.4 + r() * 0.9;
-    for (const [ox, oy] of [[0, 0], [N, 0], [-N, 0], [0, N], [0, -N]]) {   // wrap so it tiles
-      g.beginPath();
-      g.moveTo(x + ox, y + oy);
-      g.quadraticCurveTo(x + ox + Math.cos(a + 0.6) * l * 0.5, y + oy + Math.sin(a + 0.6) * l * 0.5, x + ox + Math.cos(a) * l, y + oy + Math.sin(a) * l);
-      g.stroke();
+  const wrap = [[0, 0], [N, 0], [-N, 0], [0, N], [0, -N], [N, N], [-N, -N], [N, -N], [-N, N]];
+  for (let i = 0; i < 26; i++) {        // soft mottling
+    const x = r() * N, y = r() * N, rad = 18 + r() * 46;
+    for (const [ox, oy] of wrap) {
+      const gr = g.createRadialGradient(x + ox, y + oy, 0, x + ox, y + oy, rad);
+      gr.addColorStop(0, `rgba(170,128,70,${0.025 + r() * 0.035})`); gr.addColorStop(1, 'rgba(170,128,70,0)');
+      g.fillStyle = gr; g.fillRect(x + ox - rad, y + oy - rad, rad * 2, rad * 2);
     }
+  }
+  g.lineCap = 'round';
+  for (let i = 0; i < 90; i++) {        // fibres
+    const x = r() * N, y = r() * N, a = r() * TAU, l = 5 + r() * 18;
+    g.strokeStyle = r() < 0.5 ? `rgba(255,255,255,${0.2 + r() * 0.3})` : `rgba(130,100,60,${0.04 + r() * 0.06})`;
+    g.lineWidth = 0.4 + r() * 0.6;
+    for (const [ox, oy] of wrap.slice(0, 5)) { g.beginPath(); g.moveTo(x + ox, y + oy); g.lineTo(x + ox + Math.cos(a) * l, y + oy + Math.sin(a) * l); g.stroke(); }
   }
   return `url(${c.toDataURL('image/png')})`;
 }
 
-/** A horizontal brush stroke (stretchable mask): soft start on the left, dry frayed tail on the right. */
-export function brushStroke(seed, { w = 240, h = 24, fray = 5, rough = 1.5, tail = 18 } = {}) {
+/** A sparse starfield (transparent tile) for night-glass covers. */
+export function starfield(seed = 19) {
+  const N = 256;
+  const c = document.createElement('canvas');
+  c.width = c.height = N;
+  const g = c.getContext('2d');
   const r = mulberry32(seed);
-  const n = 16, top = [], bot = [];
-  const x1 = w - tail - 4;
-  for (let i = 0; i <= n; i++) {
-    const x = 7 + (i / n) * (x1 - 7);
-    top.push([x, 2.5 + r() * rough * 2 + Math.sin(i * 0.9 + seed) * 0.9]);
-    bot.push([x, h - 2.5 - r() * rough * 2 + Math.cos(i * 0.7 + seed) * 0.9]);
+  for (let i = 0; i < 70; i++) {
+    const x = r() * N, y = r() * N, big = r() < 0.12;
+    g.fillStyle = `rgba(${r() < 0.3 ? '220,230,255' : '255,244,220'},${big ? 0.5 + r() * 0.3 : 0.12 + r() * 0.25})`;
+    g.beginPath(); g.arc(x, y, big ? 0.9 + r() * 0.5 : 0.35 + r() * 0.45, 0, TAU); g.fill();
   }
-  const f = (v) => v.toFixed(1);
-  let d = `M1.5 ${f(h / 2)}Q1.5 ${f(top[0][1])} ${f(top[0][0])} ${f(top[0][1])}`;
-  for (let i = 1; i <= n; i++) d += `L${f(top[i][0])} ${f(top[i][1])}`;
-  const ya = top[n][1], yb = bot[n][1];
-  for (let k = 0; k < fray; k++) {
-    const y0 = ya + (yb - ya) * (k / fray), y1 = ya + (yb - ya) * ((k + 1) / fray);
-    const len = tail * (0.35 + r() * 0.65);
-    d += `L${f(x1 + len)} ${f(y0 + (y1 - y0) * 0.4)}L${f(x1 + r() * 3)} ${f(y1)}`;
-  }
-  for (let i = n; i >= 0; i--) d += `L${f(bot[i][0])} ${f(bot[i][1])}`;
-  d += `Q1.5 ${f(bot[0][1])} 1.5 ${f(h / 2)}Z`;
-  return svgUrl(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><path d="${d}" fill="#000"/></svg>`);
-}
-
-/** Deckle edge for paper sheets: a rectangle whose four sides wander by a hair. */
-export function deckle(seed = 5, amp = 2.2) {
-  const r = mulberry32(seed);
-  const W = 1000, H = 1000, pts = [];
-  const j = () => (r() - 0.5) * 2 * amp;
-  for (let x = 0; x <= W; x += 20) pts.push([x, 2 + amp + j()]);
-  for (let y = 20; y <= H; y += 20) pts.push([W - 2 - amp + j(), y]);
-  for (let x = W - 20; x >= 0; x -= 20) pts.push([x, H - 2 - amp + j()]);
-  for (let y = H - 20; y >= 20; y -= 20) pts.push([2 + amp + j(), y]);
-  const d = 'M' + pts.map((p) => p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join('L') + 'Z';
-  return svgUrl(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><path d="${d}" fill="#000"/></svg>`);
-}
-
-/** Ensō: one breath of the brush around a circle, thick where it lands and thin where it lifts. */
-export function enso(seed = 3, { gap = 0.5, thick = 9, thin = 2.2 } = {}) {
-  const r = mulberry32(seed);
-  const N = 96, out = [], inn = [];
-  for (let i = 0; i <= N; i++) {
-    const k = i / N;
-    const a = -Math.PI / 2 + 0.35 + k * (TAU - gap);
-    const press = Math.pow(Math.sin(Math.PI * Math.min(1, k * 1.25 + 0.06)), 0.7) * (1 - 0.6 * k);
-    const wd = thin + (thick - thin) * Math.max(0, press);
-    const ro = 47 + (r() - 0.5) * 0.7 - k * 1.2;
-    out.push([50 + Math.cos(a) * ro, 50 + Math.sin(a) * ro]);
-    inn.push([50 + Math.cos(a) * (ro - wd), 50 + Math.sin(a) * (ro - wd)]);
-  }
-  const f = (p) => p[0].toFixed(2) + ' ' + p[1].toFixed(2);
-  const d = 'M' + out.map(f).join('L') + 'L' + inn.reverse().map(f).join('L') + 'Z';
-  return svgUrl(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="${d}" fill="#000"/></svg>`);
-}
-
-/** Seigaiha-ish wave scallops (a faint repeating pattern for dark panels). */
-export function wavePattern(color = 'rgba(255,255,255,.07)') {
-  const arcs = [];
-  for (const [cx, cy] of [[0, 20], [40, 20], [20, 10], [20, 30], [0, 0], [40, 0], [0, 40], [40, 40], [-20, 10], [60, 10], [-20, 30], [60, 30]]) {
-    for (const rr of [19, 13, 7]) arcs.push(`<path d="M${cx - rr} ${cy}a${rr} ${rr} 0 0 1 ${rr * 2} 0" fill="none" stroke="${color}" stroke-width="1"/>`);
-  }
-  return svgUrl(`<svg xmlns="http://www.w3.org/2000/svg" width="40" height="20" viewBox="0 0 40 20">${arcs.join('')}</svg>`);
+  return `url(${c.toDataURL('image/png')})`;
 }

@@ -57,13 +57,14 @@
 
 ## 中文字体
 
-游戏随附三份字体及各自的版权声明、SIL Open Font License 1.1 全文。重新分发字体时请一同保留这些文件。
+游戏随附四份字体及各自的版权声明、SIL Open Font License 1.1 全文。重新分发字体时请一同保留这些文件。
 
 | 字体 | 作者 | 来源与随附许可 |
 | --- | --- | --- |
 | LXGWWenKaiLite | LXGW (LXGW WenKai Lite; based on Klee by Fontworks) | [字体项目](https://github.com/lxgw/LxgwWenKai-Lite) · [OFL 与版权声明](assets/fonts/zh-CN/OFL-LXGWWenKaiLite.txt) |
 | MaShanZheng | The Ma Shan Zheng Project Authors | [字体项目](https://github.com/googlefonts/mashanzheng) · [OFL 与版权声明](assets/fonts/zh-CN/OFL-MaShanZheng.txt) |
 | ZhiMangXing | The Zhi Mang Xing Project Authors | [字体项目](https://github.com/googlefonts/zhimangxing) · [OFL 与版权声明](assets/fonts/zh-CN/OFL-ZhiMangXing.txt) |
+| NotoSerifSC-UI | Google (Noto Serif SC; based on Source Han Serif by Adobe) | [字体项目](https://github.com/google/fonts/tree/main/ofl/notoserifsc) · [OFL 与版权声明](assets/fonts/zh-CN/OFL-NotoSerifSC-UI.txt) |
 
 ## CC0 素材来源
 
@@ -118,6 +119,7 @@
 - `ui_outfit_miko`、`ui_outfit_swim_a`、`ui_outfit_swim_b` [制作工具](tools/costume/wardrobe-pics.mjs)
 - `sky_traveller_cloudbank`
 - `char_fran`、`char_saya`、`char_elaina_mother`、`char_innkeeper`、`char_exam_witch`、`char_elaina`、`char_elaina_father`、`char_elaina_apprentice` [制作工具](tools/journey/build-cast.mjs)
+- `ui_portrait_elaina_apprentice`、`ui_portrait_elaina_elaina`、`ui_portrait_fran`、`ui_portrait_saya`、`ui_portrait_mother`、`ui_portrait_father`、`ui_portrait_exam`、`ui_portrait_innkeeper` [制作工具](tools/costume/portraits.mjs)
 
 ## 程序库
 
