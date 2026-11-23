@@ -2,7 +2,8 @@ import * as THREE from 'three';
 import { BELL } from '../../data/bellcrown.js';
 import { hookMaterial } from '../../core/mats.js';
 import { farmWeight } from '../terrain/paddyLayout.js';
-import { MeadowWakeField } from './wake-field.js';
+import { MeadowWakeField, wakeFieldSize, coreWeight } from './wake-field.js';
+import { WakeSwath } from './wake-swath.js';
 
 const smooth=THREE.MathUtils.smoothstep;
 
@@ -63,11 +64,24 @@ function meadowSurvey(G, bed) {
   };
 }
 
+// The flight of the flakes (a seeded weight, grip and flutter per flake, the pocket of air that
+// rides behind the rider, skittering where the wake still rakes the ground) is adapted from
+// Petalwake (src/fx/particles.js, src/fx/windfx.js), MIT License, Copyright (c) 2026 Jacob Miller;
+// the full notice is reproduced at the top of src/world/flora/wake-field.js.
+
+// Grass bits torn off the blades in the wake (never reddened, never grey).
+const BITS=[0x8fb45e,0x7aa24c,0xa9c46e,0x6b9443,0xb8c77a];
+const FLAKES_PER_METRE=26;   // at full rate and drive
+
 export function createSlipstream(G) {
-  const capacity=G.quality?.name==='low'?196:384;
+  const q=G.quality||{};
+  const tier=q.mobile?0:q.name==='low'?1:q.name==='med'?2:3;
+  // Enough flakes that speed reads at a glance: a low cruise sheds a clear stream, a boost a dense one.
+  const capacity=[260,380,640,800][tier];
+  const rate=[.55,.6,.8,1][tier];
   const geo=new THREE.BufferGeometry();
   // Smooth spoon-shaped lobes, a tapering base and a small crease along the rib.
-  const rings=[[-.58,.012],[-.39,.115],[-.13,.235],[.09,.336],[.28,.39],[.42,.37],[.54,.24]];
+  const rings=[[-.58,.012],[-.30,.17],[.02,.31],[.32,.39],[.54,.24]];
   const positions=[],colors=[],indices=[];
   for(let row=0;row<rings.length;row++){
     const [z,width]=rings[row],t=(z+.58)/1.12;
@@ -77,8 +91,8 @@ export function createSlipstream(G) {
       const y=.15*edge*Math.sin(Math.PI*t*.82)+.11*t*t+.055*u*t-.027*Math.exp(-9*edge)*Math.sin(Math.PI*t);
       const tip=t**5*(.12*edge+.07*Math.exp(-12*edge));
       positions.push(x,y,z-tip);
-      const pigment=.68+.27*t+.055*edge-.045*Math.exp(-12*edge);
-      colors.push(pigment+.035*t,pigment,pigment+.025*edge);
+      const pigment=.80+.18*t+.04*edge-.035*Math.exp(-12*edge);
+      colors.push(pigment+.02*t,pigment,pigment+.02*edge);
       if(row && col){
         const k=row*5+col;
         indices.push(k-6,k-1,k,k-6,k,k-5);
@@ -93,9 +107,10 @@ export function createSlipstream(G) {
   material.name='flora:loose-petals';
   material.userData.surface='none';
   material.userData.look={trans:.76,rim:.10,wrap:.61,shadowTint:.35};
-  const flutter={value:0};
+  const flutter={value:0}, glow={value:.3};
   material.onBeforeCompile=shader=>{
     shader.uniforms.petalTime=flutter;
+    shader.uniforms.petalGlow=glow;
     shader.vertexShader=shader.vertexShader
       .replace('#include <common>','#include <common>\nuniform float petalTime;')
       .replace('#include <begin_vertex>',`#include <begin_vertex>
@@ -106,63 +121,84 @@ export function createSlipstream(G) {
         float pulse=petalTime*5.8+4.1*instanceColor.r+11.*instanceColor.g;
         transformed.y+=tip*tip*(.053*sin(pulse+tip)+.10*position.x*sin(pulse*1.37));
         transformed*=smoothstep(.80,1.65,eyeDepth);`);
+    // Thin petals carry their own light: in the shade of the rider they stay
+    // soft and coloured instead of turning grey.
+    if(shader.fragmentShader) shader.fragmentShader=shader.fragmentShader
+      .replace('#include <common>','#include <common>\nuniform float petalGlow;')
+      .replace('#include <emissivemap_fragment>','#include <emissivemap_fragment>\ntotalEmissiveRadiance+=diffuseColor.rgb*petalGlow;');
   };
-  material.customProgramCacheKey=()=>'loose-petals-lit';
+  material.customProgramCacheKey=()=>'loose-petals-lit2';
   hookMaterial(material);
   const mesh=new THREE.InstancedMesh(geo,material,capacity);
   mesh.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(capacity*3),3).setUsage(THREE.DynamicDrawUsage);
   mesh.name='flora:airborne-leaves';
-  mesh.receiveShadow=true;
+  mesh.receiveShadow=!q.mobile;   // phones: unshadowed flakes (a cheaper fragment for hundreds of small cards)
   mesh.frustumCulled=false;
   mesh.count=0;
   mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
   G.scene.add(mesh);
   const pool=Array.from({length:capacity},()=>({
-    pos:new THREE.Vector3(),vel:new THREE.Vector3(),color:new THREE.Color(),age:0,life:0
+    pos:new THREE.Vector3(),vel:new THREE.Vector3(),color:new THREE.Color(),age:0,life:0,petal:true,size:0,
+    seed:0,rx:0,ry:0,rz:0,sx:0,sy:0,sz:0,settled:false,floor:0,nextGroundCheck:0,hint:-1,nx:0,nz:0,lift:0,
   }));
-  const field=new MeadowWakeField(), bed={height:0,cover:0,color:new THREE.Color()};
+  const field=new MeadowWakeField(wakeFieldSize(q)), bed={height:0,cover:0,color:new THREE.Color()};
   const survey=meadowSurvey(G,bed);
+  const swath=new WakeSwath(G,q);
+  const water=(x,z)=>!!G.world?.isWater?.(x,z);
   const pose=new THREE.Object3D(),air=new THREE.Vector3(),lastPos=new THREE.Vector3();
+  const camVel=new THREE.Vector3(),lastCam=new THREE.Vector3();
+  let hasCam=false;
   const stats={petals:0,leaves:0,airborne:0};
-  let cursor=0,petalCredit=0,leafCredit=0,lastTime=-Infinity,previous=null,stamp=null;
-  const last={x:0,z:0,time:0,bare:false};
+  const area=field.cell*field.cell;
+  let cursor=0,petalCredit=0,leafCredit=0,lastTime=-Infinity,previous=null,stamp=null,budget=0;
+  const last={x:0,z:0,time:0,bare:false,wet:false};
   let hasPosition=false;
 
   function loft(x,z,side,pressure,petal) {
-    const q=pool[cursor];
+    if(budget<=0) return;
+    budget--;
+    const p=pool[cursor];
     cursor=(cursor+1)%capacity;
-    const drive=stamp.drive, turn=stamp.turn*side;
-    const power=pressure*(1+.30*turn);
-    q.age=0;
-    q.life=(petal?1.8:1.2)+.9*drive+Math.random()*.65;
-    q.petal=petal;
-    q.phase=Math.random()*Math.PI*2;
-    q.size=(petal?.15:.18)+Math.random()*(petal?.13:.12)+drive*.055;
-    q.spin=(side||1)*(2.9+4.8*Math.random());
-    q.side=side||1;
-    q.nx=-stamp.dz*q.side; q.nz=stamp.dx*q.side;
-    q.lift=power;
-    q.pos.set(x+(Math.random()-.5)*.48,bed.height+(petal?.80:.40)+Math.random()*.26,z+(Math.random()-.5)*.48);
-    q.floor=bed.height+.025;
-    q.nextGroundCheck=.15+.12*Math.random();
-    const carry=stamp.speed*(.25+.30*drive);
-    const flick=1.2+power*3.8;
-    q.vel.set(stamp.dx*carry+q.nx*flick,1.7+3.8*power+Math.random()*.85,stamp.dz*carry+q.nz*flick);
+    const drive=stamp.drive, power=pressure*(1+.30*stamp.turn*side);
+    const r=Math.random(), j=field.cell*.5;
+    p.age=0; p.petal=petal; p.settled=false; p.hint=-1;
+    p.seed=Math.random();
+    p.life=petal?2.8+1.4*Math.random()+.6*drive:1.7+1.1*Math.random();
+    const rs=Math.random();
+    p.size=petal?.07+.16*rs*rs+.02*drive:.10+.22*rs*rs;
+    p.rx=Math.random()*6.283; p.ry=Math.random()*6.283; p.rz=Math.random()*6.283;
+    p.sx=(Math.random()-.5)*9; p.sy=(Math.random()-.5)*7; p.sz=(Math.random()-.5)*9;
+    // even a slow pass flicks them up above the grass tips, where they can be seen
+    p.nx=-stamp.dz*side; p.nz=stamp.dx*side; p.lift=Math.max(.6,power);
+    // born around the height of the vortex cores, so the pair winds them up at once
+    p.pos.set(x+(Math.random()-.5)*2*j,bed.height+.30+.75*Math.random(),z+(Math.random()-.5)*2*j);
+    p.floor=bed.height+.025;
+    p.nextGroundCheck=.15+.12*Math.random();
+    // Torn loose with little speed of their own: the vortices take them from here.
+    // A few are flicked up and out hard enough to miss the cores altogether.
+    const carry=stamp.speed*(.12+.30*drive)*(.4+.6*r), flick=Math.random()<.14?2+3*Math.random():0;
+    const out=(.6+2.6*power)*Math.random()+flick;
+    p.vel.set(stamp.dx*carry+p.nx*out+(Math.random()-.5)*1.6,
+      1.6+3.2*Math.max(.5,power)*Math.random()+flick,stamp.dz*carry+p.nz*out+(Math.random()-.5)*1.6);
     if(petal) {
-      q.color.copy(bed.color).multiplyScalar(.96+.16*Math.random());
+      p.color.copy(bed.color).multiplyScalar(.96+.14*Math.random());
       stats.petals++;
     } else {
-      q.color.setHex(Math.random()<.5?0x8ea864:0xabbb77);
+      p.color.setHex(BITS[(Math.random()*BITS.length)|0]);
       stats.leaves++;
     }
   }
-  function shed(x,z,side,pressure,loss) {
-    // The release comes from the same before/after delta that removes rays
-    // from the stems. A second pass can still bend the grass on a spent bed.
-    petalCredit+=loss*bed.cover*2.8;
-    leafCredit+=pressure*(1-bed.cover*.75)*.17;
+  function shed(x,z,side,pressure,loss,lat) {
+    // Petals: more where this pass strips the flowers. Grass bits: wherever the downwash rakes.
+    // Counted per metre flown (the field integrates the swath's weight), most from under the two
+    // vortex cores, so a low cruise sheds over 40% of the boost's stream per second; the stream
+    // thins out above 1.2 m and is gone by 4.8 m.
+    const p=Math.sqrt(pressure), w=coreWeight(lat??0,field.W)*p*area/Math.max(.3,field.swath);
+    const perMetre=FLAKES_PER_METRE*rate*(.8+.2*stamp.drive)*(1-smooth(stamp.clearance,1.2,4.8));
+    petalCredit+=w*perMetre*bed.cover*(.3+1.6*Math.min(1,loss*2));
+    leafCredit+=w*perMetre*(1-.4*bed.cover)*.75;
     while(petalCredit>=1){loft(x,z,side,pressure,true);petalCredit--;}
-    if(leafCredit>=1){loft(x,z,side,pressure,false);leafCredit--;}
+    while(leafCredit>=1){loft(x,z,side,pressure,false);leafCredit--;}
   }
   function update(dt,wind) {
     const p=G.player;
@@ -173,54 +209,99 @@ export function createSlipstream(G) {
       for(const q of pool) q.age=q.life;
       previous=null; lastTime=-Infinity; petalCredit=leafCredit=0;
     }
+    budget=Math.ceil(capacity*.12);
     if(p.state==='broom' && trail?.count) {
       const sections=trail.sections;
       for(let i=trail.count;i>0;i--) {
         const s=sections[(trail.next-i+sections.length)%sections.length];
         if(s.time<=lastTime || time-s.time>.30)continue;
         lastTime=s.time;
-        const linked=previous && !previous.bare && s.time-previous.time<.4 &&
+        const linked=previous && previous.wet===!!s.wet && (!previous.bare || previous.wet) && s.time-previous.time<.4 &&
           Math.hypot(s.x-previous.x,s.z-previous.z)<9;
         stamp=s;
         const back=Math.min(1.4,s.half??1);
-        field.sweep(linked?previous.x:s.x-s.dx*back,linked?previous.z:s.z-s.dz*back,s,survey,shed);
-        last.x=s.x; last.z=s.z; last.time=s.time; last.bare=s.bare; previous=last; // reused, no per-section object
+        const fx=linked?previous.x:s.x-s.dx*back, fz=linked?previous.z:s.z-s.dz*back;
+        field.sweep(fx,fz,s,survey,shed,water);
+        // the same stretch of swath as a ribbon on the ground (where the meadow grows)
+        if(!s.bare && field.force>.05 && survey((fx+s.x)/2,(fz+s.z)/2))
+          swath.add(fx,fz,s.x,s.z,field.W,field.shift,Math.min(1,field.force*1.2),18+22*Math.min(1,field.force),s.time);
+        last.x=s.x; last.z=s.z; last.time=s.time; last.bare=s.bare; last.wet=!!s.wet; previous=last; // reused, no per-section object
       }
     } else previous=null;
     lastPos.copy(p.pos);
     hasPosition=true;
     field.refresh(p.pos.x,p.pos.z,time);
+    swath.update(time);
     flutter.value=time;
+    glow.value=.42*(1-.65*smooth(G.env?.veil??0,.45,.85));
     let visible=0;
+    const rv=p.state==='broom'?p.vel:null;
+    // the camera's own motion: flakes rushing past the lens are drawn out along their flight
+    const cam=G.camera?.position;
+    if(cam && dt>0) {
+      if(hasCam && cam.distanceToSquared(lastCam)<400) camVel.subVectors(cam,lastCam).divideScalar(dt); else camVel.set(0,0,0);
+      lastCam.copy(cam); hasCam=true;
+    }
     for(const q of pool) {
       if(q.age>=q.life)continue;
       q.age+=dt;
-      if(trail) trail.sample(q.pos,time,air); else air.set(0,0,0);
-      // The first outward/upward fold follows the passing brush. The released
-      // petals then roll back towards the cores and settle through the breeze.
-      const envelope=Math.exp(-1.65*q.age)*q.lift;
-      const angle=q.age*4.6;
-      const fan=envelope*Math.cos(angle)*5.4;
-      const lift=envelope*Math.sin(angle+.58)*6.2;
-      const drag=1-Math.exp(-(q.petal?2.45:2.05)*dt);
-      q.vel.x+=(wind.x*.37+air.x*.91+q.nx*fan-q.vel.x)*drag;
-      q.vel.z+=(wind.z*.37+air.z*.91+q.nz*fan-q.vel.z)*drag;
-      q.vel.y+=(air.y*.87+lift-(q.petal?.76:1.25)-q.vel.y)*drag;
-      q.pos.addScaledVector(q.vel,dt);
-      if(q.age>=q.nextGroundCheck){
-        q.floor=G.world.heightAt(q.pos.x,q.pos.z)+.025;
-        q.nextGroundCheck=q.age+.2;
-      }
-      if(q.pos.y<q.floor) {
-        q.pos.y=q.floor;
-        q.age=Math.max(q.age,q.life-.24);
-        q.vel.multiplyScalar(.38);
+      if(!q.settled) {
+        if(trail) { trail.sample(q.pos,time,air,q.hint); q.hint=trail.hit??-1; } else air.set(0,0,0);
+        const ws=Math.hypot(air.x,air.y,air.z);
+        // No two flakes fly alike: from one seed each gets its weight, its grip on the
+        // wake and its flutter (how hard and how fast it side-slips as it tumbles).
+        const sd=q.seed, h1=(sd*7.31)%1, h2=(sd*13.7)%1, h3=(sd*29.3)%1;
+        const grip=.90+.14*h3, s=sd*50, l=q.age, f1=4.4+5.2*h2;
+        const tb=(.45+Math.min(ws,14)*.10)*(.45+1.35*h1);
+        // The first outward/upward fold follows the passing brush; then the cores take over.
+        const envelope=Math.exp(-1.1*q.age)*q.lift, angle=q.age*3.2;
+        const fan=envelope*Math.cos(angle)*3.6, lift=envelope*Math.sin(angle+.6)*7;
+        // The pocket of air riding behind the rider drags fresh flakes along with her for
+        // half a second, so the swirl stays in front of the chase camera before it falls behind.
+        const pocket=(q.petal?.82:.7)*Math.exp(-(q.age*q.age)/.3);
+        const ax=wind.x*.40+air.x*grip+q.nx*fan+Math.sin(s+l*f1)*tb+(rv?rv.x:0)*pocket;
+        const az=wind.z*.40+air.z*grip+q.nz*fan+Math.cos(s*1.3+l*f1*.81)*tb+(rv?rv.z:0)*pocket;
+        const ay=air.y*grip+lift+Math.sin(s*.7+l*f1*1.38)*tb*.6;
+        const drag=q.petal?7+7*h1:6+4*h1, grav=q.petal?5+3*h2:9+3*h2;
+        const e=1-Math.exp(-drag*dt);
+        q.vel.x+=(ax-q.vel.x)*e; q.vel.y+=(ay-q.vel.y)*e; q.vel.z+=(az-q.vel.z)*e;
+        q.vel.y-=grav*dt;
+        q.pos.addScaledVector(q.vel,dt);
+        const tumble=Math.min(3.5,.35+.22*Math.hypot(q.vel.x-wind.x,q.vel.y,q.vel.z-wind.z))*dt;
+        q.rx+=q.sx*tumble; q.ry+=q.sy*tumble; q.rz+=q.sz*tumble;
+        if(q.age>=q.nextGroundCheck){
+          q.floor=G.world.heightAt(q.pos.x,q.pos.z)+.025;
+          q.nextGroundCheck=q.age+.2;
+        }
+        if(q.pos.y<q.floor) {
+          q.pos.y=q.floor;
+          if(ws>2.5) {
+            // the wake is still raking the ground here: skitter along it
+            q.vel.y=Math.abs(q.vel.y)*.25+ws*.05;
+            q.vel.x+=(Math.random()-.5)*(1.2+ws*.22); q.vel.z+=(Math.random()-.5)*(1.2+ws*.22);
+          } else {
+            q.settled=true; q.vel.set(0,0,0);
+            q.rx=-1.5708+(h1-.5)*.5; q.rz=(h2-.5)*.5;
+            q.life=Math.min(q.life,q.age+(q.petal?2.2:1.3));
+          }
+        }
       }
       pose.position.copy(q.pos);
-      pose.rotation.set(q.phase+q.age*q.spin, q.phase+q.age*q.side*2.4, .55*Math.sin(q.age*5+q.phase));
-      const size=q.size*(1-smooth(q.age,q.life-.35,q.life));
-      pose.scale.set(size*(q.petal?1.05:.60),size,size);
+      pose.rotation.set(q.rx,q.ry,q.rz);
+      const size=q.size*(.4+.6*Math.min(1,q.age*9))*(1-smooth(q.age,q.life-.35,q.life));
+      if(q.petal) pose.scale.set(size,size,size);
+      else pose.scale.set(size*.26,size*.5,size);
       pose.updateMatrix();
+      if(!q.settled) {
+        // stretch along the flake's speed relative to the camera (a motion-blur streak)
+        const vx=q.vel.x-camVel.x, vy=q.vel.y-camVel.y, vz=q.vel.z-camVel.z, vl=Math.hypot(vx,vy,vz);
+        // (not right at the lens, where a streak would fill the frame)
+        const st=Math.min(3.2,vl*.075)*(cam?smooth(q.pos.distanceTo(cam),1.6,5):1);
+        if(st>.15) {
+          const ux=vx/vl, uy=vy/vl, uz=vz/vl, e=pose.matrix.elements;
+          for(let c=0;c<12;c+=4){const dp=(e[c]*ux+e[c+1]*uy+e[c+2]*uz)*st; e[c]+=ux*dp; e[c+1]+=uy*dp; e[c+2]+=uz*dp;}
+        }
+      }
       mesh.setMatrixAt(visible,pose.matrix);
       mesh.setColorAt(visible++,q.color);
     }
@@ -228,5 +309,5 @@ export function createSlipstream(G) {
     mesh.visible=visible>0;
     if(visible) {mesh.instanceMatrix.needsUpdate=true;mesh.instanceColor.needsUpdate=true;}
   }
-  return {mesh,field,stats,update};
+  return {mesh,field,swath,stats,update};
 }
