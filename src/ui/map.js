@@ -67,7 +67,17 @@ addCss(`
 .mp-side .lg .sw.q { border-radius: 50%; background: radial-gradient(circle at 36% 30%, #c86373, var(--wine) 55%, #5a1d29); color: #fff; font-size: 10u; }
 .mp-side .lg .sw.veil { border-radius: 50%; background: radial-gradient(circle, #121130 52%, #ffd27a 56%, #ffd27a 66%, transparent 70%); }
 .mp-side .ft { margin-top: auto; font: 400 12u/1.8 var(--fb); color: var(--ink3); letter-spacing: .04em; }
-.mp-side .ft .keycap { margin: 0 3u; }
+/* travel stamps: inked ovals (double ring, a star, the stop's name) once she has been there, a faint dashed outline before */
+.mp-stamps { display: grid; grid-template-columns: 1fr 1fr; gap: 8u; margin: 6u 0 2u; }
+.mp-stamp { position: relative; height: 44u; display: flex; align-items: center; justify-content: center; gap: 4u; border-radius: 22u; color: var(--ink3); }
+.mp-stamp::before { content: ''; position: absolute; inset: 0; border-radius: inherit; border: 1u dashed rgba(148,113,47,.5); }
+.mp-stamp .nm { position: relative; font: 600 11.5u/1.15 var(--fd); letter-spacing: .04em; text-align: center; max-width: 80%; }
+.mp-stamp .st { position: relative; width: 9u; height: 9u; flex: none; background: currentColor; -webkit-mask: var(--mk-star) center / contain no-repeat; mask: var(--mk-star) center / contain no-repeat; }
+.mp-stamp:not(.on) .st { display: none; }
+.mp-stamp.on { color: var(--sk); opacity: .86; mix-blend-mode: multiply; transform: rotate(var(--tilt, 0deg)); box-shadow: inset 0 0 0 1.6u var(--sk); }
+.mp-stamp.on::before { inset: 3.5u; border: .8u solid var(--sk); }
+.mv-ui.compact .mp-stamps { gap: 6u; }
+.mv-ui.compact .mp-stamp { height: 38u; }
 `);
 
 // ---- base painting (shared, progressive) ------------------------------------------------------------------
@@ -171,6 +181,23 @@ function paintRows(budgetMs) {
 export function idlePaint(ms) { try { paintRows(ms); } catch (e) { base.done = true; G.reportError('ui:map', e); } }
 export const mapReady = () => {syncMapLake();return base.done;};
 
+// ---- travel stamps: the itinerary (world.itinerary, four stops west from home) as passport stamps on the map page ------
+// Every region belongs to one stop; entering it stamps that stop and the ones before it (the road west is one road, so an
+// old save that is already in the city gets its earlier stamps the first time a region is entered).
+const STOPS = ['hometown', 'forest', 'wilds', 'bellcrown'];
+const STOP_OF = { hometown: 0, farewell: 0, forest: 1, trial: 1, trialLake: 1, eastmoor: 2, wilds: 2, highpass: 2,
+  bellcrown: 3, gate: 3, lookout: 3, roof: 3, inn: 3, bellkeep: 3, practice: 3 };
+const STAMP_INK = ['#8b3343', '#2f5a4a', '#7a5a24', '#34467a'];
+const STAMP_TILT = [-7, 5, -3, 8];
+/** Record a visit (called on every 'region:enter'); writes G.state.stamps. */
+export function stampVisit(id) {
+  const k = STOP_OF[id];
+  const st = G.state;
+  if (k === undefined || !st) return;
+  if (!st.stamps || typeof st.stamps !== 'object') st.stamps = {};
+  for (let i = 0; i <= k; i++) st.stamps[STOPS[i]] = 1;
+}
+
 // ---- the tab -----------------------------------------------------------------------------------------------
 const BIG = new Set(['wilds']);
 // broad regions are rings or wide fields: their centroid is a poor place for a name, so they get a hand-picked spot
@@ -194,8 +221,19 @@ export function createMapTab(parent, providers) {
   const hereK = tel('div', 'k', here, 'ui.map.here'); void hereK;
   const hereV = el('div', 'v', here), hereS = el('div', 's', here);
   tel('div','sh',side,'world.atlas');
-  const itinerary=el('div','lg',side);
-  itinerary.textContent=t('world.itinerary');
+  const stampsEl = el('div', 'mp-stamps', side);
+  function paintStamps() {
+    clear(stampsEl);
+    const names = t('world.itinerary').split(/\s*·\s*/).map((x) => x.replace(/^[\s\u3000]+|[\s\u3000]+$/g, '')).filter(Boolean);
+    if (names.length !== STOPS.length) { el('div', 'lg', stampsEl, t('world.itinerary')); return; }
+    const got = (G.state && G.state.stamps) || {};
+    names.forEach((nm, i) => {
+      const on = !!got[STOPS[i]];
+      const sp = el('div', 'mp-stamp' + (on ? ' on' : ''), stampsEl);
+      sp.style.setProperty('--sk', STAMP_INK[i]); sp.style.setProperty('--tilt', (on ? STAMP_TILT[i] : 0) + 'deg');
+      el('i', 'st', sp); el('span', 'nm', sp, nm);
+    });
+  }
   tel('div','sh',side,'ui.map.legend');
   const leg=(cls,key,ic)=>{const r=el('div','lg',side),sw=el('span','sw '+cls,r);if(ic)icon(ic,'',sw);tel('span','',r,key);};
   leg('me','ui.map.legendYou');leg('place','ui.map.legendPlace');leg('q','ui.map.legendQuest','quest');
@@ -248,6 +286,7 @@ export function createMapTab(parent, providers) {
     const env = G.env || {};
     setText(hereV, env.region && has('world.place.' + env.region) ? t('world.place.' + env.region) : t('world.name'));
     setText(hereS, env.region && has('world.sub.' + env.region) ? t('world.sub.' + env.region) : '');
+    paintStamps();
     if (G.input?.touch) foot.textContent = t('ui.touch.mapHint'); else hintLine(foot, 'ui.menu.hintMap', { ok: codeLabel('Enter') });
   }
 

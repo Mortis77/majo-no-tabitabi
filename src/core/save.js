@@ -33,6 +33,7 @@ export function defaultState() {
     greatLanterns: {},   // great lantern id -> true once lit
     collected: {},       // collectible / chest id -> true
     discovered: {},      // POI id -> true once visited (shown on the map)
+    stamps: {},          // travel-journal stamps (src/ui/map.js): itinerary stop id -> 1 once she has been there
     defeated: {},        // boss / nest id -> true
     races: {},           // race id -> best time (seconds)
     lore: {},            // 绘马 id -> true once read

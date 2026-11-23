@@ -142,7 +142,7 @@ const TYPE = `
 .mv-ui :is(.hud-vit .num, .hud-count, .hud-dango, .hud-pin .ds, .hud-spell .cap .cost, .sh-pr, .mv-set .val, .foe-combo .n) { font-variant-numeric: tabular-nums lining-nums; }
 /* world-marker names step aside while the place-name card is up (the card and a marker share the upper middle) */
 @property --mv-yield { syntax: '<number>'; inherits: true; initial-value: 1; }
-.mv-ui:has(.mv-banner.on) { animation: mv-yield 4.4s both; }
+.mv-ui:has(.mv-banner.on) { animation: mv-yield 4.6s both; }
 @keyframes mv-yield { 0% { --mv-yield: 1; } 5%, 84% { --mv-yield: 0; } 100% { --mv-yield: 1; } }
 @media (prefers-reduced-motion: reduce) {
   .mv-ui *, .mv-ui *::before, .mv-ui *::after { animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
@@ -203,6 +203,7 @@ const COMPACT = `
 /* the place-name card: a size down, and the quest tracker steps aside while it is up (they share the top on a phone) */
 .mv-ui.compact .mv-banner .tt { font-size: 50u; }
 .mv-ui.compact .mv-banner .sub { font-size: 18u; }
+.mv-ui.compact .mv-banner .stamp { width: 54u; height: 54u; margin-top: -30u; font-size: 12u; }
 .mv-ui.compact .hud-tracker.on:not(.lb) { opacity: var(--mv-yield, 1); }
 /* touch: rows, options and buttons are fingertip-sized */
 .mv-ui.touch .mv-set .row { min-height: 44px; }

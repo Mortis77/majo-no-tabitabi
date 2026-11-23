@@ -27,27 +27,34 @@ addCss(`
 /* ---- fade ---- */
 .mv-fade { background: #05060d; opacity: 0; will-change: opacity; }
 
-/* ---- place-name card: the region's major name as a kicker, the serif name, an ornament drawn from the centre, the kai line ---- */
+/* ---- place-name card: a journal entry's heading for each new country: a hairline with a star, the serif name, the kai line
+   under it, and the region's major name as a round ink entry stamp pressed beside the name ---- */
 .mv-banner { display: flex; flex-direction: column; align-items: center; top: 13%; bottom: auto; opacity: 0; visibility: hidden; }
-.mv-banner.on { visibility: visible; animation: ban-in 4.4s both; }
+.mv-banner.on { visibility: visible; animation: ban-in 4.6s both; }
 @keyframes ban-in { 0% { opacity: 0; } 9% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
 .mv-banner::before { content: ''; position: absolute; left: 50%; top: -34u; width: 760u; height: 230u; margin-left: -380u; z-index: -1; pointer-events: none;
   background: radial-gradient(closest-side, rgba(8,12,28,.4), rgba(8,12,28,.2) 55%, rgba(8,12,28,0)); }
-.mv-banner .kick { display: flex; align-items: center; gap: 14u; margin-bottom: 8u; font: 600 13u/1.2 var(--fd); letter-spacing: .42em; margin-right: -.42em; color: var(--brass2); text-shadow: var(--halo); }
-.mv-banner .kick::before, .mv-banner .kick::after { content: ''; width: 46u; height: 1u; background: linear-gradient(90deg, rgba(236,217,164,0), var(--brass2)); }
-.mv-banner .kick::after { transform: scaleX(-1); }
-.mv-banner.on .kick { animation: ban-sub 4.4s both; }
-.mv-banner .line { display: flex; align-items: center; gap: 18u; }
+.mv-banner .hd { position: relative; width: 380u; height: 14u; margin-bottom: 6u;
+  background: linear-gradient(90deg, rgba(236,217,164,0), rgba(236,217,164,.85) 30%, rgba(236,217,164,.85) 70%, rgba(236,217,164,0)) center / 100% 1u no-repeat; }
+.mv-banner .hd::after { content: ''; position: absolute; left: 50%; top: 0; width: 14u; height: 14u; margin-left: -7u; background: var(--brass2); filter: drop-shadow(0 1u 2u rgba(0,0,0,.6));
+  -webkit-mask: var(--mk-star) center / contain no-repeat; mask: var(--mk-star) center / contain no-repeat; }
+.mv-banner.on .hd { animation: ban-rule 4.6s both cubic-bezier(.3,.7,.2,1); }
+@keyframes ban-rule { 0%, 4% { clip-path: inset(0 50% 0 50%); } 24%, 100% { clip-path: inset(0 0 0 0); } }
+.mv-banner .line { position: relative; display: flex; align-items: center; }
 .mv-banner .tt { font: 600 54u/1.2 var(--fd); letter-spacing: .14em; margin-right: -.14em; color: #fffaf0;
   text-shadow: 0 2u 3u rgba(6,8,18,.72), 0 0 20u rgba(6,8,18,.55), 0 0 44u rgba(6,8,18,.32); }
-.mv-banner.on .tt { animation: ban-tt 4.4s both cubic-bezier(.2,.7,.2,1); }
+.mv-banner.on .tt { animation: ban-tt 4.6s both cubic-bezier(.2,.7,.2,1); }
 @keyframes ban-tt { 0% { letter-spacing: .42em; margin-right: -.42em; } 22% { letter-spacing: .14em; margin-right: -.14em; } }
-.mv-banner .stroke { width: 320u; height: 22u; margin-top: 4u; background: linear-gradient(90deg, var(--brass), #fff3d0 50%, var(--brass)); filter: drop-shadow(0 1u 2u rgba(0,0,0,.65));
-  -webkit-mask: var(--mk-flourish) center / 100% 100% no-repeat; mask: var(--mk-flourish) center / 100% 100% no-repeat; }
-.mv-banner.on .stroke { animation: ban-stroke 4.4s both cubic-bezier(.3,.7,.2,1); }
-@keyframes ban-stroke { 0%, 6% { clip-path: inset(0 50% 0 50%); } 26%, 100% { clip-path: inset(0 0 0 0); } }
+.mv-banner .stamp { position: absolute; left: 100%; top: 50%; width: 62u; height: 62u; margin: -34u 0 0 14u; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  color: #f08f8c; font: 700 13.5u/1.1 var(--fd); letter-spacing: .12em; text-indent: .12em; box-shadow: inset 0 0 0 2u currentColor; opacity: 0;
+  filter: drop-shadow(0 0 1u rgba(6,8,18,.85)) drop-shadow(0 1u 4u rgba(6,8,18,.6)); }
+.mv-banner .stamp::before { content: ''; position: absolute; inset: 5u; border-radius: 50%; border: 1u solid currentColor; opacity: .85; }
+.mv-banner .stamp::after { content: ''; position: absolute; left: 50%; top: 8u; width: 8u; height: 8u; margin-left: -4u; background: currentColor;
+  -webkit-mask: var(--mk-star) center / contain no-repeat; mask: var(--mk-star) center / contain no-repeat; }
+.mv-banner.on .stamp { animation: ban-stamp 4.6s both; }
+@keyframes ban-stamp { 0%, 20% { opacity: 0; transform: rotate(-4deg) scale(1.9); } 25% { opacity: .95; transform: rotate(-14deg) scale(.93); } 29%, 100% { opacity: .92; transform: rotate(-12deg) scale(1); } }
 .mv-banner .sub { position: relative; margin-top: 8u; padding: 3u 30u; font: 400 20u/1.4 var(--fb); letter-spacing: .18em; margin-right: -.18em; color: #fff4e0; text-shadow: var(--halo); }
-.mv-banner.on .sub { animation: ban-sub 4.4s both; }
+.mv-banner.on .sub { animation: ban-sub 4.6s both; }
 @keyframes ban-sub { 0%, 14% { opacity: 0; transform: translateY(6u); } 28%, 100% { opacity: 1; transform: none; } }
 
 /* ---- toasts: night-glass slips with a coin icon and a brass thread ---- */
@@ -83,10 +90,10 @@ export function createStage(root, hudRoot) {
   el('i', '', lbox); el('i', '', lbox);
   const fadeEl = el('div', 'layer mv-fade', root);
   const banner = el('div', 'layer mv-banner', root);
-  const bSeal = el('div', 'kick', banner);   // the region's major name (opts.seal), set as a kicker over the name
+  el('div', 'hd', banner);
   const bLine = el('div', 'line', banner);
   const bTitle = el('div', 'tt', bLine);
-  el('div', 'stroke', banner);
+  const bSeal = el('div', 'stamp', bLine);   // the region's major name (opts.seal) as an ink entry stamp beside the name
   const bSub = el('div', 'sub', banner);
   const toasts = el('div', 'layer mv-toasts', root);
   const saved = el('div', 'mv-saved', root);
@@ -114,7 +121,7 @@ export function createStage(root, hudRoot) {
       if (live.length >= MAX_TOASTS) { if (queue.length < 12) queue.push([String(text), o]); return; }
       pushToast(String(text), o);
     },
-    /** Big place-name card. banner(null) takes it down at once. opts.seal: the region's major name, shown as a kicker. */
+    /** Big place-name card. banner(null) takes it down at once. opts.seal: the region's major name, pressed as an entry stamp. */
     banner(title, subtitle, opts = {}) {
       if (!title) { banner.classList.remove('on'); return; }
       setText(bTitle, String(title));

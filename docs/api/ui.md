@@ -207,7 +207,7 @@ and spins.
 - HUD: brass astrolabe emblem (sun/moon disc) beside capsule vitals; compass as a fading night ribbon with serif
   cardinals; serif tracker with a star bullet; glass counter, prompt and key hints; the spell medallion with a brass
   gauge ring; thin ivory crosshair; rose lock-on brackets; boss/duel bar with filigree end caps.
-- Place-name card: kicker (the region's major name between hairlines), serif title, ornament, kai subtitle.
+- Place-name card: hairline with a star, serif title, kai subtitle, the major name as an ink entry stamp (Journal round).
 - Toasts: night-glass slips with a brass edge and a coin icon.
 - Dialogue: parchment card with the filigree frame, a night name plate with a brass rim, an arched cameo holding the
   speaker's portrait (below), a brass star "next" mark; choices are glass pills with numbered coins.
@@ -218,6 +218,23 @@ and spins.
 - Spell wheel: a night-glass ring with brass hairlines and medallion slots; ceremony and ending in starlight and brass.
 - Phones: everything above, plus the existing touch rules — targets ≥ 44 px, `env(safe-area-inset-*)`, nothing
   over the stick (left-lower quarter) or the button cluster (lower right).
+
+### Journal round (the owner's note: the mood of 魔女之旅 / 奇诺之旅)
+The owner pointed the look at the two shows' traveller's-journal feel: a diary, a title card for each new country,
+quiet narration, the countries visited kept as stamps, a storybook tone a little wistful. Taken as mood only; every
+piece is drawn in code here and none reproduces either show's cards, logos or lettering.
+- **Country title card** (`stage.js` banner): a hairline with a star draws out from the centre, the serif name settles
+  in, the kai line follows, and the region's major name (`opts.seal`) is pressed beside the name as a round ink entry
+  stamp (double ring, a star, a short thump at ~25 % of the 4.6 s arc).
+- **Narration** (`dialogue.js`, a `say()` with no name and no portrait → `.dlg-box.narr`): centred, a touch lighter,
+  on faint ruled lines under a small flourish, like a line written in the travel diary.
+- **Travel stamps** (`map.js`, the map page's 旅路): the itinerary's four stops (`world.itinerary`) are passport
+  stamps — inked, tilted and multiplied into the parchment once she has been there, a faint dashed outline before.
+  `stampVisit(id)` runs on every `region:enter` (`ui.js`) and writes the new save field `G.state.stamps`
+  (`{ hometown|forest|wilds|bellcrown: 1 }`, default `{}` in `defaultState()`); each region id belongs to one stop
+  (`STOP_OF`), and a stop also stamps the ones before it (the road west is one road), so an old save already in the
+  city gets all its earlier stamps on the first region it enters.
+- **Ribbon bookmark**: a wine ribbon hangs over the grimoire page's top edge (`.mn-body::after`).
 
 ### Dialogue portraits
 The cameo shows a head-and-shoulders picture of the speaker, rendered by the game itself from the character's own 3D
@@ -236,6 +253,7 @@ render"): `elaina_apprentice`, `elaina_elaina`, `fran`, `saya`, `mother`, `fathe
 ### Hooks kept
 Class names the acceptance scripts and other systems read are unchanged (`.mn-subtabs .st`, `.mn-list .scroll .mn-row`,
 `.mv-ui`, `.mv-paper`, `.modal`, every `hud-*` / `dlg-*` / `tc-*` / `wh-*` / `foe-*` hook); the only DOM additions are
-ornaments (`.mv-banner .kick` now holds the region's major name, `.tt-name .orn`) and the menu sheet's `.mv-night` class.
-No exported function or data shape changed.
+ornaments (`.mv-banner .hd` and `.stamp` — the stamp holds the region's major name — `.tt-name .orn`, `.mp-stamps`), the
+menu sheet's `.mv-night` class and `.dlg-box.narr`.
+No exported function or data shape changed; the only new save field is `stamps` (defaulted, old saves load unchanged).
 

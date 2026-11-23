@@ -37,6 +37,13 @@ addCss(`
 .dlg-port .ic.glyph { font-size: 66u; font-weight: 600; line-height: 1; }
 .dlg-text { font: 400 20u/1.75 var(--fb); letter-spacing: .04em; color: var(--ink); white-space: pre-wrap; min-height: 70u; }
 .dlg-text .rest { opacity: 0; }
+/* narration (no speaker, no portrait): a quiet diary line, centred on faint ruled lines under a small flourish */
+.dlg-box.narr { padding: 38u 76u 30u; }
+.dlg-box.narr::before { content: ''; position: absolute; left: 50%; top: 16u; width: 132u; height: 12u; margin-left: -66u; background: var(--brass3); opacity: .55;
+  -webkit-mask: var(--mk-flourish) center / 100% 100% no-repeat; mask: var(--mk-flourish) center / 100% 100% no-repeat; }
+.dlg-box.narr .dlg-text { text-align: center; color: var(--ink2); font-size: 19u; line-height: 1.9; letter-spacing: .06em;
+  background: repeating-linear-gradient(180deg, transparent 0, transparent calc(1.9em - 1u), rgba(148,113,47,.2) calc(1.9em - 1u), rgba(148,113,47,.2) 1.9em); }
+.mv-ui.compact .dlg-box.narr { padding: 32u 48u 22u; }
 .dlg-next { position: absolute !important; right: 34u; bottom: 20u; width: 14u; height: 14u; background: var(--brass3); opacity: 0;
   -webkit-mask: var(--mk-star) center / contain no-repeat; mask: var(--mk-star) center / contain no-repeat; }
 .dlg-box.has-port.right .dlg-next { right: 174u; }
@@ -174,6 +181,7 @@ export function createDialogue(root) {
       choicesEl.classList.toggle('left', right);
       box.classList.remove('done', 'choosing');
       plate.style.display = o.name ? '' : 'none';
+      box.classList.toggle('narr', !o.name && !o.portrait);
       setText(plate, o.name ? String(o.name) : '');
       setPortrait(o.portrait, o.name);
       setText(shown, ''); setText(rest, str);

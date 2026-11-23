@@ -14,7 +14,7 @@ import { createTitle } from './title.js';
 import { createMenu } from './menu.js';
 import { createShop } from './shop.js';
 import { createCeremony } from './ceremony.js';
-import { idlePaint, mapReady } from './map.js';
+import { idlePaint, mapReady, stampVisit } from './map.js';
 import { selfUnlocked } from './dom.js';
 import { applyKeyBindings } from './panels.js';
 import { createReactions } from './reactions.js';   // 元素交织: reaction callouts, foe status marks, discoveries
@@ -90,6 +90,7 @@ export const uiSystem = {
     window.addEventListener('mousemove', (e) => { UI.mouse.x = e.clientX; UI.mouse.y = e.clientY; UI.mouse.moved = true; });
     offs.push(G.events.on('resize', () => applyScale(root)));
     offs.push(G.events.on('region:enter', (e) => {
+      stampVisit(e && e.id);   // the journal's travel stamps (map page), before any early return
       if (G.mode !== 'play' || !e || !e.id || e.id === 'sea' || hud.bossOn) return;
       const sub = has('world.sub.' + e.id) ? t('world.sub.' + e.id) : '';
       stage.banner(t('world.place.' + e.id), sub, { seal: e.major && has('core.major.' + e.major) ? t('core.major.' + e.major) : '' });

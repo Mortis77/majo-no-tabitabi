@@ -41,6 +41,9 @@ addCss(`
   background-size: 100% 100%, 256u 256u, 100% 100%; background-blend-mode: normal, multiply, normal;
   box-shadow: inset 0 0 0 1u rgba(122,92,46,.45), inset 0 0 34u rgba(160,118,62,.22), 0 0 0 1u rgba(236,217,164,.3), 0 6u 18u rgba(0,0,0,.35); }
 .mn-body::before { content: ''; position: absolute; inset: 5u; border: 22u solid transparent; pointer-events: none; border-image: var(--fr-paper) 36 / 22u stretch; }
+/* a wine ribbon bookmark hanging over the page's top edge */
+.mn-body::after { content: ''; position: absolute; right: 64u; top: -14u; width: 18u; height: 36u; pointer-events: none; z-index: 2;
+  background: linear-gradient(90deg, #6a2231, var(--wine2) 48%, #74283a); clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%); }
 .mn-pane { position: absolute; inset: 22u 28u 16u; display: none; }
 .mn-pane.on { display: block; animation: mn-in .25s ease-out; }
 @keyframes mn-in { from { opacity: 0; transform: translateY(6u); } to { opacity: 1; transform: none; } }
@@ -149,6 +152,7 @@ addCss(`
 .mv-ui.compact .mn-sub { display: none; }
 .mv-ui.compact .mn-body { margin-top: 4u; }
 .mv-ui.compact .mn-body::before { inset: 4u; border-width: 16u; border-image-width: 16u; }
+.mv-ui.compact .mn-body::after { right: 44u; top: -8u; width: 14u; height: 24u; }
 .mv-ui.compact .mn-pane { inset: 11u 15u 7u; }
 .mv-ui.compact .mn-foot { margin-top: 2u; }
 .mv-ui.compact .mn-split { gap: 18u; }
