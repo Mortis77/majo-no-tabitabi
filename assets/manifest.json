@@ -23500,5 +23500,285 @@
    "BatArmature|Bat_Hit"
   ],
   "notes": "Clip use: idle=Bat_Flying, move=Bat_Flying, attack=Bat_Attack, death=Bat_Death. Sculpted star-pecking bat on the mon_bat skeleton (joints, IBMs, clips unchanged; form from shade_bat.mjs). Vertex colours; TEXCOORD_0.x = glow of the amber eyes and the gold star flecks."
+ },
+ "sculpt_ground_quarry": {
+  "file": "models/sculpt/ground_quarry.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/ground_rocks.mjs (facet kit, rock_facet.mjs)",
+  "scale": 1,
+  "size": [
+   0.897,
+   1.023,
+   0.823
+  ],
+  "tris": 858,
+  "lods": [
+   858,
+   333,
+   94
+  ],
+  "materials": [
+   "Rock_rock",
+   "Moss_none"
+  ],
+  "mats": {
+   "Rock_rock": {
+    "surface": "rock",
+    "look": {
+     "rim": 0.22,
+     "wrap": 0.3
+    }
+   },
+   "Moss_none": {
+    "surface": "none",
+    "look": {
+     "rim": 0.3,
+     "wrap": 0.5
+    }
+   }
+  },
+  "notes": "Facet stone (quarry) for the landmark rock set pieces: exact planes with bevelled edges, beds / joints / drill marks as geometry, moss cushion as its own primitive (Moss_none). Vertex colour only (COLOR_0 linear rgb, neutral stone ~#9b9b9b). LOD tris 858 / 333 / 94. Origin = foot centre, ~1 m unit; src/world/landforms/setpieces.js fits it into each piece's box."
+ },
+ "sculpt_ground_spoil": {
+  "file": "models/sculpt/ground_spoil.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/ground_rocks.mjs (facet kit, rock_facet.mjs)",
+  "scale": 1,
+  "size": [
+   1.52,
+   0.573,
+   1.592
+  ],
+  "tris": 1573,
+  "lods": [
+   1573,
+   832,
+   166
+  ],
+  "materials": [
+   "Rock_rock",
+   "Moss_none"
+  ],
+  "mats": {
+   "Rock_rock": {
+    "surface": "rock",
+    "look": {
+     "rim": 0.22,
+     "wrap": 0.3
+    }
+   },
+   "Moss_none": {
+    "surface": "none",
+    "look": {
+     "rim": 0.3,
+     "wrap": 0.5
+    }
+   }
+  },
+  "notes": "Facet stone (spoil) for the landmark rock set pieces: exact planes with bevelled edges, beds / joints / drill marks as geometry, moss cushion as its own primitive (Moss_none). Vertex colour only (COLOR_0 linear rgb, neutral stone ~#9b9b9b). LOD tris 1573 / 832 / 166. Origin = foot centre, ~1 m unit; src/world/landforms/setpieces.js fits it into each piece's box."
+ },
+ "sculpt_ground_tor_a": {
+  "file": "models/sculpt/ground_tor_a.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/ground_rocks.mjs (facet kit, rock_facet.mjs)",
+  "scale": 1,
+  "size": [
+   1.05,
+   0.627,
+   0.851
+  ],
+  "tris": 580,
+  "lods": [
+   580,
+   326,
+   99
+  ],
+  "materials": [
+   "Rock_rock",
+   "Moss_none"
+  ],
+  "mats": {
+   "Rock_rock": {
+    "surface": "rock",
+    "look": {
+     "rim": 0.22,
+     "wrap": 0.3
+    }
+   },
+   "Moss_none": {
+    "surface": "none",
+    "look": {
+     "rim": 0.3,
+     "wrap": 0.5
+    }
+   }
+  },
+  "notes": "Facet stone (tor_a) for the landmark rock set pieces: exact planes with bevelled edges, beds / joints / drill marks as geometry, moss cushion as its own primitive (Moss_none). Vertex colour only (COLOR_0 linear rgb, neutral stone ~#9b9b9b). LOD tris 580 / 326 / 99. Origin = foot centre, ~1 m unit; src/world/landforms/setpieces.js fits it into each piece's box."
+ },
+ "sculpt_ground_tor_b": {
+  "file": "models/sculpt/ground_tor_b.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/ground_rocks.mjs (facet kit, rock_facet.mjs)",
+  "scale": 1,
+  "size": [
+   0.956,
+   0.577,
+   0.914
+  ],
+  "tris": 733,
+  "lods": [
+   733,
+   389,
+   131
+  ],
+  "materials": [
+   "Rock_rock",
+   "Moss_none"
+  ],
+  "mats": {
+   "Rock_rock": {
+    "surface": "rock",
+    "look": {
+     "rim": 0.22,
+     "wrap": 0.3
+    }
+   },
+   "Moss_none": {
+    "surface": "none",
+    "look": {
+     "rim": 0.3,
+     "wrap": 0.5
+    }
+   }
+  },
+  "notes": "Facet stone (tor_b) for the landmark rock set pieces: exact planes with bevelled edges, beds / joints / drill marks as geometry, moss cushion as its own primitive (Moss_none). Vertex colour only (COLOR_0 linear rgb, neutral stone ~#9b9b9b). LOD tris 733 / 389 / 131. Origin = foot centre, ~1 m unit; src/world/landforms/setpieces.js fits it into each piece's box."
+ },
+ "sculpt_ground_quarry_face_a": {
+  "file": "models/sculpt/ground_quarry_face_a.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/ground_rocks.mjs (facet kit, rock_facet.mjs)",
+  "scale": 1,
+  "size": [
+   1.018,
+   1.059,
+   0.916
+  ],
+  "tris": 706,
+  "lods": [
+   706,
+   376,
+   117
+  ],
+  "materials": [
+   "Rock_rock",
+   "Moss_none"
+  ],
+  "mats": {
+   "Rock_rock": {
+    "surface": "rock",
+    "look": {
+     "rim": 0.22,
+     "wrap": 0.3
+    }
+   },
+   "Moss_none": {
+    "surface": "none",
+    "look": {
+     "rim": 0.3,
+     "wrap": 0.5
+    }
+   }
+  },
+  "notes": "Facet stone (quarry_face_a) for the landmark rock set pieces: exact planes with bevelled edges, beds / joints / drill marks as geometry, moss cushion as its own primitive (Moss_none). Vertex colour only (COLOR_0 linear rgb, neutral stone ~#9b9b9b). LOD tris 706 / 376 / 117. Origin = foot centre, ~1 m unit; src/world/landforms/setpieces.js fits it into each piece's box."
+ },
+ "sculpt_ground_quarry_face_b": {
+  "file": "models/sculpt/ground_quarry_face_b.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/ground_rocks.mjs (facet kit, rock_facet.mjs)",
+  "scale": 1,
+  "size": [
+   1.001,
+   1.06,
+   0.868
+  ],
+  "tris": 791,
+  "lods": [
+   791,
+   465,
+   142
+  ],
+  "materials": [
+   "Rock_rock",
+   "Moss_none"
+  ],
+  "mats": {
+   "Rock_rock": {
+    "surface": "rock",
+    "look": {
+     "rim": 0.22,
+     "wrap": 0.3
+    }
+   },
+   "Moss_none": {
+    "surface": "none",
+    "look": {
+     "rim": 0.3,
+     "wrap": 0.5
+    }
+   }
+  },
+  "notes": "Facet stone (quarry_face_b) for the landmark rock set pieces: exact planes with bevelled edges, beds / joints / drill marks as geometry, moss cushion as its own primitive (Moss_none). Vertex colour only (COLOR_0 linear rgb, neutral stone ~#9b9b9b). LOD tris 791 / 465 / 142. Origin = foot centre, ~1 m unit; src/world/landforms/setpieces.js fits it into each piece's box."
+ },
+ "sculpt_ground_quarry_half": {
+  "file": "models/sculpt/ground_quarry_half.glb",
+  "type": "model",
+  "license": "CC0 (original work)",
+  "author": "sculpted for this project",
+  "source": "tools/sculpt/assets/ground_rocks.mjs (facet kit, rock_facet.mjs)",
+  "scale": 1,
+  "size": [
+   1.062,
+   1.032,
+   0.936
+  ],
+  "tris": 768,
+  "lods": [
+   768,
+   324,
+   89
+  ],
+  "materials": [
+   "Rock_rock",
+   "Moss_none"
+  ],
+  "mats": {
+   "Rock_rock": {
+    "surface": "rock",
+    "look": {
+     "rim": 0.22,
+     "wrap": 0.3
+    }
+   },
+   "Moss_none": {
+    "surface": "none",
+    "look": {
+     "rim": 0.3,
+     "wrap": 0.5
+    }
+   }
+  },
+  "notes": "Facet stone (quarry_half) for the landmark rock set pieces: exact planes with bevelled edges, beds / joints / drill marks as geometry, moss cushion as its own primitive (Moss_none). Vertex colour only (COLOR_0 linear rgb, neutral stone ~#9b9b9b). LOD tris 768 / 324 / 89. Origin = foot centre, ~1 m unit; src/world/landforms/setpieces.js fits it into each piece's box."
  }
 }
