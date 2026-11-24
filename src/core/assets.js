@@ -48,6 +48,8 @@ function shareSkeletons(root) {
  *   ?sculpt=stone_lantern,komainu   exactly these types
  * G.sculpt.enabled = false before the world builds has the same effect as ?sculpt=0.
  */
+const FIGURE_SITES = ['wind', 'thunder', 'fire', 'earth', 'water', 'ice'].map((e) => 'sculpt_stele_' + e).concat(['harp', 'rod', 'candles', 'candle_a',
+  'candle_b', 'lectern_ring', 'lectern', 'basin', 'bud_stem', 'bud_petal', 'spring'].map((m) => 'sculpt_mech_' + m));
 export const SCULPT_TYPES = {
   stone_lantern: ['sculpt_stone_lantern'],
   komainu: ['sculpt_komainu_a', 'sculpt_komainu_un'],
@@ -91,20 +93,25 @@ export const SCULPT_TYPES = {
   // roadside errands' felt hat, easel, stove, handcart and sitting stone; vertex colours on every LOD
   'props-activity': ['sculpt_briar_thicket', 'sculpt_rubble_heap', 'sculpt_chest_pack', 'sculpt_chest_pack_lid', 'sculpt_ring_willow',
     'sculpt_hat_felt', 'sculpt_easel_painter', 'sculpt_stove_iron', 'sculpt_cart_hand', 'sculpt_seat_stone'],
+  // figures (round art-figures): the City of Magic residents' carried props (builders/mage-folk.js, tools/sculpt/assets/folk_*.mjs),
+  // the page-trial steles and mechanisms (gameplay/wilds-pages.js, tools/sculpt/assets/stele_page.mjs, mech_*.mjs)
+  // and the crystal golem's body (combat/golem-body.js, tools/sculpt/assets/golem_rock.mjs)
+  figures: ['sculpt_folk_basket', 'sculpt_folk_hat_straw', 'sculpt_folk_cap', ...FIGURE_SITES, 'sculpt_golem_rock'],
 };
 // sculpts built twice (full body / *_lo at about a third of the triangles): each tier loads only its own; the creature
 // code falls back to the other if the tier changes later (actors/creature.js kitPick)
 const SCULPT_LO = new Set(['sculpt_froststag_lo', 'sculpt_embersnake_lo', 'sculpt_wolf_wild_lo', 'sculpt_bat_star_lo']);
 const SCULPT_HI = new Set([...SCULPT_LO].map((id) => id.slice(0, -3)));
 export const SCULPT_DEFAULT = ['stone_lantern', 'komainu', 'kitsune', 'great_lantern', 'rockfam', 'drywall', 'mill', 'landmarks', 'ground', 'pot', 'barrel', 'bucket', 'pumpkin',
-  'jar', 'cart', 'hen', 'gohei', 'broom', 'hip_lantern', 'earth_column', 'creatures', 'props-activity'];
+  'jar', 'cart', 'hen', 'gohei', 'broom', 'hip_lantern', 'earth_column', 'creatures', 'props-activity', 'figures'];
 // sculpt GLBs whose COLOR_0 was rewritten by the asset's own post step (dango.mjs post, gohei.mjs / hip_lantern.mjs --split /
 // --post: sRGB paint -> linear once) — measured single-encoded, so fixSculptColours must leave them alone
 // facet-kit GLBs (tools/sculpt/assets/rock_facet.mjs) write linear COLOR_0 once as well, and so does the landmark driver
 // (tools/sculpt/assets/landmarks_lib.mjs vcAll: the kit's bakeVertexColors, sRGB paint -> linear once), and the activity
-// props (tools/sculpt/assets/props_activity_lib.mjs: the facet kit's writer)
+// props (tools/sculpt/assets/props_activity_lib.mjs: the facet kit's writer), the page-trial sites and the rock golem
+// (tools/sculpt/assets/mech_lib.mjs on the facet kit)
 const SCULPT_VC_OK = new Set(['sculpt_dango', 'sculpt_prop_gohei', 'sculpt_hip_lantern', ...SCULPT_TYPES.rockfam, ...SCULPT_TYPES.drywall, ...SCULPT_TYPES.mill,
-  ...SCULPT_TYPES.landmarks, ...SCULPT_TYPES.ground, ...SCULPT_TYPES['props-activity']]);
+  ...SCULPT_TYPES.landmarks, ...SCULPT_TYPES.ground, ...SCULPT_TYPES['props-activity'], ...FIGURE_SITES, 'sculpt_golem_rock']);
 function sculptSwitch(G) {
   const p = G.params?.sculpt;
   const types = new Set(p === '0' ? [] : p === 'all' ? Object.keys(SCULPT_TYPES) : !p || p === '1' ? SCULPT_DEFAULT : String(p).split(',').map((s) => s.trim()).filter((s) => SCULPT_TYPES[s]));
