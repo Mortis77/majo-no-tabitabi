@@ -305,7 +305,7 @@ export default {
     aiLines: ['Claude Opus 5.5', 'Claude Fable 5.2', 'ChatGPT 5.2 Astra'],
     // GitHub logins of everyone outside the maintainer whose pull request was merged, in merge order (AGENTS.md F credits)
     contributors: '同行者',
-    contributorLines: ['jhyz'],
+    contributorLines: ['jhyz', 'Mortis77'],
     game: '魔女之旅',
     made: '绘卷',
     madeLines: ['山川、草木、灯火与故事，皆为此卷而作。'],

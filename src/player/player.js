@@ -429,10 +429,11 @@ function readInput(P, S) {
   I.mx = ok ? inp.moveX : 0; I.my = ok ? inp.moveY : 0;
   // Auto-forward (toggle): one press walks forward on, the next stops it. Forward or back cancels it, and
   // losing control - dialogue, a cutscene, a menu, the map, death, a stun - clears it, so she never starts
-  // walking on her own the moment a conversation ends.
-  if (!ok) {
+  // walking on her own the moment a conversation ends. A short action lock (a stagger, a full-body clip: lockT)
+  // only pauses it: she walks on once the lock is over.
+  if (G.mode !== 'play' || !P.control || P.dead || S.stunT > 0 || S.frozen) {
     S.autoFwd = false;
-  } else {
+  } else if (ok) {
     if (inp.pressed('autoForward')) S.autoFwd = !S.autoFwd;
     if (inp.held('back') || inp.held('forward')) S.autoFwd = false;
     if (S.autoFwd) I.my = Math.max(I.my, 1);
